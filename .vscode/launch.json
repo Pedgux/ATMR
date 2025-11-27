@@ -1,0 +1,17 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": ".NET Core Launch (integrated terminal)",
+            "type": "coreclr",
+            "request": "launch",
+            "preLaunchTask": "build",
+            "program": "${workspaceFolder}/RTOR/bin/Debug/net8.0/RTOR.dll",
+            "args": [],
+            "cwd": "${workspaceFolder}/RTOR",
+            "console": "integratedTerminal",
+            "stopAtEntry": false,
+            "internalConsoleOptions": "neverOpen"
+        }
+    ]
+}
