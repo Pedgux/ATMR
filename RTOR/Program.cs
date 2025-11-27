@@ -2,13 +2,6 @@
 Attempt At A Multiplayer Roguelike (ATMR)
 Inspired by Nathan Daniel's "Roguelike Theory of Relativity (RTOR)" paper
 Built with Spectre.Console for console UI: https://spectreconsole.net/
-
-Docs (local PDF):
-    - relative:    ./docs/RTOR.pdf
-    - workspace:   docs/RTOR.pdf
-    - file URI:    file:///C:/Kod/Cterav%C3%A4/RTOR/docs/RTOR.pdf  (note: special chars percent-encoded)
-
-Tip: Most editors (VS Code) will make the relative path clickable in comments; click or Ctrl+Click to open the PDF.
 */
 
 using Spectre.Console;
