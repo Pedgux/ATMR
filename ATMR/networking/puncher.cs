@@ -3,6 +3,9 @@ namespace ATMR.Networking;
 using System.Net.Sockets;
 using System.Text;
 
+/// <summary>
+/// Handles nat punching to establish a P2P connection.
+/// </summary>
 public static class Puncher
 {
     public static async Task RunListener(int port)
