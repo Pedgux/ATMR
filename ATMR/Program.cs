@@ -4,12 +4,34 @@ Inspired by Nathan Daniel's "Roguelike Theory of Relativity (RTOR)" paper
 Built with Spectre.Console for console UI: https://spectreconsole.net/
 */
 
+using System;
+using System.Threading.Tasks;
 using ATMR.Networking;
 using Spectre.Console;
 
 public static class Program
 {
-    public static void Main()
+    // Support async entry so we can await long-running listeners
+    public static async Task Main(string[] args)
+    {
+        // ask the user for mode (input)
+        string mode = AnsiConsole.Ask<string>("Type out a mode (send / listen): ");
+
+        if (mode == "listen")
+        {
+            int port = int.Parse(AnsiConsole.Ask<string>("Type out a port number: "));
+            await Puncher.RunListener(port);
+            return;
+        }
+
+        if (mode == "send") { }
+
+        // default behavior
+        // GameLoop();
+    }
+
+    // gameloop will be here, just a placeholder for now
+    public static void GameLoop()
     {
         // Testing if Spectre.Console works
         AnsiConsole
@@ -28,6 +50,5 @@ public static class Program
                     Thread.Sleep(500);
                 }
             );
-        Puncher.Test();
     }
 }
