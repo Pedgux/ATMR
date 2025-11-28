@@ -22,7 +22,7 @@ public static class Program
                     for (int i = 0; i < 100; i++)
                     {
                         ctx.Status($"<~~ sand falling: {i + 1}%");
-                        Thread.Sleep(50);
+                        Thread.Sleep(5);
                     }
                     ctx.Status("Done!");
                     Thread.Sleep(500);
