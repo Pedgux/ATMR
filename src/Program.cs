@@ -12,6 +12,11 @@ public static class Program
     // Support async entry so we can await long-running listeners
     public static async Task Main(string[] args)
     {
+        await Lobby.Initialize();
+        string playerId =
+            Lobby.Auth?.LocalId
+            ?? throw new InvalidOperationException("Lobby.Auth or LocalId is null");
+
         (string ip_, ushort port_) = IpPortEncoder.Decode("fwAAAROI");
         AnsiConsole.WriteLine($"{ip_}:{port_}");
         // ask the user for mode (input)
@@ -27,6 +32,9 @@ public static class Program
         if (mode == "send")
         {
             string ip = AnsiConsole.Ask<string>("Type out the ip: ");
+            // Ensure we pass a non-null player id to Lobby.Join
+            AnsiConsole.WriteLine($"player ID; {playerId}");
+            await Lobby.Join("1234", playerId, ip, port);
             //await Lobby.Join("1234", "player1", ip, port);
             var cts = new CancellationTokenSource();
 
