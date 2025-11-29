@@ -7,12 +7,13 @@ Built with Spectre.Console for console UI: https://spectreconsole.net/
 using ATMR.Networking;
 using Spectre.Console;
 
-
 public static class Program
 {
     // Support async entry so we can await long-running listeners
     public static async Task Main(string[] args)
     {
+        (string ip_, ushort port_) = IpPortEncoder.Decode("fwAAAROI");
+        AnsiConsole.WriteLine($"{ip_}:{port_}");
         // ask the user for mode (input)
         string mode = AnsiConsole.Ask<string>("Type out a mode (send / listen): ");
         int port = int.Parse(AnsiConsole.Ask<string>("Type out a port number: "));
