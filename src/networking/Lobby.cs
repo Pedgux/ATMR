@@ -2,9 +2,7 @@ namespace ATMR.Networking;
 
 using System.Net.Http;
 using System.Text;
-using Firebase.Auth;
-using Firebase.Database;
-using Firebase.Database.Query;
+// Firebase packages removed; using plain HTTP PUT for lobby signaling
 
 public static class Lobby
 {
