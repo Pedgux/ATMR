@@ -1,4 +1,4 @@
-using System;
+namespace ATMR.Networking;
 
 public static class IpPortEncoder
 {

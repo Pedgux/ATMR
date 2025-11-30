@@ -6,6 +6,7 @@ using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
+using Spectre.Console;
 
 public static class Lobby
 {
@@ -16,9 +17,6 @@ public static class Lobby
     // HTTP to GET / PUT data
     public static readonly HttpClient client = new HttpClient();
     private static string webApiKey = "AIzaSyAaOzN7xaYvMgcB7tIseQ6W7K5kjMb-iSA";
-
-    // Firebase client for authorized DB access
-    // https://github.com/step-up-labs/firebase-authentication-dotnet
 
     public static FirebaseAuthResponse? Auth { get; private set; }
 
@@ -76,9 +74,10 @@ public static class Lobby
             {
                 // Log or handle the error
                 string errorContent = await response.Content.ReadAsStringAsync();
-
-                Console.WriteLine($"Error signing in anonymously: {response.StatusCode}");
-                Console.WriteLine($"Error details: {errorContent}");
+                AnsiConsole.MarkupLine(
+                    $"[red]Error signing in anonymously: {response.StatusCode}[/]"
+                );
+                AnsiConsole.MarkupLine($"[red]Error details: {errorContent}[/]");
                 return null;
             }
         }
@@ -101,7 +100,7 @@ public static class Lobby
         if (Auth == null)
             throw new Exception("Anonymous auth failed. Check console output for details.");
 
-        Console.WriteLine($"Signed in anonymously. LocalId: {Auth.LocalId}");
+        AnsiConsole.MarkupLine($"[yellow]Signed in anonymously.[/]");
     }
 
     public static async Task Join(string lobbyCode, string playerId, string ip, int port)
@@ -116,11 +115,17 @@ public static class Lobby
             ?? throw new InvalidOperationException(
                 "Auth response missing idToken. Call Lobby.Initialize(apiKey) and verify authentication succeeded."
             );
+
         //need to PUT this into existence (pun intended)
         string url = $"{BaseUrl}lobbies/{lobbyCode}/{playerId}.json?auth={idToken}";
+        AnsiConsole.MarkupLine($"[purple]Using: {ip}:{port} in blob[/]");
         string blob = IpPortEncoder.Encode(ip, (ushort)port);
+        AnsiConsole.MarkupLine($"[purple]Encoded blob: {blob}[/]");
+        AnsiConsole.MarkupLine($"[purple]Decoded blob: {IpPortEncoder.Decode(blob)}[/]");
         var content = new StringContent($"\"{blob}\"", Encoding.UTF8, "application/json");
+        AnsiConsole.MarkupLine($"[green]Trying to create lobby...[/]");
         var response = await client.PutAsync(url, content);
         response.EnsureSuccessStatusCode(); //pls do not explode
+        AnsiConsole.MarkupLine($"[green]Lobby created![/]");
     }
 }

@@ -1,30 +1,23 @@
 namespace ATMR.Networking;
 
+using System.Net;
 using System.Net.Sockets;
 using System.Text;
+using System.Threading.Tasks;
 
 /// <summary>
-/// Handles nat punching to establish a P2P connection.
+/// Handles nat punching & gets address from STUN to establish a P2P connection.
 /// </summary>
-public static class Puncher
+public class Puncher
 {
-    public static async Task RunListener(int port)
+    public static async Task Punch(IPEndPoint peer)
     {
-        using var udp = new UdpClient(port);
-        Console.WriteLine($"Listening on {port}...");
+        byte[] poke = Encoding.UTF8.GetBytes("poke");
 
-        while (true)
+        for (int i = 0; i < 100; i++)
         {
-            var result = await udp.ReceiveAsync();
-            Console.WriteLine($"[RECV] {Encoding.UTF8.GetString(result.Buffer)}");
+            await UdpTransport.Udp.SendAsync(poke, poke.Length, peer);
+            await Task.Delay(150);
         }
-    }
-
-    public static async Task Send(string ip, int port, string message)
-    {
-        using var udp = new UdpClient();
-        var data = Encoding.UTF8.GetBytes(message);
-        await udp.SendAsync(data, data.Length, ip, port);
-        Console.WriteLine($"[SENT] {message}");
     }
 }
