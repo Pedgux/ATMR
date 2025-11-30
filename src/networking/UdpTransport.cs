@@ -31,9 +31,15 @@ public static class UdpTransport
             ?? throw new InvalidOperationException("Lobby.Auth or LocalId is null");
         AnsiConsole.MarkupLine($"[yellow]playerId is: {playerId}[/]");
         await Lobby.Join(lobbyId, playerId, ip, port);
+
+        string blob = AnsiConsole.Ask<string>("Please paste the blob: ");
+        (string peerIp, ushort peerPort) = IpPortEncoder.Decode(blob);
+        var peerEndpoint = new IPEndPoint(IPAddress.Parse(peerIp), peerPort);
+        AnsiConsole.MarkupLine($"[blue]Punching {peerEndpoint}[/]");
+        await Puncher.Punch(peerEndpoint);
+
         // start receiving packets
         await ReceiveLoop();
-
         // TODO:
         // gotta subscribe to lobby updates, see if another player joins / is already there
         // then query for their blob, decode and start nat punching via Puncher.cs
