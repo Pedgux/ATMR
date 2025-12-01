@@ -176,5 +176,6 @@ public static class Lobby
             Console.WriteLine("No other player found.");
             return null;
         }
+        return null;
     }
 }
