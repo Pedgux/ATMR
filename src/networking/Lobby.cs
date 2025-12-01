@@ -1,7 +1,9 @@
 namespace ATMR.Networking;
 
 using System;
+using System.Collections.Generic;
 using System.Net.Http;
+using System.Net.Http.Json;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -127,5 +129,52 @@ public static class Lobby
         var response = await client.PutAsync(url, content);
         response.EnsureSuccessStatusCode(); //pls do not explode
         AnsiConsole.MarkupLine($"[green]Lobby created![/]");
+    }
+
+    public static async Task<string?> GetOtherPlayerBlob(string lobbyCode, string notThisOne)
+    {
+        bool found = false;
+
+        while (found == false)
+        {
+            if (Auth is null)
+                throw new InvalidOperationException(
+                    "Lobby not initialized. Call Lobby.Initialize(apiKey) before Join."
+                );
+
+            string idToken =
+                Auth.IdToken
+                ?? throw new InvalidOperationException(
+                    "Auth response missing idToken. Call Lobby.Initialize(apiKey) and verify authentication succeeded."
+                );
+
+            string url = $"{BaseUrl}lobbies/{lobbyCode}.json?auth={idToken}";
+            var response = await client.GetAsync(url);
+            response.EnsureSuccessStatusCode();
+
+            var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+            Dictionary<string, string>? map = await response.Content.ReadFromJsonAsync<
+                Dictionary<string, string>
+            >(options);
+
+            if (map == null || map.Count == 0)
+            {
+                Console.WriteLine("Lobby empty or response was 'null'.");
+                return null;
+            }
+
+            // Find the first player ID that is not the client's ID (notThisOne)
+            foreach (var kvp in map)
+            {
+                if (!string.Equals(kvp.Key, notThisOne, StringComparison.Ordinal))
+                {
+                    Console.WriteLine($"Found other player ID: {kvp.Key} (blob: {kvp.Value})");
+                    return kvp.Value;
+                }
+            }
+
+            Console.WriteLine("No other player found.");
+            return null;
+        }
     }
 }

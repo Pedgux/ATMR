@@ -32,7 +32,11 @@ public static class UdpTransport
         AnsiConsole.MarkupLine($"[yellow]playerId is: {playerId}[/]");
         await Lobby.Join(lobbyId, playerId, ip, port);
 
-        string blob = AnsiConsole.Ask<string>("Please paste the blob: ");
+        string? blob = await Lobby.GetOtherPlayerBlob(lobbyId, playerId);
+        if (string.IsNullOrWhiteSpace(blob))
+            throw new InvalidOperationException(
+                "Lobby.GetOtherPlayerBlob returned null or empty blob for the other player in the lobby"
+            );
         (string peerIp, ushort peerPort) = IpPortEncoder.Decode(blob);
         var peerEndpoint = new IPEndPoint(IPAddress.Parse(peerIp), peerPort);
         AnsiConsole.MarkupLine($"[blue]Punching {peerEndpoint}[/]");
