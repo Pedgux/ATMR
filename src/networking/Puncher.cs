@@ -17,7 +17,7 @@ public class Puncher
         for (int i = 0; i < 100; i++)
         {
             await UdpTransport.Udp.SendAsync(poke, poke.Length, peer);
-            await Task.Delay(150);
+            await Task.Delay(300);
         }
     }
 }
