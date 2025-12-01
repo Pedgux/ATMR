@@ -42,8 +42,6 @@ public static class UdpTransport
         AnsiConsole.MarkupLine($"[blue]Punching {peerEndpoint}[/]");
         await Puncher.Punch(peerEndpoint);
 
-        // start receiving packets
-        await ReceiveLoop();
         // TODO:
         // gotta subscribe to lobby updates, see if another player joins / is already there
         // then query for their blob, decode and start nat punching via Puncher.cs
@@ -58,6 +56,15 @@ public static class UdpTransport
             try
             {
                 var result = await Udp.ReceiveAsync();
+                // decode bytes to string (UTF-8)
+                var message = System.Text.Encoding.UTF8.GetString(
+                    result.Buffer,
+                    0,
+                    result.Buffer.Length
+                );
+                AnsiConsole.MarkupLine(
+                    $"[green]Message from {result.RemoteEndPoint}:[/] {message}"
+                );
                 Console.WriteLine($"Got {result.Buffer.Length} bytes from {result.RemoteEndPoint}");
             }
             catch (Exception ex)
