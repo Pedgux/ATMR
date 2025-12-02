@@ -39,7 +39,7 @@ public static class UdpTransport
             );
         (string peerIp, ushort peerPort) = IpPortEncoder.Decode(blob);
         var peerEndpoint = new IPEndPoint(IPAddress.Parse(peerIp), peerPort);
-        AnsiConsole.MarkupLine($"[blue]Punching {peerEndpoint}[/]");
+
         await Puncher.Punch(peerEndpoint);
 
         // start receiving packets
@@ -59,15 +59,6 @@ public static class UdpTransport
             try
             {
                 var result = await Udp.ReceiveAsync();
-                // decode bytes to string (UTF-8)
-                var message = System.Text.Encoding.UTF8.GetString(
-                    result.Buffer,
-                    0,
-                    result.Buffer.Length
-                );
-                AnsiConsole.MarkupLine(
-                    $"[green]Message from {result.RemoteEndPoint}:[/] {message}"
-                );
                 Console.WriteLine($"Got {result.Buffer.Length} bytes from {result.RemoteEndPoint}");
             }
             catch (Exception ex)
