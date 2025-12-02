@@ -42,6 +42,9 @@ public static class UdpTransport
         AnsiConsole.MarkupLine($"[blue]Punching {peerEndpoint}[/]");
         await Puncher.Punch(peerEndpoint);
 
+        // start receiving packets
+        await ReceiveLoop();
+
         // TODO:
         // gotta subscribe to lobby updates, see if another player joins / is already there
         // then query for their blob, decode and start nat punching via Puncher.cs
