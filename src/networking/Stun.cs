@@ -2,6 +2,7 @@ namespace ATMR.Networking;
 
 using System.Net;
 using System.Net.Sockets;
+using System.Linq;
 
 public static class Stun
 {
@@ -10,7 +11,8 @@ public static class Stun
         int port = 19302
     )
     {
-        var serverAddress = (await Dns.GetHostAddressesAsync(host))[0];
+        var addrs = await Dns.GetHostAddressesAsync(host);
+        var serverAddress = addrs.FirstOrDefault(a => a.AddressFamily == AddressFamily.InterNetwork) ?? addrs[0];
         var server = new IPEndPoint(serverAddress, port);
 
         UdpTransport.Udp.Client.ReceiveTimeout = 3000;
