@@ -43,18 +43,17 @@ public static class UdpTransport
 
         await Puncher.Punch(peerEndpoint);
 
-        // start receiving packets
-        await ReceiveLoop();
+        // start receiving packets & if punching succeeds sending keepalives
+        await ReceiveLoop(peerEndpoint);
 
         // TODO:
         // after game is over, each user deletes their own node and last user deletes lobby
         // unless firebase auto deletes empty JSON Objects. This was true while testing with manual deletion
     }
 
-    public static async Task ReceiveLoop()
+    public static async Task ReceiveLoop(IPEndPoint peer)
     {
-        // start keepalive
-
+        bool connected = false;
         while (true)
         {
             try
@@ -67,22 +66,37 @@ public static class UdpTransport
                     result.Buffer.Length
                 );
 
-                AnsiConsole.MarkupLine(
-                    $"[green]Message from {result.RemoteEndPoint}:[/] {message}"
-                );
-                Console.WriteLine($"Got {result.Buffer.Length} bytes from {result.RemoteEndPoint}");
+                // treat a single byte 0x01 as a "poke" keepalive
+                bool isKeepAliveByte = result.Buffer.Length == 1 && result.Buffer[0] == 0x01;
+
+                if (isKeepAliveByte)
+                {
+                    AnsiConsole.MarkupLine("[blue]alive[/]");
+                }
+
+                if (message == "poke")
+                {
+                    if (!connected)
+                    {
+                        AnsiConsole.MarkupLine("[green]Got a connection![/]");
+                        connected = true;
+                        await KeepAliveLoop(peer);
+                    }
+                    continue;
+                }
+                //Console.WriteLine($"Got {result.Buffer.Length} bytes from {result.RemoteEndPoint}");
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Receive error: {ex}");
+                AnsiConsole.MarkupLine($"[red]Receive error: {ex}[/]");
             }
         }
     }
 
-    private static async Task KeepAlive(IPEndPoint peer)
+    private static async Task KeepAliveLoop(IPEndPoint peer)
     {
         byte[] poke = { 0x01 };
-        Timer timer = new Timer(30000) { AutoReset = true, Enabled = true };
+        Timer timer = new(30000) { AutoReset = true, Enabled = true };
 
         // buh lambda. Needs the two params because the += delegate expects them. Named _ because unused
         timer.Elapsed += async (_, __) =>
