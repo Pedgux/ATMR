@@ -3,6 +3,7 @@ namespace ATMR.Networking;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading.Tasks;
+using System.Timers;
 using Spectre.Console;
 
 public static class UdpTransport
@@ -46,19 +47,29 @@ public static class UdpTransport
         await ReceiveLoop();
 
         // TODO:
-        // gotta subscribe to lobby updates, see if another player joins / is already there
-        // then query for their blob, decode and start nat punching via Puncher.cs
-        // after nat punching succeeds, each user deletes their own node and last user deletes lobby
+        // after game is over, each user deletes their own node and last user deletes lobby
         // unless firebase auto deletes empty JSON Objects. This was true while testing with manual deletion
     }
 
     public static async Task ReceiveLoop()
     {
+        // start keepalive
+
         while (true)
         {
             try
             {
                 var result = await Udp.ReceiveAsync();
+                // decode bytes to string (UTF-8)
+                var message = System.Text.Encoding.UTF8.GetString(
+                    result.Buffer,
+                    0,
+                    result.Buffer.Length
+                );
+
+                AnsiConsole.MarkupLine(
+                    $"[green]Message from {result.RemoteEndPoint}:[/] {message}"
+                );
                 Console.WriteLine($"Got {result.Buffer.Length} bytes from {result.RemoteEndPoint}");
             }
             catch (Exception ex)
@@ -66,5 +77,24 @@ public static class UdpTransport
                 Console.WriteLine($"Receive error: {ex}");
             }
         }
+    }
+
+    private static async Task KeepAlive(IPEndPoint peer)
+    {
+        byte[] poke = { 0x01 };
+        Timer timer = new Timer(30000) { AutoReset = true, Enabled = true };
+
+        // buh lambda. Needs the two params because the += delegate expects them. Named _ because unused
+        timer.Elapsed += async (_, __) =>
+        {
+            try
+            {
+                await Udp.SendAsync(poke, poke.Length, peer);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"KeepAlive send error to {peer}: {ex.Message}");
+            }
+        };
     }
 }

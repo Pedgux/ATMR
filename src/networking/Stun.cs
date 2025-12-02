@@ -16,7 +16,7 @@ public static class Stun
             addrs.FirstOrDefault(a => a.AddressFamily == AddressFamily.InterNetwork) ?? addrs[0];
         var server = new IPEndPoint(serverAddress, port);
 
-        UdpTransport.Udp.Client.ReceiveTimeout = 3000;
+        UdpTransport.Udp.Client.ReceiveTimeout = 5000;
 
         byte[] request = BuildRequest();
         await UdpTransport.Udp.SendAsync(request, request.Length, server);
