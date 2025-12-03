@@ -2,9 +2,9 @@ namespace ATMR.UI;
 
 using Spectre.Console;
 
-public class Messages()
+public static class Messages
 {
-    public void Initialize()
+    public static void Initialize()
     {
         var panel = new Panel("Hello World");
         panel.Expand = true;
