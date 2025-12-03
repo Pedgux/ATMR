@@ -6,6 +6,9 @@ using System.Net.Sockets;
 
 public static class Stun
 {
+    /// <summary>
+    /// black magic
+    /// </summary>
     public static async Task<(string ip, ushort port)> GetPublicIPAsync(
         string host = "stun.l.google.com",
         int port = 19302
