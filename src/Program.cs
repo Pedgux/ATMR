@@ -14,28 +14,24 @@ public static class Program
     {
         Input.Poll();
         await UdpTransport.Initialize(lobbyCode);
-        Messages.Initialize();
     }
 
-    public static async Task Main(string[] args)
+    public static async Task Main()
     {
-        // Create a table
-        var table = new Table()
-            .AddColumn("ID")
-            .AddColumn("Methods")
-            .AddColumn("Purpose")
-            .AddRow("1", "Center()", "Initializes a new instance that is center aligned")
-            .AddRow("2", "Measure()", "Measures the renderable object")
-            .AddRow("3", "Right()", "Initializes a new instance that is right aligned.");
+        AnsiConsole.Clear();
 
-        // Create a panel
-        var panel = new Panel(table).Header("Other Align Methods").Border(BoxBorder.Double);
-
-        // Renders the panel in the top-center of the console
-        AnsiConsole.Write(new Align(panel, HorizontalAlignment.Center, VerticalAlignment.Top));
+        // Create and initialize instance-based UI
+        var ui = new UI();
+        ui.Initialize();
+        // Optionally create the Messages handler that references the UI
+        var messages = new Messages(ui);
+        // Render the UI
+        ui.Render();
 
         //var lobbyCode = AnsiConsole.Prompt(new TextPrompt<string>("Type out a lobby code: "));
         //await Initialize(lobbyCode);
+
+        while (true) { }
     }
 
     // placeholder ig

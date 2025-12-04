@@ -66,10 +66,7 @@ public static class UdpTransport
                     result.Buffer.Length
                 );
 
-                // treat a single byte 0x01 as a "poke" keepalive
-                bool isKeepAliveByte = result.Buffer.Length == 1 && result.Buffer[0] == 0x01;
-
-                if (isKeepAliveByte)
+                if (result.Buffer.Length == 1 && result.Buffer[0] == 0x01)
                 {
                     AnsiConsole.MarkupLine("[blue]alive[/]");
                 }

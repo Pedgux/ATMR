@@ -2,11 +2,41 @@ namespace ATMR.UI;
 
 using Spectre.Console;
 
-public static class Messages
+public sealed class UI
 {
-    public static void Initialize()
+    private Layout _root = new();
+
+    // Public accessor for other parts of the app to query the layout.
+    public Layout RootLayout => _root;
+
+    public void Initialize()
     {
-        var panel = new Panel("Hello World");
-        panel.Expand = true;
+        // Create the UI
+        _root = new Layout("Root").SplitColumns(
+            new Layout("Left")
+                .Ratio(3)
+                .SplitRows(
+                    new Layout("Game").MinimumSize(20).Ratio(4),
+                    new Layout("Stats").MinimumSize(5).Ratio(1)
+                ),
+            new Layout("Right")
+                .Ratio(2)
+                .SplitRows(new Layout("Messages").Ratio(4), new Layout("Inventory").Ratio(10))
+        );
+
+        /*
+        // Stats have all players? Potential idea
+        int playerCount = 2;
+        var statsTable = new Table { Expand = true };
+        for (int i = 1; i <= playerCount; i++)
+            statsTable.AddColumn($"p{i}");
+
+        _root["Stats"].Update(statsTable);
+        */
+    }
+
+    public void Render()
+    {
+        AnsiConsole.Write(_root);
     }
 }
