@@ -1,0 +1,46 @@
+root = true
+
+[*.{cs,vb}]
+charset = utf-8
+end_of_line = crlf
+insert_final_newline = true
+indent_style = space
+indent_size = 4
+trim_trailing_whitespace = true
+
+# C# style preferences
+dotnet_sort_system_directives_first = true
+
+# var usage
+csharp_style_var_for_built_in_types = true:suggestion
+csharp_style_var_when_type_is_apparent = true:suggestion
+csharp_style_var_elsewhere = false:suggestion
+
+# Naming: private fields use _camelCase
+dotnet_naming_symbols.private_fields.applicable_kinds = field
+dotnet_naming_symbols.private_fields.applicable_accessibilities = private
+dotnet_naming_style.private_fields_underscore_prefix.required_prefix = _
+dotnet_naming_style.private_fields_underscore_prefix.capitalization = camel_case
+dotnet_naming_rule.private_fields_should_have_underscore_prefix.symbols = private_fields
+dotnet_naming_rule.private_fields_should_have_underscore_prefix.style = private_fields_underscore_prefix
+dotnet_naming_rule.private_fields_should_have_underscore_prefix.severity = suggestion
+
+# Interfaces should start with I
+dotnet_naming_symbols.interfaces.applicable_kinds = interface
+dotnet_naming_style.interface_style.required_prefix = I
+dotnet_naming_style.interface_style.capitalization = pascal_case
+dotnet_naming_rule.interfaces_start_with_I.symbols = interfaces
+dotnet_naming_rule.interfaces_start_with_I.style = interface_style
+dotnet_naming_rule.interfaces_start_with_I.severity = suggestion
+
+# Async methods should end with Async
+dotnet_naming_symbols.async_methods.applicable_kinds = method
+dotnet_naming_symbols.async_methods.required_modifiers = async
+dotnet_naming_style.async_methods_style.required_suffix = Async
+dotnet_naming_style.async_methods_style.capitalization = pascal_case
+dotnet_naming_rule.async_methods_should_end_with_async.symbols = async_methods
+dotnet_naming_rule.async_methods_should_end_with_async.style = async_methods_style
+dotnet_naming_rule.async_methods_should_end_with_async.severity = suggestion
+
+# File headers and ordering
+file_header_template = Copyright (c) YOUR_COMPANY_NAME. All rights reserved.
