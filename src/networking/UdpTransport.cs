@@ -90,7 +90,7 @@ public static class UdpTransport
         }
     }
 
-    private static async Task KeepAliveLoop(IPEndPoint peer)
+    private static Task KeepAliveLoop(IPEndPoint peer)
     {
         byte[] poke = { 0x01 };
         Timer timer = new(30000) { AutoReset = true, Enabled = true };
@@ -107,5 +107,7 @@ public static class UdpTransport
                 Console.WriteLine($"KeepAlive send error to {peer}: {ex.Message}");
             }
         };
+
+        return System.Threading.Tasks.Task.CompletedTask;
     }
 }

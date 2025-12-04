@@ -9,24 +9,26 @@ using Spectre.Console;
 public sealed class Messages
 {
     private readonly UI _ui;
-    private Panel _messagePanel;
+    private readonly Panel _messagePanel;
     private Layout MessageWindow => _ui.RootLayout["Messages"];
-    private string[] _messages = System.Array.Empty<string>();
+    private string[] _messages = [];
 
     // Constructor to get the UI referensööri
     public Messages(UI ui)
     {
         _ui = ui;
-        _messagePanel = new Panel(
-            "" /*replace with the actual messages to show wowooooo*/
-        );
+        _messagePanel = new Panel(new Markup("The [green]goblin[/] strikes you!"))
+        {
+            Expand = true,
+        }.HeaderAlignment(Justify.Left);
+
         MessageWindow.Update(_messagePanel);
     }
 
     // Start the update loop (cannot await in constructor)
-    public async Task StartAsync()
+    public Task StartAsync()
     {
-        await AnsiConsole.Live(MessageWindow).StartAsync(async ctx => { });
+        return AnsiConsole.Live(MessageWindow).StartAsync(ctx => Task.CompletedTask);
     }
 
     // Convenience async factory: constructs and runs StartAsync

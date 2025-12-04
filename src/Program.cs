@@ -8,6 +8,8 @@ using ATMR.Networking;
 using ATMR.UI;
 using Spectre.Console;
 
+#pragma warning disable CS1998
+
 public static class Program
 {
     public static async Task Initialize(string lobbyCode)
@@ -20,12 +22,10 @@ public static class Program
     {
         AnsiConsole.Clear();
 
-        // Create and initialize instance-based UI
+        // Create, initialize and render an instance-based UI
         var ui = new UI();
         ui.Initialize();
-        // Optionally create the Messages handler that references the UI
-        var messages = new Messages(ui);
-        // Render the UI
+        await Messages.CreateAsync(ui);
         ui.Render();
 
         //var lobbyCode = AnsiConsole.Prompt(new TextPrompt<string>("Type out a lobby code: "));

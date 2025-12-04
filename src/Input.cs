@@ -11,7 +11,7 @@ public static class Input
     {
         while (Console.KeyAvailable)
         {
-            var key = Console.ReadKey(true);
+            ConsoleKeyInfo key = Console.ReadKey(true);
             InputQueue.Enqueue(key.Key); // store it for the game loop
         }
     }
