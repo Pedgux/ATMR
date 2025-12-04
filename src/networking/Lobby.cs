@@ -137,6 +137,8 @@ public static class Lobby
 
         while (found == false)
         {
+            // pause 2 seconds before retrying
+            await Task.Delay(TimeSpan.FromSeconds(2));
             if (Auth is null)
                 throw new InvalidOperationException(
                     "Lobby not initialized. Call Lobby.Initialize(apiKey) before Join."

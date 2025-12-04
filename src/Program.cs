@@ -4,6 +4,7 @@ Inspired by Nathan Daniel's "Roguelike Theory of Relativity (RTOR)" paper
 Built with Spectre.Console for console UI: https://spectreconsole.net/
 */
 
+using ATMR;
 using ATMR.Networking;
 using ATMR.UI;
 using Spectre.Console;
@@ -25,7 +26,20 @@ public static class Program
         // Create, initialize and render an instance-based UI
         var ui = new UI();
         ui.Initialize();
-        await Messages.CreateAsync(ui);
+        // expose UI globally for simple access by other modules
+        GameState.RootUI = ui;
+        // fuk juu
+        // hmm this line works, Messages access of panel is broken grr.
+        //ui.RootLayout["Messages"].Update(new Panel("gr"));
+
+        Messages messageWindow = new Messages(ui);
+        GameState.Messages = messageWindow;
+
+        //ah viiimeiinnn
+        messageWindow.Write("[red]red[/]");
+        messageWindow.Write("[green]green[/]");
+        messageWindow.Write("[blue]blue[/]");
+
         ui.Render();
 
         //var lobbyCode = AnsiConsole.Prompt(new TextPrompt<string>("Type out a lobby code: "));

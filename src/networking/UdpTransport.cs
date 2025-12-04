@@ -108,6 +108,6 @@ public static class UdpTransport
             }
         };
 
-        return System.Threading.Tasks.Task.CompletedTask;
+        return Task.CompletedTask;
     }
 }
