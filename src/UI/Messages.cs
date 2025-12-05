@@ -47,7 +47,7 @@ public sealed class Messages
                 message = subMessage;
             }
             */
-            _messages.Add($"#{_messages.Count, -2} {message} {_messageWindowSize}");
+            _messages.Add($"#{_messages.Count, -2} {message}");
             if (_messages.Count > _messageHistory)
                 _messages.RemoveRange(0, _messages.Count - _messageHistory);
 
