@@ -96,20 +96,25 @@ public static class UdpTransport
     private static Task KeepAliveLoop(IPEndPoint peer)
     {
         byte[] poke = { 0x01 };
-        Timer timer = new(30000) { AutoReset = true, Enabled = true };
 
-        // buh lambda. Needs the two params because the += delegate expects them. Named _ because unused
-        timer.Elapsed += async (_, __) =>
+        // Use a background Task loop instead of a Timer so the work isn't
+        // garbage-collected when this method returns. The Task runs forever
+        // and sends a single-byte keepalive every 30 seconds.
+        _ = Task.Run(async () =>
         {
-            try
+            while (true)
             {
-                await Udp.SendAsync(poke, poke.Length, peer);
+                try
+                {
+                    await Task.Delay(30000);
+                    await Udp.SendAsync(poke, poke.Length, peer);
+                }
+                catch (Exception ex)
+                {
+                    GameState.MessageWindow?.Write($"KeepAlive send error to {peer}: {ex.Message}");
+                }
             }
-            catch (Exception ex)
-            {
-                GameState.MessageWindow?.Write($"KeepAlive send error to {peer}: {ex.Message}");
-            }
-        };
+        });
 
         return Task.CompletedTask;
     }
