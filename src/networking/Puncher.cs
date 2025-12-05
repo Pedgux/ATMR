@@ -9,7 +9,7 @@ using Spectre.Console;
 /// <summary>
 /// Handles nat punching & gets address from STUN to establish a P2P connection.
 /// </summary>
-public class Puncher
+public static class Puncher
 {
     public static async Task Punch(IPEndPoint peer)
     {
@@ -17,7 +17,7 @@ public class Puncher
         byte[] poke = Encoding.UTF8.GetBytes("poke");
 
         // tries for 30s
-        for (int i = 0; i < 500; i++)
+        for (int i = 0; i < 300; i++)
         {
             await UdpTransport.Udp.SendAsync(poke, poke.Length, peer);
             await Task.Delay(100);

@@ -9,13 +9,13 @@ using ATMR.Networking;
 using ATMR.UI;
 using Spectre.Console;
 
-#pragma warning disable CS1998
+//ragma warning disable CS1998
 
 public static class Program
 {
     public static async Task Initialize(string lobbyCode)
     {
-        Input.Poll();
+        //await Input.StartPolling();
         await UdpTransport.Initialize(lobbyCode);
     }
 

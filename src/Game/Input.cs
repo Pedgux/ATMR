@@ -4,15 +4,14 @@ using System.Data;
 
 public static class Input
 {
-    public static readonly ConcurrentQueue<ConsoleKey> InputQueue = new();
-
-    // Call this from your game loop to poll and enqueue key presses
-    public static void Poll()
+    public static async Task StartPolling()
     {
-        while (Console.KeyAvailable)
+        while (true)
         {
-            ConsoleKeyInfo key = Console.ReadKey(true);
-            InputQueue.Enqueue(key.Key); // store it for the game loop
+            if (Console.KeyAvailable)
+            {
+                ConsoleKeyInfo key = Console.ReadKey(true);
+            }
         }
     }
 }

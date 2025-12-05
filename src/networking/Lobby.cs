@@ -22,7 +22,7 @@ public static class Lobby
 
     public static FirebaseAuthResponse? Auth { get; private set; }
 
-    public class FirebaseAuthResponse
+    public sealed class FirebaseAuthResponse
     {
         [JsonPropertyName("idToken")]
         public string? IdToken { get; set; }
@@ -134,7 +134,7 @@ public static class Lobby
     public static async Task<string?> GetOtherPlayerBlob(string lobbyCode, string notThisOne)
     {
         bool found = false;
-        GameState.MessageWindow?.Write("Waiting for players...");
+        GameState.MessageWindow?.Write("[blue]Waiting for players...[/]");
         while (found == false)
         {
             // pause before retrying to save data heheee
@@ -171,7 +171,7 @@ public static class Lobby
                 if (!string.Equals(kvp.Key, notThisOne, StringComparison.Ordinal))
                 {
                     GameState.MessageWindow?.Write(
-                        $"Found other player ID: {kvp.Key} (blob: {kvp.Value})"
+                        $"[blue]Found other player, ID: {kvp.Key} (blob: {kvp.Value})[/]"
                     );
                     return kvp.Value;
                 }

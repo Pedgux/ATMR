@@ -44,6 +44,7 @@ public static class UdpTransport
         (string peerIp, ushort peerPort) = IpPortEncoder.Decode(blob);
         var peerEndpoint = new IPEndPoint(IPAddress.Parse(peerIp), peerPort);
 
+        //executes this far
         await Puncher.Punch(peerEndpoint);
 
         // start receiving packets & if punching succeeds sending keepalives

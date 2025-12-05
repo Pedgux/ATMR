@@ -2,10 +2,7 @@ namespace ATMR.UI;
 
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 using Spectre.Console;
-using Spectre.Console.Rendering;
 
 /// <summary>
 /// Handling of the Messages window.
@@ -19,7 +16,8 @@ public sealed class Messages
     private readonly Layout _messageWindow;
     private readonly List<string> _messages = new();
     private int _messageHistory = 100;
-    private int _messageWindowSize = 9;
+    private int _messageWindowHeight = 9;
+    private int _messageWindowWidth;
 
     //private int offset = 0;
 
@@ -30,6 +28,7 @@ public sealed class Messages
         _messagePanel = new Panel("") { Expand = true };
         _messageWindow = _ui.RootLayout["Messages"];
         _messageWindow.Update(_messagePanel);
+        _messageWindowWidth = _messageWindow.Size.GetValueOrDefault() - 2;
     }
 
     // Append a message and trim history.
@@ -37,23 +36,33 @@ public sealed class Messages
     {
         lock (_messages)
         {
-            _messages.Add(message);
+            /*
+            // if message is too large, split into multiple so shi does not break :c
+            while (message.Length > _messageWindowWidth)
+            {
+                var subMessage = message.Substring(_messageWindowWidth);
+                message = message.Substring(0, _messageWindowWidth);
+                _messages.Add(message);
+                message = subMessage;
+            }
+            */
+            _messages.Add($"#{_messages.Count} {message} {_messageWindowWidth}");
             if (_messages.Count > _messageHistory)
                 _messages.RemoveRange(0, _messages.Count - _messageHistory);
 
-            //var maxOffset = Math.Max(0, _messages.Count - _messageWindowSize);
+            //var maxOffset = Math.Max(0, _messages.Count - _messageWindowHeight);
             //offset = Math.Min(offset, maxOffset);
         }
     }
 
     private string GetMessageString()
     {
-        var start = Math.Max(0, _messages.Count - _messageWindowSize);
+        var start = Math.Max(0, _messages.Count - _messageWindowHeight);
         lock (_messages)
         {
             if (_messages.Count == 0)
                 return string.Empty;
-            return string.Join('\n', _messages.Skip(start).Take(_messageWindowSize));
+            return string.Join('\n', _messages.Skip(start).Take(_messageWindowHeight));
         }
     }
 
@@ -62,5 +71,6 @@ public sealed class Messages
     {
         var panel = new Panel(new Markup(GetMessageString())) { Expand = true };
         _messageWindow.Update(panel);
+        _messageWindowWidth = _messageWindow.Size.GetValueOrDefault() - 2;
     }
 }
