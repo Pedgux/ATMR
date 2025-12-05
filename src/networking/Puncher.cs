@@ -13,7 +13,7 @@ public class Puncher
 {
     public static async Task Punch(IPEndPoint peer)
     {
-        AnsiConsole.MarkupLine($"[red]Punching: {peer}[/]");
+        GameState.MessageWindow?.Write($"[red]Punching: {peer}[/]");
         byte[] poke = Encoding.UTF8.GetBytes("poke");
 
         // tries for 30s

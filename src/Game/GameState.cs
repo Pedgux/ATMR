@@ -6,5 +6,5 @@ namespace ATMR;
 public static class GameState
 {
     public static UI.UI? RootUI { get; set; }
-    public static UI.Messages? Messages { get; set; }
+    public static UI.Messages? MessageWindow { get; set; }
 }

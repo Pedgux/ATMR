@@ -23,14 +23,16 @@ public static class UdpTransport
     {
         _udp = new UdpClient(0);
         var (ip, port) = await Stun.GetPublicIPAsync();
-        AnsiConsole.MarkupLine($"[green]Address from STUN: {ip}:{port}[/]");
+        //AnsiConsole.MarkupLine($"[green]Address from STUN: {ip}:{port}[/]");
+
+        GameState.MessageWindow?.Write($"[green]Address from STUN: {ip}:{port}[/]");
 
         await Lobby.Initialize();
 
         string playerId =
             Lobby.Auth?.LocalId
             ?? throw new InvalidOperationException("Lobby.Auth or LocalId is null");
-        AnsiConsole.MarkupLine($"[yellow]playerId is: {playerId}[/]");
+        GameState.MessageWindow?.Write($"[yellow]playerId is: {playerId}[/]");
         await Lobby.Join(lobbyId, playerId, ip, port);
 
         string? blob = await Lobby.GetOtherPlayerBlob(lobbyId, playerId);
@@ -38,6 +40,7 @@ public static class UdpTransport
             throw new InvalidOperationException(
                 "Lobby.GetOtherPlayerBlob returned null or empty blob for the other player in the lobby"
             );
+
         (string peerIp, ushort peerPort) = IpPortEncoder.Decode(blob);
         var peerEndpoint = new IPEndPoint(IPAddress.Parse(peerIp), peerPort);
 
@@ -68,24 +71,23 @@ public static class UdpTransport
 
                 if (result.Buffer.Length == 1 && result.Buffer[0] == 0x01)
                 {
-                    AnsiConsole.MarkupLine("[blue]alive[/]");
+                    GameState.MessageWindow?.Write("[blue]alive[/]");
                 }
 
                 if (message == "poke")
                 {
                     if (!connected)
                     {
-                        AnsiConsole.MarkupLine("[green]Got a connection![/]");
+                        GameState.MessageWindow?.Write("[green]Got a connection![/]");
                         connected = true;
                         await KeepAliveLoop(peer);
                     }
                     continue;
                 }
-                //Console.WriteLine($"Got {result.Buffer.Length} bytes from {result.RemoteEndPoint}");
             }
             catch (Exception ex)
             {
-                AnsiConsole.MarkupLine($"[red]Receive error: {ex}[/]");
+                GameState.MessageWindow?.Write($"[red]Receive error: {ex}[/]");
             }
         }
     }
@@ -104,7 +106,7 @@ public static class UdpTransport
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"KeepAlive send error to {peer}: {ex.Message}");
+                GameState.MessageWindow?.Write($"KeepAlive send error to {peer}: {ex.Message}");
             }
         };
 

@@ -1,54 +1,66 @@
 namespace ATMR.UI;
 
-using System.Runtime.InteropServices;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Spectre.Console;
+using Spectre.Console.Rendering;
 
 /// <summary>
 /// Handling of the Messages window.
+/// Runs a single Live session bound to the Messages layout child and updates it from
+/// a background loop. `Write` only mutates the message buffer.
 /// </summary>
 public sealed class Messages
 {
     private readonly UI _ui;
     private Panel _messagePanel;
-    private Layout MessageWindow => _ui.RootLayout["Messages"];
-    private List<string> _messages = [];
+    private readonly Layout _messageWindow;
+    private readonly List<string> _messages = new();
     private int _messageHistory = 100;
-    public int offset = 0;
+    private int _messageWindowSize = 9;
 
-    // Constructor to get the UI referensööri
+    //private int offset = 0;
+
+    // Constructor: capture the layout child. Live will be started at program-level.
     public Messages(UI ui)
     {
         _ui = ui;
         _messagePanel = new Panel("") { Expand = true };
-        MessageWindow.Update(_messagePanel);
+        _messageWindow = _ui.RootLayout["Messages"];
+        _messageWindow.Update(_messagePanel);
     }
 
+    // Append a message and trim history.
     public void Write(string message)
     {
-        _messages.Add(message);
-        //offset++;
-        if (_messages.Count > _messageHistory)
+        lock (_messages)
         {
-            // remove the excess message
-            _messages.RemoveAt(0);
-        }
+            _messages.Add(message);
+            if (_messages.Count > _messageHistory)
+                _messages.RemoveRange(0, _messages.Count - _messageHistory);
 
-        _messagePanel = new Panel(new Markup(GetMessageString())) { Expand = true };
-        MessageWindow.Update(_messagePanel);
+            //var maxOffset = Math.Max(0, _messages.Count - _messageWindowSize);
+            //offset = Math.Min(offset, maxOffset);
+        }
     }
 
     private string GetMessageString()
     {
-        var windowSize = MessageWindow.Size.GetValueOrDefault();
-        var result = string.Empty;
-        // Don't read past the end of the message list
-        var end = Math.Min(_messages.Count, offset + windowSize);
-        for (var i = 0; i < _messages.Count; i++)
+        var start = Math.Max(0, _messages.Count - _messageWindowSize);
+        lock (_messages)
         {
-            result += $"{_messages[i]}\n";
+            if (_messages.Count == 0)
+                return string.Empty;
+            return string.Join('\n', _messages.Skip(start).Take(_messageWindowSize));
         }
+    }
 
-        return result;
+    // Rebuild and update the message panel from the current buffer.
+    public void RefreshPanel()
+    {
+        var panel = new Panel(new Markup(GetMessageString())) { Expand = true };
+        _messageWindow.Update(panel);
     }
 }

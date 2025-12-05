@@ -21,33 +21,32 @@ public static class Program
 
     public static async Task Main()
     {
+        var lobbyCode = AnsiConsole.Prompt(new TextPrompt<string>("Type out a lobby code: "));
         AnsiConsole.Clear();
 
-        // Create, initialize and render an instance-based UI
         var ui = new UI();
         ui.Initialize();
         // expose UI globally for simple access by other modules
         GameState.RootUI = ui;
-        // fuk juu
-        // hmm this line works, Messages access of panel is broken grr.
-        //ui.RootLayout["Messages"].Update(new Panel("gr"));
 
+        // Create and register the messages panel (no live started here)
         Messages messageWindow = new Messages(ui);
-        GameState.Messages = messageWindow;
+        GameState.MessageWindow = messageWindow;
 
-        //ah viiimeiinnn
-        messageWindow.Write("[red]red[/]");
-        messageWindow.Write("[green]green[/]");
-        messageWindow.Write("[blue]blue[/]");
+        // Start networking initialization in background so UI Live runs immediately
+        _ = Initialize(lobbyCode);
 
-        ui.Render();
-
-        //var lobbyCode = AnsiConsole.Prompt(new TextPrompt<string>("Type out a lobby code: "));
-        //await Initialize(lobbyCode);
-
-        while (true) { }
+        // Start one Live session bound to the root layout and refresh messages inside it.
+        await AnsiConsole
+            .Live(ui.RootLayout)
+            .StartAsync(async ctx =>
+            {
+                while (true)
+                {
+                    messageWindow.RefreshPanel();
+                    ctx.Refresh();
+                    await Task.Delay(250).ConfigureAwait(false);
+                }
+            });
     }
-
-    // placeholder ig
-    public static void GameLoop() { }
 }

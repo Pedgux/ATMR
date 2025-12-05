@@ -21,7 +21,7 @@ public sealed class UI
                 ),
             new Layout("Right")
                 .Ratio(2)
-                .SplitRows(new Layout("Messages").Ratio(4), new Layout("Inventory").Ratio(10))
+                .SplitRows(new Layout("Messages").Size(11), new Layout("Inventory").Ratio(10))
         );
 
         /*
@@ -37,6 +37,7 @@ public sealed class UI
 
     public void Render()
     {
+        AnsiConsole.Clear();
         AnsiConsole.Write(_root);
     }
 }
