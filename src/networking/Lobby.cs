@@ -8,7 +8,6 @@ using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
-using Spectre.Console;
 
 public static class Lobby
 {
@@ -170,9 +169,10 @@ public static class Lobby
             {
                 if (!string.Equals(kvp.Key, notThisOne, StringComparison.Ordinal))
                 {
-                    GameState.MessageWindow?.Write(
-                        $"[blue]Found other player, ID: {kvp.Key} (blob: {kvp.Value})[/]"
-                    );
+                    GameState.MessageWindow?.Write($"[blue]Found other player [/]");
+                    GameState.MessageWindow?.Write($"[blue]ID: {kvp.Key}[/]");
+                    GameState.MessageWindow?.Write($"[blue](blob: {kvp.Value})[/]");
+
                     return kvp.Value;
                 }
             }
