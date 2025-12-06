@@ -22,6 +22,7 @@ public static class UdpTransport
     public static async Task Initialize(string lobbyId)
     {
         _udp = new UdpClient(0);
+        GameState.MessageWindow?.Write($"Local UDP bound: {_udp.Client.LocalEndPoint}");
         var (ip, port) = await Stun.GetPublicIPAsync();
         //AnsiConsole.MarkupLine($"[green]Address from STUN: {ip}:{port}[/]");
 
@@ -69,6 +70,18 @@ public static class UdpTransport
                     0,
                     result.Buffer.Length
                 );
+
+                // Debug: always log remote endpoint and raw payload (hex + text)
+                try
+                {
+                    GameState.MessageWindow?.Write($"Recv from {result.RemoteEndPoint}:'");
+                    GameState.MessageWindow?.Write("{BitConverter.ToString(result.Buffer)}");
+                    GameState.MessageWindow?.Write("/ '{message}");
+                }
+                catch
+                {
+                    // best-effort logging — do not throw from receive loop
+                }
 
                 if (result.Buffer.Length == 1 && result.Buffer[0] == 0x01)
                 {
