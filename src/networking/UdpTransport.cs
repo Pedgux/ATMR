@@ -46,11 +46,11 @@ public static class UdpTransport
         (string peerIp, ushort peerPort) = IpPortEncoder.Decode(blob);
         var peerEndpoint = new IPEndPoint(IPAddress.Parse(peerIp), peerPort);
 
-        //executes this far
-        _ = await Puncher.Punch(peerEndpoint);
+        var punchTask = Puncher.Punch(peerEndpoint);
+        var receiveTask = ReceiveLoop(peerEndpoint);
 
-        // start receiving packets & if punching succeeds sending keepalives
-        _ = await ReceiveLoop(peerEndpoint);
+        // keep the app in receive mode (typical); receiveTask is long-running
+        await receiveTask;
 
         // TODO:
         // after game is over, each user deletes their own node and last user deletes lobby
@@ -76,9 +76,9 @@ public static class UdpTransport
                 // Debug: always log remote endpoint and raw payload (hex + text)
                 try
                 {
-                    GameState.MessageWindow?.Write($"Recv from {result.RemoteEndPoint}:'");
-                    GameState.MessageWindow?.Write("{BitConverter.ToString(result.Buffer)}");
-                    GameState.MessageWindow?.Write("/ '{message}");
+                    GameState.MessageWindow?.Write($"Recv from {result.RemoteEndPoint}:");
+                    GameState.MessageWindow?.Write($"{BitConverter.ToString(result.Buffer)}");
+                    GameState.MessageWindow?.Write($"/ '{message}'");
                 }
                 catch
                 {
