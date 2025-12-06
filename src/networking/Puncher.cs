@@ -16,11 +16,12 @@ public static class Puncher
         GameState.MessageWindow?.Write($"[red]Punching: {peer}[/]");
         byte[] poke = Encoding.UTF8.GetBytes("poke");
 
-        // tries for 30s
-        for (int i = 0; i < 300; i++)
+        // tries for a bit
+        for (int i = 0; i < 6000; i++)
         {
             await UdpTransport.Udp.SendAsync(poke, poke.Length, peer);
-            await Task.Delay(100);
+            await Task.Delay(10);
         }
+        GameState.MessageWindow?.Write($"[red]Puncher timed out shit fuck[/]");
     }
 }
