@@ -25,7 +25,6 @@ public static class UdpTransport
         _udp = new UdpClient(0);
         GameState.MessageWindow?.Write($"Local UDP bound: {_udp.Client.LocalEndPoint}");
         var (ip, port) = await Stun.GetPublicIPAsync();
-        //AnsiConsole.MarkupLine($"[green]Address from STUN: {ip}:{port}[/]");
 
         GameState.MessageWindow?.Write($"[green]Address from STUN: {ip}:{port}[/]");
 
@@ -48,7 +47,6 @@ public static class UdpTransport
 
         // Start punching in the background so the receive loop can run concurrently
         var punchTask = Puncher.Punch(peerEndpoint);
-        GameState.MessageWindow?.Write("[yellow]Punching in background...[/]");
 
         // start receiving packets & if punching succeeds sending keepalives
         await ReceiveLoop(peerEndpoint);
@@ -66,7 +64,7 @@ public static class UdpTransport
         {
             try
             {
-                var result = await Udp.ReceiveAsync();
+                var result = await _udp.ReceiveAsync();
                 // decode bytes to string (UTF-8)
                 var message = System.Text.Encoding.UTF8.GetString(
                     result.Buffer,
@@ -97,23 +95,30 @@ public static class UdpTransport
         }
     }
 
-    private static async Task KeepAliveLoop(IPEndPoint peer)
+    private static Task KeepAliveLoop(IPEndPoint peer)
     {
         byte[] poke = { 0x01 };
 
-        Timer timer = new Timer(30000) { AutoReset = true, Enabled = true };
-
-        // buh lambda. Needs the two params because the += delegate expects them. Named _ because unused
-        timer.Elapsed += async (_, __) =>
+        // Use a background Task loop instead of a Timer so the work isn't
+        // garbage-collected when this method returns. The Task runs forever
+        // and sends a single-byte keepalive every 30 seconds.
+        _ = Task.Run(async () =>
         {
-            try
+            while (true)
             {
-                await Udp.SendAsync(poke, poke.Length, peer);
+                Console.WriteLine();
+                try
+                {
+                    await Task.Delay(30000);
+                    await Udp.SendAsync(poke, poke.Length, peer);
+                }
+                catch (Exception ex)
+                {
+                    GameState.MessageWindow?.Write($"KeepAlive send error to {peer}: {ex.Message}");
+                }
             }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"KeepAlive send error to {peer}: {ex.Message}");
-            }
-        };
+        });
+
+        return Task.CompletedTask;
     }
 }
