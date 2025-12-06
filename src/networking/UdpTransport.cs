@@ -46,11 +46,12 @@ public static class UdpTransport
         (string peerIp, ushort peerPort) = IpPortEncoder.Decode(blob);
         var peerEndpoint = new IPEndPoint(IPAddress.Parse(peerIp), peerPort);
 
+        // Start punching in the background so the receive loop can run concurrently
         var punchTask = Puncher.Punch(peerEndpoint);
-        var receiveTask = ReceiveLoop(peerEndpoint);
+        GameState.MessageWindow?.Write("[yellow]Punching in background...[/]");
 
-        // keep the app in receive mode (typical); receiveTask is long-running
-        await receiveTask;
+        // start receiving packets & if punching succeeds sending keepalives
+        await ReceiveLoop(peerEndpoint);
 
         // TODO:
         // after game is over, each user deletes their own node and last user deletes lobby
@@ -72,18 +73,6 @@ public static class UdpTransport
                     0,
                     result.Buffer.Length
                 );
-
-                // Debug: always log remote endpoint and raw payload (hex + text)
-                try
-                {
-                    GameState.MessageWindow?.Write($"Recv from {result.RemoteEndPoint}:");
-                    GameState.MessageWindow?.Write($"{BitConverter.ToString(result.Buffer)}");
-                    GameState.MessageWindow?.Write($"/ '{message}'");
-                }
-                catch
-                {
-                    // best-effort logging — do not throw from receive loop
-                }
 
                 if (result.Buffer.Length == 1 && result.Buffer[0] == 0x01)
                 {
@@ -108,29 +97,23 @@ public static class UdpTransport
         }
     }
 
-    private static Task KeepAliveLoop(IPEndPoint peer)
+    private static async Task KeepAliveLoop(IPEndPoint peer)
     {
         byte[] poke = { 0x01 };
 
-        // Use a background Task loop instead of a Timer so the work isn't
-        // garbage-collected when this method returns. The Task runs forever
-        // and sends a single-byte keepalive every 30 seconds.
-        _ = Task.Run(async () =>
-        {
-            while (true)
-            {
-                try
-                {
-                    await Task.Delay(30000);
-                    await Udp.SendAsync(poke, poke.Length, peer);
-                }
-                catch (Exception ex)
-                {
-                    GameState.MessageWindow?.Write($"KeepAlive send error to {peer}: {ex.Message}");
-                }
-            }
-        });
+        Timer timer = new Timer(30000) { AutoReset = true, Enabled = true };
 
-        return Task.CompletedTask;
+        // buh lambda. Needs the two params because the += delegate expects them. Named _ because unused
+        timer.Elapsed += async (_, __) =>
+        {
+            try
+            {
+                await Udp.SendAsync(poke, poke.Length, peer);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"KeepAlive send error to {peer}: {ex.Message}");
+            }
+        };
     }
 }

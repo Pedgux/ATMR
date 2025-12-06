@@ -34,10 +34,4 @@ public sealed class UI
         _root["Stats"].Update(statsTable);
         */
     }
-
-    public void Render()
-    {
-        AnsiConsole.Clear();
-        AnsiConsole.Write(_root);
-    }
 }
