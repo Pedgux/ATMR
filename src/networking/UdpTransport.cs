@@ -65,6 +65,14 @@ public static class UdpTransport
             try
             {
                 var result = await _udp.ReceiveAsync();
+                // Debug: log receive event (remote endpoint and length)
+                try
+                {
+                    GameState.MessageWindow?.Write(
+                        $"Recv from {result.RemoteEndPoint} len={result.Buffer.Length}"
+                    );
+                }
+                catch { }
                 // decode bytes to string (UTF-8)
                 var message = System.Text.Encoding.UTF8.GetString(
                     result.Buffer,
@@ -111,6 +119,14 @@ public static class UdpTransport
                 {
                     await Task.Delay(30000);
                     await Udp.SendAsync(poke, poke.Length, peer);
+                    // Debug: log keepalive send
+                    try
+                    {
+                        GameState.MessageWindow?.Write(
+                            $"Sent keepalive -> {peer} from {Udp.Client.LocalEndPoint}"
+                        );
+                    }
+                    catch { }
                 }
                 catch (Exception ex)
                 {

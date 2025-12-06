@@ -20,6 +20,14 @@ public static class Puncher
         for (int i = 0; i < 6000; i++)
         {
             await UdpTransport.Udp.SendAsync(poke, poke.Length, peer);
+            // Debug: log that we sent a poke (small, concise)
+            try
+            {
+                GameState.MessageWindow?.Write(
+                    $"Sent poke -> {peer} from {UdpTransport.Udp.Client.LocalEndPoint}"
+                );
+            }
+            catch { }
             await Task.Delay(10);
         }
         GameState.MessageWindow?.Write($"[red]Puncher timed out shit fuck[/]");
