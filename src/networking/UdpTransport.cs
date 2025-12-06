@@ -1,5 +1,6 @@
 namespace ATMR.Networking;
 
+using System;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading.Tasks;
@@ -46,10 +47,10 @@ public static class UdpTransport
         var peerEndpoint = new IPEndPoint(IPAddress.Parse(peerIp), peerPort);
 
         //executes this far
-        await Puncher.Punch(peerEndpoint);
+        _ = await Puncher.Punch(peerEndpoint);
 
         // start receiving packets & if punching succeeds sending keepalives
-        await ReceiveLoop(peerEndpoint);
+        _ = await ReceiveLoop(peerEndpoint);
 
         // TODO:
         // after game is over, each user deletes their own node and last user deletes lobby
@@ -58,6 +59,7 @@ public static class UdpTransport
 
     public static async Task ReceiveLoop(IPEndPoint peer)
     {
+        GameState.MessageWindow?.Write("[blue]Starting Receiveloop![/]");
         bool connected = false;
         while (true)
         {
