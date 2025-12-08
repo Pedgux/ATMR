@@ -4,6 +4,7 @@ Inspired by Nathan Daniel's "Roguelike Theory of Relativity (RTOR)" paper
 Built with Spectre.Console for console UI: https://spectreconsole.net/
 */
 
+using System.Threading;
 using ATMR;
 using ATMR.Networking;
 using ATMR.UI;
@@ -15,7 +16,11 @@ public static class Program
 {
     public static async Task Initialize(string lobbyCode)
     {
-        //await Input.StartPolling();
+        // Start input polling and consumer so key events are handled during init
+        var cts = new CancellationTokenSource();
+        var reader = Input.StartPolling(cts.Token);
+        _ = Input.RunConsumer(reader, cts.Token);
+
         await UdpTransport.Initialize(lobbyCode);
     }
 
@@ -45,7 +50,7 @@ public static class Program
                 {
                     messageWindow.RefreshPanel();
                     ctx.Refresh();
-                    await Task.Delay(250).ConfigureAwait(false);
+                    await Task.Delay(60).ConfigureAwait(false);
                 }
             });
     }

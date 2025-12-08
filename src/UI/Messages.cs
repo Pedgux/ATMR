@@ -81,14 +81,19 @@ public sealed class Messages
     public void OffsetUp()
     {
         _offset++;
-        //var maxOffset = Math.Max(0, _messages.Count - _messageWindowSize);
-        //_offset = Math.Min(_offset, maxOffset);
+        var maxOffset = Math.Max(0, _messages.Count - _messageWindowSize);
+        _offset = Math.Min(_offset, maxOffset);
+        RefreshPanel();
     }
 
     public void OffsetDown()
     {
         _offset--;
-        //var maxOffset = Math.Max(0, _messages.Count - _messageWindowSize);
-        //_offset = Math.Min(_offset, maxOffset);
+        var maxOffset = Math.Max(0, _messages.Count - _messageWindowSize);
+        // Clamp offset to [0, maxOffset]
+        if (_offset < 0)
+            _offset = 0;
+        _offset = Math.Min(_offset, maxOffset);
+        RefreshPanel();
     }
 }
