@@ -66,14 +66,7 @@ public static class UdpTransport
             try
             {
                 var result = await Udp.ReceiveAsync();
-                // Debug: log receive event (remote endpoint and length)
-                try
-                {
-                    GameState.MessageWindow?.Write(
-                        $"Recv from {result.RemoteEndPoint} len={result.Buffer.Length}"
-                    );
-                }
-                catch { }
+                // Debug: jee
 
                 // decode bytes to string (UTF-8)
                 var message = System.Text.Encoding.UTF8.GetString(
