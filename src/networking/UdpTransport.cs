@@ -64,7 +64,7 @@ public static class UdpTransport
         {
             try
             {
-                var result = await _udp.ReceiveAsync();
+                var result = await Udp.ReceiveAsync();
                 // Debug: log receive event (remote endpoint and length)
                 try
                 {
