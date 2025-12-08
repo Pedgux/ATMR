@@ -41,7 +41,7 @@ public static class UdpTransport
         (string peerIp, ushort peerPort) = IpPortEncoder.Decode(blob);
         var peerEndpoint = new IPEndPoint(IPAddress.Parse(peerIp), peerPort);
 
-        await Puncher.Punch(peerEndpoint);
+        _ = Puncher.Punch(peerEndpoint);
 
         // start receiving packets & if punching succeeds sending keepalives
         await ReceiveLoop(peerEndpoint);
@@ -54,17 +54,29 @@ public static class UdpTransport
     public static async Task ReceiveLoop(IPEndPoint peer)
     {
         bool connected = false;
+        AnsiConsole.MarkupLine("[blue]starting receive loop[/]");
         while (true)
         {
             try
             {
                 var result = await Udp.ReceiveAsync();
+
                 // decode bytes to string (UTF-8)
                 var message = System.Text.Encoding.UTF8.GetString(
                     result.Buffer,
                     0,
                     result.Buffer.Length
                 );
+                /*
+                int count = result.Buffer.Length;
+                string bytesDec = string.Join(", ", result.Buffer);
+                string bytesHex = BitConverter.ToString(result.Buffer);
+                AnsiConsole.MarkupLine(
+                    $"[blue]Received {count} bytes from {result.RemoteEndPoint}[/]"
+                );
+                AnsiConsole.MarkupLine($"[green]Bytes (hex): {bytesHex}[/]");
+                AnsiConsole.MarkupLine($"[green]Bytes (dec): {bytesDec}[/]");
+                */
 
                 // treat a single byte 0x01 as a "poke" keepalive
                 bool isKeepAliveByte = result.Buffer.Length == 1 && result.Buffer[0] == 0x01;

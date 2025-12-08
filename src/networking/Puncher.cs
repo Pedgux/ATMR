@@ -17,10 +17,10 @@ public class Puncher
         byte[] poke = Encoding.UTF8.GetBytes("poke");
 
         // tries for 30s
-        for (int i = 0; i < 200; i++)
+        for (int i = 0; i < 600; i++)
         {
             await UdpTransport.Udp.SendAsync(poke, poke.Length, peer);
-            await Task.Delay(150);
+            await Task.Delay(50);
         }
     }
 }
