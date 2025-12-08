@@ -22,7 +22,5 @@ public static class Puncher
             await UdpTransport.Udp.SendAsync(poke, poke.Length, peer);
             await Task.Delay(50);
         }
-
-        GameState.MessageWindow?.Write($"[red]Puncher timed out shit fuck[/]");
     }
 }

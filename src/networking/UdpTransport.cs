@@ -114,14 +114,6 @@ public static class UdpTransport
                 {
                     await Task.Delay(30000);
                     await Udp.SendAsync(poke, poke.Length, peer);
-                    // Debug: log keepalive send
-                    try
-                    {
-                        GameState.MessageWindow?.Write(
-                            $"Sent keepalive -> {peer} from {Udp.Client.LocalEndPoint}"
-                        );
-                    }
-                    catch { }
                 }
                 catch (Exception ex)
                 {
