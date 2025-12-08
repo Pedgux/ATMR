@@ -17,8 +17,7 @@ public sealed class Messages
     private readonly List<string> _messages = new();
     private int _messageHistory = 99;
     private int _messageWindowSize;
-
-    //private int offset = 0;
+    private int _offset = 0;
 
     // Constructor: capture the layout child. Live will be started at program-level.
     public Messages(UI ui)
@@ -30,7 +29,10 @@ public sealed class Messages
         _messageWindowSize = _messageWindow.Size.GetValueOrDefault() - 2;
     }
 
-    // Append a message and trim history.
+    /// <summary>
+    /// queue a message for writing
+    /// </summary>
+    /// <param name="message">hmm</param>
     public void Write(string message)
     {
         lock (_messages)
@@ -50,15 +52,16 @@ public sealed class Messages
             _messages.Add($"#{_messages.Count, -2} {message}");
             if (_messages.Count > _messageHistory)
                 _messages.RemoveRange(0, _messages.Count - _messageHistory);
-
-            //var maxOffset = Math.Max(0, _messages.Count - _messageWindowSize);
-            //offset = Math.Min(offset, maxOffset);
         }
     }
 
+    /// <summary>
+    /// Gets the window of messages to show
+    /// </summary>
+    /// <returns>The window as a string</returns>
     private string GetMessageString()
     {
-        var start = Math.Max(0, _messages.Count - _messageWindowSize);
+        var start = Math.Max(0, _messages.Count - _messageWindowSize - _offset);
         lock (_messages)
         {
             if (_messages.Count == 0)
@@ -67,11 +70,25 @@ public sealed class Messages
         }
     }
 
-    // Rebuild and update the message panel from the current buffer.
+    // update the panel, plz work
     public void RefreshPanel()
     {
         var panel = new Panel(new Markup(GetMessageString())) { Expand = true };
         _messageWindow.Update(panel);
         _messageWindowSize = _messageWindow.Size.GetValueOrDefault() - 2;
+    }
+
+    public void OffsetUp()
+    {
+        _offset++;
+        //var maxOffset = Math.Max(0, _messages.Count - _messageWindowSize);
+        //_offset = Math.Min(_offset, maxOffset);
+    }
+
+    public void OffsetDown()
+    {
+        _offset--;
+        //var maxOffset = Math.Max(0, _messages.Count - _messageWindowSize);
+        //_offset = Math.Min(_offset, maxOffset);
     }
 }

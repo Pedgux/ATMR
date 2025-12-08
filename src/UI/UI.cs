@@ -21,7 +21,7 @@ public sealed class UI
                 ),
             new Layout("Right")
                 .Ratio(2)
-                .SplitRows(new Layout("Messages").Size(33), new Layout("Inventory").Ratio(10))
+                .SplitRows(new Layout("Messages").Size(7), new Layout("Inventory").Ratio(10))
         );
 
         /*

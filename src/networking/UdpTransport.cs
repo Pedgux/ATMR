@@ -4,9 +4,10 @@ using System;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading.Tasks;
-using System.Timers;
-using Spectre.Console;
 
+/// <summary>
+/// Handles all UDP. heh.
+/// </summary>
 public static class UdpTransport
 {
     private static UdpClient? _udp;
@@ -23,17 +24,17 @@ public static class UdpTransport
     public static async Task Initialize(string lobbyId)
     {
         _udp = new UdpClient(0);
-        GameState.MessageWindow?.Write($"Local UDP bound: {_udp.Client.LocalEndPoint}");
+        UiState.MessageWindow?.Write($"Local UDP bound: {_udp.Client.LocalEndPoint}");
         var (ip, port) = await Stun.GetPublicIPAsync();
 
-        GameState.MessageWindow?.Write($"[green]Address from STUN: {ip}:{port}[/]");
+        UiState.MessageWindow?.Write($"[green]Address from STUN: {ip}:{port}[/]");
 
         await Lobby.Initialize();
 
         string playerId =
             Lobby.Auth?.LocalId
             ?? throw new InvalidOperationException("Lobby.Auth or LocalId is null");
-        GameState.MessageWindow?.Write($"[yellow]playerId is: {playerId}[/]");
+        UiState.MessageWindow?.Write($"[yellow]playerId is: {playerId}[/]");
         await Lobby.Join(lobbyId, playerId, ip, port);
 
         string? blob = await Lobby.GetOtherPlayerBlob(lobbyId, playerId);
@@ -56,17 +57,20 @@ public static class UdpTransport
         // unless firebase auto deletes empty JSON Objects. This was true while testing with manual deletion
     }
 
+    /// <summary>
+    /// Handles all incoming packets
+    /// </summary>
+    /// <param name="peer">The peer you're receiving from</param>
+    /// <returns>??</returns>
     public static async Task ReceiveLoop(IPEndPoint peer)
     {
-        GameState.MessageWindow?.Write("[blue]Starting Receiveloop![/]");
+        UiState.MessageWindow?.Write("[blue]Starting Receiveloop![/]");
         bool connected = false;
-        AnsiConsole.MarkupLine("[blue]starting receive loop[/]");
         while (true)
         {
             try
             {
                 var result = await Udp.ReceiveAsync();
-                // Debug: jee
 
                 // decode bytes to string (UTF-8)
                 var message = System.Text.Encoding.UTF8.GetString(
@@ -77,14 +81,14 @@ public static class UdpTransport
 
                 if (result.Buffer.Length == 1 && result.Buffer[0] == 0x01)
                 {
-                    GameState.MessageWindow?.Write("[blue]alive[/]");
+                    UiState.MessageWindow?.Write("[blue]alive[/]");
                 }
 
                 if (message == "poke")
                 {
                     if (!connected)
                     {
-                        GameState.MessageWindow?.Write("[green]Got a connection![/]");
+                        UiState.MessageWindow?.Write("[green]Got a connection![/]");
                         connected = true;
                         await KeepAliveLoop(peer);
                     }
@@ -93,7 +97,7 @@ public static class UdpTransport
             }
             catch (Exception ex)
             {
-                GameState.MessageWindow?.Write($"[red]Receive error: {ex}[/]");
+                UiState.MessageWindow?.Write($"[red]Receive error: {ex}[/]");
             }
         }
     }
@@ -109,7 +113,6 @@ public static class UdpTransport
         {
             while (true)
             {
-                Console.WriteLine();
                 try
                 {
                     await Task.Delay(30000);
@@ -117,7 +120,7 @@ public static class UdpTransport
                 }
                 catch (Exception ex)
                 {
-                    GameState.MessageWindow?.Write($"KeepAlive send error to {peer}: {ex.Message}");
+                    UiState.MessageWindow?.Write($"KeepAlive send error to {peer}: {ex.Message}");
                 }
             }
         });
