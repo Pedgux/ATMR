@@ -8,7 +8,6 @@ using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
-using Spectre.Console;
 
 public static class Lobby
 {
@@ -22,7 +21,7 @@ public static class Lobby
 
     public static FirebaseAuthResponse? Auth { get; private set; }
 
-    public class FirebaseAuthResponse
+    public sealed class FirebaseAuthResponse
     {
         [JsonPropertyName("idToken")]
         public string? IdToken { get; set; }
@@ -76,21 +75,21 @@ public static class Lobby
             {
                 // Log or handle the error
                 string errorContent = await response.Content.ReadAsStringAsync();
-                AnsiConsole.MarkupLine(
+                GameState.MessageWindow?.Write(
                     $"[red]Error signing in anonymously: {response.StatusCode}[/]"
                 );
-                AnsiConsole.MarkupLine($"[red]Error details: {errorContent}[/]");
+                GameState.MessageWindow?.Write($"[red]Error details: {errorContent}[/]");
                 return null;
             }
         }
         catch (HttpRequestException ex)
         {
-            Console.WriteLine($"Network error during anonymous sign-in: {ex.Message}");
+            GameState.MessageWindow?.Write($"Network error during anonymous sign-in: {ex.Message}");
             return null;
         }
         catch (JsonException ex)
         {
-            Console.WriteLine($"JSON deserialization error: {ex.Message}");
+            GameState.MessageWindow?.Write($"JSON deserialization error: {ex.Message}");
             return null;
         }
     }
@@ -102,7 +101,7 @@ public static class Lobby
         if (Auth == null)
             throw new Exception("Anonymous auth failed. Check console output for details.");
 
-        AnsiConsole.MarkupLine($"[yellow]Signed in anonymously.[/]");
+        GameState.MessageWindow?.Write($"[yellow]Signed in anonymously.[/]");
     }
 
     public static async Task Join(string lobbyCode, string playerId, string ip, int port)
@@ -120,23 +119,25 @@ public static class Lobby
 
         //need to PUT this into existence (pun intended)
         string url = $"{BaseUrl}lobbies/{lobbyCode}/{playerId}.json?auth={idToken}";
-        AnsiConsole.MarkupLine($"[purple]Using: {ip}:{port} in blob[/]");
+        GameState.MessageWindow?.Write($"[purple]Using: {ip}:{port} in blob[/]");
         string blob = IpPortEncoder.Encode(ip, (ushort)port);
-        AnsiConsole.MarkupLine($"[purple]Encoded blob: {blob}[/]");
-        AnsiConsole.MarkupLine($"[purple]Decoded blob: {IpPortEncoder.Decode(blob)}[/]");
+        GameState.MessageWindow?.Write($"[purple]Encoded blob: {blob}[/]");
+        GameState.MessageWindow?.Write($"[purple]Decoded blob: {IpPortEncoder.Decode(blob)}[/]");
         var content = new StringContent($"\"{blob}\"", Encoding.UTF8, "application/json");
-        AnsiConsole.MarkupLine($"[green]Trying to create lobby...[/]");
+        GameState.MessageWindow?.Write($"[green]Trying to create lobby...[/]");
         var response = await client.PutAsync(url, content);
         response.EnsureSuccessStatusCode(); //pls do not explode
-        AnsiConsole.MarkupLine($"[green]Lobby created![/]");
+        GameState.MessageWindow?.Write($"[green]Lobby created![/]");
     }
 
     public static async Task<string?> GetOtherPlayerBlob(string lobbyCode, string notThisOne)
     {
         bool found = false;
-
+        GameState.MessageWindow?.Write("[blue]Waiting for players...[/]");
         while (found == false)
         {
+            // pause before retrying to save data heheee
+            await Task.Delay(TimeSpan.FromSeconds(5));
             if (Auth is null)
                 throw new InvalidOperationException(
                     "Lobby not initialized. Call Lobby.Initialize(apiKey) before Join."
@@ -159,7 +160,7 @@ public static class Lobby
 
             if (map == null || map.Count == 0)
             {
-                Console.WriteLine("Lobby empty or response was 'null'.");
+                GameState.MessageWindow?.Write("Lobby empty or response was 'null'.");
                 return null;
             }
 
@@ -168,12 +169,13 @@ public static class Lobby
             {
                 if (!string.Equals(kvp.Key, notThisOne, StringComparison.Ordinal))
                 {
-                    Console.WriteLine($"Found other player ID: {kvp.Key} (blob: {kvp.Value})");
+                    GameState.MessageWindow?.Write($"[blue]Found other player [/]");
+                    GameState.MessageWindow?.Write($"[blue]ID: {kvp.Key}[/]");
+                    GameState.MessageWindow?.Write($"[blue](blob: {kvp.Value})[/]");
+
                     return kvp.Value;
                 }
             }
-
-            Console.WriteLine("No other player found.");
         }
         return null;
     }

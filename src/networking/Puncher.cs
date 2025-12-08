@@ -9,11 +9,11 @@ using Spectre.Console;
 /// <summary>
 /// Handles nat punching & gets address from STUN to establish a P2P connection.
 /// </summary>
-public class Puncher
+public static class Puncher
 {
     public static async Task Punch(IPEndPoint peer)
     {
-        AnsiConsole.MarkupLine($"[red]Punching: {peer}[/]");
+        GameState.MessageWindow?.Write($"[red]Punching: {peer}[/]");
         byte[] poke = Encoding.UTF8.GetBytes("poke");
 
         // tries for 30s
@@ -22,5 +22,7 @@ public class Puncher
             await UdpTransport.Udp.SendAsync(poke, poke.Length, peer);
             await Task.Delay(50);
         }
+
+        GameState.MessageWindow?.Write($"[red]Puncher timed out shit fuck[/]");
     }
 }

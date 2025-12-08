@@ -1,5 +1,6 @@
 namespace ATMR.Networking;
 
+using System;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading.Tasks;
@@ -22,15 +23,17 @@ public static class UdpTransport
     public static async Task Initialize(string lobbyId)
     {
         _udp = new UdpClient(0);
+        GameState.MessageWindow?.Write($"Local UDP bound: {_udp.Client.LocalEndPoint}");
         var (ip, port) = await Stun.GetPublicIPAsync();
-        AnsiConsole.MarkupLine($"[green]Address from STUN: {ip}:{port}[/]");
+
+        GameState.MessageWindow?.Write($"[green]Address from STUN: {ip}:{port}[/]");
 
         await Lobby.Initialize();
 
         string playerId =
             Lobby.Auth?.LocalId
             ?? throw new InvalidOperationException("Lobby.Auth or LocalId is null");
-        AnsiConsole.MarkupLine($"[yellow]playerId is: {playerId}[/]");
+        GameState.MessageWindow?.Write($"[yellow]playerId is: {playerId}[/]");
         await Lobby.Join(lobbyId, playerId, ip, port);
 
         string? blob = await Lobby.GetOtherPlayerBlob(lobbyId, playerId);
@@ -38,10 +41,12 @@ public static class UdpTransport
             throw new InvalidOperationException(
                 "Lobby.GetOtherPlayerBlob returned null or empty blob for the other player in the lobby"
             );
+
         (string peerIp, ushort peerPort) = IpPortEncoder.Decode(blob);
         var peerEndpoint = new IPEndPoint(IPAddress.Parse(peerIp), peerPort);
 
         _ = Puncher.Punch(peerEndpoint);
+        // Start punching in the background so the receive loop can run concurrently
 
         // start receiving packets & if punching succeeds sending keepalives
         await ReceiveLoop(peerEndpoint);
@@ -53,6 +58,7 @@ public static class UdpTransport
 
     public static async Task ReceiveLoop(IPEndPoint peer)
     {
+        GameState.MessageWindow?.Write("[blue]Starting Receiveloop![/]");
         bool connected = false;
         AnsiConsole.MarkupLine("[blue]starting receive loop[/]");
         while (true)
@@ -60,6 +66,14 @@ public static class UdpTransport
             try
             {
                 var result = await Udp.ReceiveAsync();
+                // Debug: log receive event (remote endpoint and length)
+                try
+                {
+                    GameState.MessageWindow?.Write(
+                        $"Recv from {result.RemoteEndPoint} len={result.Buffer.Length}"
+                    );
+                }
+                catch { }
 
                 // decode bytes to string (UTF-8)
                 var message = System.Text.Encoding.UTF8.GetString(
@@ -67,60 +81,62 @@ public static class UdpTransport
                     0,
                     result.Buffer.Length
                 );
-                /*
-                int count = result.Buffer.Length;
-                string bytesDec = string.Join(", ", result.Buffer);
-                string bytesHex = BitConverter.ToString(result.Buffer);
-                AnsiConsole.MarkupLine(
-                    $"[blue]Received {count} bytes from {result.RemoteEndPoint}[/]"
-                );
-                AnsiConsole.MarkupLine($"[green]Bytes (hex): {bytesHex}[/]");
-                AnsiConsole.MarkupLine($"[green]Bytes (dec): {bytesDec}[/]");
-                */
 
-                // treat a single byte 0x01 as a "poke" keepalive
-                bool isKeepAliveByte = result.Buffer.Length == 1 && result.Buffer[0] == 0x01;
-
-                if (isKeepAliveByte)
+                if (result.Buffer.Length == 1 && result.Buffer[0] == 0x01)
                 {
-                    AnsiConsole.MarkupLine("[blue]alive[/]");
+                    GameState.MessageWindow?.Write("[blue]alive[/]");
                 }
 
                 if (message == "poke")
                 {
                     if (!connected)
                     {
-                        AnsiConsole.MarkupLine("[green]Got a connection![/]");
+                        GameState.MessageWindow?.Write("[green]Got a connection![/]");
                         connected = true;
                         await KeepAliveLoop(peer);
                     }
                     continue;
                 }
-                //Console.WriteLine($"Got {result.Buffer.Length} bytes from {result.RemoteEndPoint}");
             }
             catch (Exception ex)
             {
-                AnsiConsole.MarkupLine($"[red]Receive error: {ex}[/]");
+                GameState.MessageWindow?.Write($"[red]Receive error: {ex}[/]");
             }
         }
     }
 
-    private static async Task KeepAliveLoop(IPEndPoint peer)
+    private static Task KeepAliveLoop(IPEndPoint peer)
     {
         byte[] poke = { 0x01 };
-        Timer timer = new(30000) { AutoReset = true, Enabled = true };
 
-        // buh lambda. Needs the two params because the += delegate expects them. Named _ because unused
-        timer.Elapsed += async (_, __) =>
+        // Use a background Task loop instead of a Timer so the work isn't
+        // garbage-collected when this method returns. The Task runs forever
+        // and sends a single-byte keepalive every 30 seconds.
+        _ = Task.Run(async () =>
         {
-            try
+            while (true)
             {
-                await Udp.SendAsync(poke, poke.Length, peer);
+                Console.WriteLine();
+                try
+                {
+                    await Task.Delay(30000);
+                    await Udp.SendAsync(poke, poke.Length, peer);
+                    // Debug: log keepalive send
+                    try
+                    {
+                        GameState.MessageWindow?.Write(
+                            $"Sent keepalive -> {peer} from {Udp.Client.LocalEndPoint}"
+                        );
+                    }
+                    catch { }
+                }
+                catch (Exception ex)
+                {
+                    GameState.MessageWindow?.Write($"KeepAlive send error to {peer}: {ex.Message}");
+                }
             }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"KeepAlive send error to {peer}: {ex.Message}");
-            }
-        };
+        });
+
+        return Task.CompletedTask;
     }
 }
