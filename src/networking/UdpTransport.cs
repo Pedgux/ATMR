@@ -51,7 +51,6 @@ public static class UdpTransport
 
         _ = Puncher.Punch(peerEndpoint);
         // Start punching in the background so the receive loop can run concurrently
-        var __ = SendLooop(peerEndpoint);
         // start receiving packets & if punching succeeds sending keepalives
         await ReceiveLoop(peerEndpoint);
 
@@ -140,20 +139,6 @@ public static class UdpTransport
                 {
                     UiState.MessageWindow?.Write($"KeepAlive send error to {peer}: {ex.Message}");
                 }
-            }
-        });
-
-        return Task.CompletedTask;
-    }
-
-    private static Task SendLooop(IPEndPoint peer)
-    {
-        _ = Task.Run(async () =>
-        {
-            while (true)
-            {
-                if (SendBuffer[0] != null) { }
-                await Task.Delay(10);
             }
         });
 
