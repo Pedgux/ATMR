@@ -75,11 +75,7 @@ public static class UdpTransport
                 var result = await Udp.ReceiveAsync();
 
                 // decode bytes to string (UTF-8)
-                var message = System.Text.Encoding.UTF8.GetString(
-                    result.Buffer,
-                    0,
-                    result.Buffer.Length
-                );
+                var message = Encoding.UTF8.GetString(result.Buffer, 0, result.Buffer.Length);
 
                 if (result.Buffer.Length == 1 && result.Buffer[0] == 0x01)
                 {
