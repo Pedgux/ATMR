@@ -51,7 +51,7 @@ public sealed class Messages
             }
             */
 
-            _messages.Add($"#{_messages.Count, -2} {message} {message.Length} {_writableArea}");
+            _messages.Add($"#{_messages.Count, -2} {message}");
             if (_messages.Count > _messageHistory)
                 _messages.RemoveRange(0, _messages.Count - _messageHistory);
         }
