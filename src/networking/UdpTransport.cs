@@ -17,6 +17,7 @@ public static class UdpTransport
         get => _udp ?? throw new InvalidOperationException("UdpTransport not initialized");
         private set => _udp = value;
     }
+    private static List<string> SendBuffer = new();
 
     /// <summary>
     /// Initializes fucking everything
