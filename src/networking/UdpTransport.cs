@@ -106,12 +106,12 @@ public static class UdpTransport
 
     public static async Task SendMessage(string message)
     {
-        UiState.MessageWindow?.Write("[green]trying to send message[/]");
+        //UiState.MessageWindow?.Write("[green]trying to send message[/]");
         var messageByte = Encoding.UTF8.GetBytes(message);
         try
         {
             await Udp.SendAsync(messageByte, messageByte.Length, peerEndpoint);
-            UiState.MessageWindow?.Write($"[green]sent {message}[/]");
+            //UiState.MessageWindow?.Write($"[green]sent {message}[/]");
         }
         catch (Exception ex)
         {
