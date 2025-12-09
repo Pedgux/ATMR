@@ -60,13 +60,13 @@ public static class Input
             [ConsoleKey.UpArrow] = async k =>
             { /* handle up */
                 UiState.MessageWindow?.OffsetUp();
-                UdpTransport.SendMessage("iup");
+                await UdpTransport.SendMessage("iup");
                 await Task.CompletedTask;
             },
             [ConsoleKey.DownArrow] = async k =>
             { /* handle down */
                 UiState.MessageWindow?.OffsetDown();
-                UdpTransport.SendMessage("idown");
+                await UdpTransport.SendMessage("idown");
                 await Task.CompletedTask;
             },
         };

@@ -18,6 +18,7 @@ public static class UdpTransport
         private set => _udp = value;
     }
     private static List<string> SendBuffer = new();
+    private static IPEndPoint? peerEndpoint;
 
     /// <summary>
     /// Initializes fucking everything
@@ -46,7 +47,7 @@ public static class UdpTransport
             );
 
         (string peerIp, ushort peerPort) = IpPortEncoder.Decode(blob);
-        var peerEndpoint = new IPEndPoint(IPAddress.Parse(peerIp), peerPort);
+        peerEndpoint = new IPEndPoint(IPAddress.Parse(peerIp), peerPort);
 
         _ = Puncher.Punch(peerEndpoint);
         // Start punching in the background so the receive loop can run concurrently
@@ -104,9 +105,19 @@ public static class UdpTransport
         }
     }
 
-    public static void SendMessage(string message)
+    public static async Task SendMessage(string message)
     {
-        SendBuffer.Add(message);
+        UiState.MessageWindow?.Write(SendBuffer[0]);
+        SendBuffer.RemoveAt(0);
+        byte[] massage = Encoding.UTF8.GetBytes(message);
+        try
+        {
+            await Udp.SendAsync(massage, massage.Length, peerEndpoint);
+        }
+        catch (Exception ex)
+        {
+            UiState.MessageWindow?.Write($"KeepAlive send error to {peerEndpoint}: {ex.Message}");
+        }
     }
 
     private static Task KeepAliveLoop(IPEndPoint peer)
@@ -141,23 +152,7 @@ public static class UdpTransport
         {
             while (true)
             {
-                if (SendBuffer[0] != null)
-                {
-                    //UiState.MessageWindow?.Write(SendBuffer[0]);
-                    string message = SendBuffer[0];
-                    SendBuffer.RemoveAt(0);
-                    byte[] massage = Encoding.UTF8.GetBytes(message);
-                    try
-                    {
-                        await Udp.SendAsync(massage, massage.Length, peer);
-                    }
-                    catch (Exception ex)
-                    {
-                        UiState.MessageWindow?.Write(
-                            $"KeepAlive send error to {peer}: {ex.Message}"
-                        );
-                    }
-                }
+                if (SendBuffer[0] != null) { }
                 await Task.Delay(10);
             }
         });
