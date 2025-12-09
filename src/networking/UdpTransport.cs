@@ -80,7 +80,6 @@ public static class UdpTransport
                 {
                     Input.RecieveInput(message);
                 }
-                var message = Encoding.UTF8.GetString(result.Buffer, 0, result.Buffer.Length);
 
                 if (result.Buffer.Length == 1 && result.Buffer[0] == 0x01)
                 {
