@@ -50,7 +50,7 @@ public static class UdpTransport
 
         _ = Puncher.Punch(peerEndpoint);
         // Start punching in the background so the receive loop can run concurrently
-
+        var __ = SendLooop(peerEndpoint);
         // start receiving packets & if punching succeeds sending keepalives
         await ReceiveLoop(peerEndpoint);
 
@@ -137,26 +137,27 @@ public static class UdpTransport
         {
             while (true)
             {
-                try
+                if (SendBuffer[0] != null)
                 {
-                    await Udp.Send(peer, SendBuffer);
+                    UiState.MessageWindow?.Write(SendBuffer[0]);
+                    string message = SendBuffer[0];
+                    SendBuffer.RemoveAt(0);
+                    byte[] massage = Encoding.UTF8.GetBytes(message);
+                    try
+                    {
+                        await Udp.SendAsync(massage, massage.Length, peer);
+                    }
+                    catch (Exception ex)
+                    {
+                        UiState.MessageWindow?.Write(
+                            $"KeepAlive send error to {peer}: {ex.Message}"
+                        );
+                    }
                 }
-                catch (Exception ex)
-                {
-                    UiState.MessageWindow?.Write($"KeepAlive send error to {peer}: {ex.Message}");
-                }
+                await Task.Delay(10);
             }
         });
 
         return Task.CompletedTask;
-    }
-
-    public static async Task Send(IPEndPoint peer, string kama)
-    {
-        UiState.MessageWindow?.Write($"[red]Punching: {peer}[/]");
-        byte[] poke = Encoding.UTF8.GetBytes(kama);
-
-        await UdpTransport.Udp.SendAsync(poke, poke.Length, peer);
-        await Task.Delay(50);
     }
 }
