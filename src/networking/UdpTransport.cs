@@ -103,6 +103,11 @@ public static class UdpTransport
         }
     }
 
+    public static void SendMessage(string message)
+    {
+        SendBuffer.Add(message);
+    }
+
     private static Task KeepAliveLoop(IPEndPoint peer)
     {
         byte[] poke = { 0x01 };
