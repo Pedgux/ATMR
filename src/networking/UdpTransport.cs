@@ -76,6 +76,11 @@ public static class UdpTransport
 
                 // decode bytes to string (UTF-8)
                 var message = Encoding.UTF8.GetString(result.Buffer, 0, result.Buffer.Length);
+                if (message[0] == 'i')
+                {
+                    Input.RecieveInput(message);
+                }
+                var message = Encoding.UTF8.GetString(result.Buffer, 0, result.Buffer.Length);
 
                 if (result.Buffer.Length == 1 && result.Buffer[0] == 0x01)
                 {
@@ -139,7 +144,7 @@ public static class UdpTransport
             {
                 if (SendBuffer[0] != null)
                 {
-                    UiState.MessageWindow?.Write(SendBuffer[0]);
+                    //UiState.MessageWindow?.Write(SendBuffer[0]);
                     string message = SendBuffer[0];
                     SendBuffer.RemoveAt(0);
                     byte[] massage = Encoding.UTF8.GetBytes(message);

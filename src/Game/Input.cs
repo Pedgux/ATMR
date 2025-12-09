@@ -36,6 +36,18 @@ public static class Input
         return chan.Reader;
     }
 
+    public static void RecieveInput(string message)
+    {
+        if (message == "iup")
+        {
+            UiState.MessageWindow?.OffsetUp();
+        }
+        if (message == "idown")
+        {
+            UiState.MessageWindow?.OffsetDown();
+        }
+    }
+
     // Example consumer that maps keys to handlers
     public static async Task RunConsumer(
         ChannelReader<ConsoleKeyInfo> reader,
