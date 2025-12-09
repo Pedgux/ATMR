@@ -37,22 +37,36 @@ public sealed class Messages
     {
         lock (_messages)
         {
+            int _writableArea = UiState.rightSize - 2;
             /*
             // doesnt work because buh width is fucking hard apparently
             // replace size in here with width, as size is relative to the orientation of the layout
             // if message is too large, split into multiple so shi does not break :c
-            while (message.Length > _messageWindowSize)
+            while (message.Length > _writableArea)
             {
-                var subMessage = message.Substring(_messageWindowSize);
-                message = message.Substring(0, _messageWindowSize);
+                var subMessage = message.Substring(_writableArea);
+                message = message.Substring(0, _writableArea);
                 _messages.Add(message);
                 message = subMessage;
             }
             */
-            _messages.Add($"#{_messages.Count, -2} {message}");
+
+            _messages.Add($"#{_messages.Count, -2} {message} {message.Length} {_writableArea}");
             if (_messages.Count > _messageHistory)
                 _messages.RemoveRange(0, _messages.Count - _messageHistory);
         }
+    }
+
+    private string MarkupToString(string markup)
+    {
+        string trueString = string.Empty;
+
+        if (markup[0] == '[' && markup[markup.Length - 1] == ']')
+        {
+            // remove [color] part
+        }
+
+        return trueString;
     }
 
     /// <summary>

@@ -30,9 +30,6 @@ public static class Program
         AnsiConsole.Clear();
 
         var ui = new UI();
-        ui.Initialize();
-        // expose UI globally for simple access by other modules
-        UiState.RootUI = ui;
 
         // Create and register the messages panel (no live started here)
         Messages messageWindow = new Messages(ui);
