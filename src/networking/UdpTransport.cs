@@ -3,6 +3,7 @@ namespace ATMR.Networking;
 using System;
 using System.Net;
 using System.Net.Sockets;
+using System.Text;
 using System.Threading.Tasks;
 
 /// <summary>
@@ -126,5 +127,34 @@ public static class UdpTransport
         });
 
         return Task.CompletedTask;
+    }
+
+    private static Task SendLooop(IPEndPoint peer)
+    {
+        _ = Task.Run(async () =>
+        {
+            while (true)
+            {
+                try
+                {
+                    await Udp.Send(peer, SendBuffer);
+                }
+                catch (Exception ex)
+                {
+                    UiState.MessageWindow?.Write($"KeepAlive send error to {peer}: {ex.Message}");
+                }
+            }
+        });
+
+        return Task.CompletedTask;
+    }
+
+    public static async Task Send(IPEndPoint peer, string kama)
+    {
+        UiState.MessageWindow?.Write($"[red]Punching: {peer}[/]");
+        byte[] poke = Encoding.UTF8.GetBytes(kama);
+
+        await UdpTransport.Udp.SendAsync(poke, poke.Length, peer);
+        await Task.Delay(50);
     }
 }
