@@ -32,8 +32,7 @@ public static class Program
         var ui = new UI();
 
         // Create and register the messages panel (no live started here)
-        Messages messageWindow = new Messages(ui);
-        UiState.MessageWindow = messageWindow;
+        UiState.MessageWindow = new Messages(ui);
 
         // Start networking initialization in background so UI Live runs immediately
         _ = Initialize(lobbyCode);
@@ -45,7 +44,7 @@ public static class Program
             {
                 while (true)
                 {
-                    messageWindow.RefreshPanel();
+                    UiState.MessageWindow.RefreshPanel();
                     ctx.Refresh();
                     await Task.Delay(60).ConfigureAwait(false);
                 }

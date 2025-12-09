@@ -104,6 +104,11 @@ public static class UdpTransport
         }
     }
 
+    /// <summary>
+    /// Sends an encoded string to a pper
+    /// </summary>
+    /// <param name="message">the string woah</param>
+    /// <returns>????</returns>
     public static async Task SendMessage(string message)
     {
         //UiState.MessageWindow?.Write("[green]trying to send message[/]");

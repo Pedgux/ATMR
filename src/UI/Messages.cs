@@ -2,6 +2,7 @@ namespace ATMR.UI;
 
 using System.Collections.Generic;
 using System.Linq;
+using ATMR.Helpers;
 using Spectre.Console;
 
 /// <summary>
@@ -38,35 +39,23 @@ public sealed class Messages
         lock (_messages)
         {
             int _writableArea = UiState.rightSize - 2;
-            /*
+            int trueSize = StringHelper.MarkupToString(message).Length;
             // doesnt work because buh width is fucking hard apparently
             // replace size in here with width, as size is relative to the orientation of the layout
             // if message is too large, split into multiple so shi does not break :c
-            while (message.Length > _writableArea)
+            while (trueSize > _writableArea)
             {
                 var subMessage = message.Substring(_writableArea);
                 message = message.Substring(0, _writableArea);
                 _messages.Add(message);
                 message = subMessage;
+                trueSize = StringHelper.MarkupToString(message).Length;
             }
-            */
 
             _messages.Add($"#{_messages.Count, -2} {message}");
             if (_messages.Count > _messageHistory)
                 _messages.RemoveRange(0, _messages.Count - _messageHistory);
         }
-    }
-
-    private string MarkupToString(string markup)
-    {
-        string trueString = string.Empty;
-
-        if (markup.StartsWith("[") && markup.EndsWith("[/]"))
-        {
-            // remove [color] part
-        }
-
-        return trueString;
     }
 
     /// <summary>
