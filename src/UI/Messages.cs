@@ -61,7 +61,7 @@ public sealed class Messages
     {
         string trueString = string.Empty;
 
-        if (markup[0] == '[' && markup[markup.Length - 1] == ']')
+        if (markup.StartsWith("[") && markup.EndsWith("[/]"))
         {
             // remove [color] part
         }
