@@ -75,8 +75,8 @@ public static class UdpTransport
                 var result = await Udp.ReceiveAsync();
 
                 // decode bytes to string (UTF-8)
-                var message = Encoding.UTF8.GetString(result.Buffer, 0, result.Buffer.Length);
-                if (message[0] == 'i')
+                string message = Encoding.UTF8.GetString(result.Buffer, 0, result.Buffer.Length);
+                if (message.StartsWith("i"))
                 {
                     Input.RecieveInput(message);
                 }
@@ -106,12 +106,12 @@ public static class UdpTransport
 
     public static async Task SendMessage(string message)
     {
-        UiState.MessageWindow?.Write(SendBuffer[0]);
-        SendBuffer.RemoveAt(0);
-        byte[] massage = Encoding.UTF8.GetBytes(message);
+        UiState.MessageWindow?.Write("[green]trying to send message[/]");
+        var messageByte = Encoding.UTF8.GetBytes(message);
         try
         {
-            await Udp.SendAsync(massage, massage.Length, peerEndpoint);
+            await Udp.SendAsync(messageByte, messageByte.Length, peerEndpoint);
+            UiState.MessageWindow?.Write($"[green]sent {message}[/]");
         }
         catch (Exception ex)
         {
