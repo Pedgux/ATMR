@@ -1,8 +1,6 @@
-using System;
-using System.Collections.Generic;
-using System.Threading;
+namespace ATMR.Game;
+
 using System.Threading.Channels;
-using System.Threading.Tasks;
 using ATMR;
 using ATMR.Networking;
 

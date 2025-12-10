@@ -4,8 +4,8 @@ Inspired by Nathan Daniel's "Roguelike Theory of Relativity (RTOR)" paper
 Built with Spectre.Console for console UI: https://spectreconsole.net/
 */
 
-using System.Threading;
 using ATMR;
+using ATMR.Game;
 using ATMR.Networking;
 using ATMR.UI;
 using Spectre.Console;
