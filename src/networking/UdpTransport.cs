@@ -19,7 +19,7 @@ public static class UdpTransport
         private set => _udp = value;
     }
     private static IPEndPoint? peerEndpoint;
-    public static bool connected = false;
+    public static bool connected;
 
     /// <summary>
     /// Initializes fucking everything
@@ -27,6 +27,7 @@ public static class UdpTransport
     /// <param name="lobbyId"> the name of the lobby</param>
     public static async Task Initialize(string lobbyId)
     {
+        connected = false;
         _udp = new UdpClient(0);
         UiState.MessageWindow?.Write($"Local UDP bound: {_udp.Client.LocalEndPoint}");
         var (ip, port) = await Stun.GetPublicIPAsync();
