@@ -19,6 +19,7 @@ public static class UdpTransport
         private set => _udp = value;
     }
     private static IPEndPoint? peerEndpoint;
+    public static bool connected = false;
 
     /// <summary>
     /// Initializes fucking everything
@@ -67,7 +68,6 @@ public static class UdpTransport
     public static async Task ReceiveLoop(IPEndPoint peer)
     {
         UiState.MessageWindow?.Write("[blue]Starting Receiveloop![/]");
-        bool connected = false;
         while (true)
         {
             try

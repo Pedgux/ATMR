@@ -2,6 +2,7 @@ namespace ATMR.Helpers;
 
 public static class StringHelper
 {
+    // probably works
     public static string MarkupToString(string markup)
     {
         string trueString = markup;

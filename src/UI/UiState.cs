@@ -1,3 +1,5 @@
+using Spectre.Console;
+
 namespace ATMR;
 
 /// <summary>
@@ -9,10 +11,11 @@ public static class UiState
     public static UI.Messages? MessageWindow { get; set; }
     public static int ConsoleWidth = Console.WindowWidth;
     public static int ConsoleHeight = Console.WindowHeight;
+    private static int _padding = 2;
 
     // 6/10 of the Console
-    public static int leftSize = (int)Math.Floor(ConsoleWidth / 10.0 * 6);
+    public static int leftSize = (int)Math.Floor(ConsoleWidth / 10.0 * 6) - _padding;
 
     // 4/10 of the Console
-    public static int rightSize = (int)Math.Floor(ConsoleWidth / 10.0 * 4);
+    public static int rightSize = (int)Math.Floor(ConsoleWidth / 10.0 * 4) - _padding;
 }
