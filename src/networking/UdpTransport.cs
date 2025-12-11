@@ -112,7 +112,7 @@ public static class UdpTransport
                         UiState.MessageWindow.Write("[green]Got a connection![/]");
                         connected = true;
                         await KeepAliveLoop(peer);
-                        await PingLoop(peer);
+                        await PingLoop();
                     }
                     continue;
                 }
@@ -173,7 +173,7 @@ public static class UdpTransport
     /// <summary>
     /// sends pings.
     /// </summary>
-    private static Task PingLoop(IPEndPoint peer)
+    private static Task PingLoop()
     {
         byte[] poke = { 0x01 };
 
@@ -186,6 +186,7 @@ public static class UdpTransport
             {
                 sw.Start();
                 await SendMessage("pingS");
+                await Task.Delay(10000);
             }
         });
 
