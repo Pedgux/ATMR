@@ -1,6 +1,7 @@
 namespace ATMR.Networking;
 
 using System;
+using System.Diagnostics;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
@@ -138,7 +139,8 @@ public static class UdpTransport
             {
                 try
                 {
-                    await Task.Delay(30000);
+                    await Task.Delay(5000);
+                    var sw = Stopwatch.StartNew();
                     await Udp.SendAsync(poke, poke.Length, peer);
                 }
                 catch (Exception ex)
