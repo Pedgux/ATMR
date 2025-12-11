@@ -3,6 +3,7 @@ namespace ATMR.Networking;
 using System;
 using System.Diagnostics;
 using System.Net;
+using System.Net.NetworkInformation;
 using System.Net.Sockets;
 using System.Security.Cryptography;
 using System.Text;
@@ -86,12 +87,22 @@ public static class UdpTransport
                     Input.RecieveInput(message);
                 }
 
-                if (result.Buffer.Length == 1 && result.Buffer[0] == 0x01)
+                // if we receive a sended ping, we receive and send back
+                if (message == "pingS")
                 {
-                    //UiState.MessageWindow.Write("[blue]alive[/]");
-                    long aika = sw.ElapsedMilliseconds;
+                    await SendMessage("pingR");
+                }
+
+                if (message == "pingR")
+                {
+                    long aika = sw.ElapsedMilliseconds / 2;
                     UiState.MessageWindow.Write($"{aika}");
                     sw.Reset();
+                }
+
+                if (result.Buffer.Length == 1 && result.Buffer[0] == 0x01)
+                {
+                    UiState.MessageWindow.Write("[blue]alive[/]");
                 }
 
                 if (message == "poke")
@@ -101,6 +112,7 @@ public static class UdpTransport
                         UiState.MessageWindow.Write("[green]Got a connection![/]");
                         connected = true;
                         await KeepAliveLoop(peer);
+                        await PingLoop(peer);
                     }
                     continue;
                 }
@@ -146,14 +158,34 @@ public static class UdpTransport
                 try
                 {
                     await Task.Delay(5000);
-
-                    sw.Start();
                     await Udp.SendAsync(poke, poke.Length, peer);
                 }
                 catch (Exception ex)
                 {
                     UiState.MessageWindow.Write($"KeepAlive send error to {peer}: {ex.Message}");
                 }
+            }
+        });
+
+        return Task.CompletedTask;
+    }
+
+    /// <summary>
+    /// sends pings.
+    /// </summary>
+    private static Task PingLoop(IPEndPoint peer)
+    {
+        byte[] poke = { 0x01 };
+
+        // Use a background Task loop instead of a Timer so the work isn't
+        // garbage-collected when this method returns. The Task runs forever
+        // and sends a single-byte keepalive every 30 seconds.
+        _ = Task.Run(async () =>
+        {
+            while (true)
+            {
+                sw.Start();
+                await SendMessage("pingS");
             }
         });
 
