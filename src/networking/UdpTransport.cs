@@ -4,6 +4,7 @@ using System;
 using System.Diagnostics;
 using System.Net;
 using System.Net.Sockets;
+using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 using ATMR.Input;
@@ -21,6 +22,7 @@ public static class UdpTransport
     }
     private static IPEndPoint? peerEndpoint;
     public static bool connected;
+    public static Stopwatch sw = Stopwatch.StartNew();
 
     /// <summary>
     /// Initializes fucking everything
@@ -86,6 +88,9 @@ public static class UdpTransport
                 if (result.Buffer.Length == 1 && result.Buffer[0] == 0x01)
                 {
                     UiState.MessageWindow.Write("[blue]alive[/]");
+                    long aika = sw.ElapsedMilliseconds;
+                    UiState.MessageWindow.Write($"{aika}");
+                    sw.Stop();
                 }
 
                 if (message == "poke")
@@ -140,7 +145,8 @@ public static class UdpTransport
                 try
                 {
                     await Task.Delay(5000);
-                    var sw = Stopwatch.StartNew();
+
+                    sw.Start();
                     await Udp.SendAsync(poke, poke.Length, peer);
                 }
                 catch (Exception ex)
