@@ -12,7 +12,6 @@ using Spectre.Console;
 /// </summary>
 public sealed class Messages
 {
-    private readonly UI _ui;
     private Panel _messagePanel;
     private readonly Layout _messageWindow;
     private readonly List<string> _messages = new();
@@ -21,11 +20,10 @@ public sealed class Messages
     private int _offset = 0;
 
     // Constructor: capture the layout child. Live will be started at program-level.
-    public Messages(UI ui)
+    public Messages()
     {
-        _ui = ui;
         _messagePanel = new Panel("") { Expand = true };
-        _messageWindow = _ui.RootLayout["Messages"];
+        _messageWindow = UiState.Ui.RootLayout["Messages"];
         _messageWindow.Update(_messagePanel);
         _messageWindowSize = _messageWindow.Size.GetValueOrDefault() - 2;
     }

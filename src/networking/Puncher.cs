@@ -13,7 +13,7 @@ public static class Puncher
 {
     public static async Task Punch(IPEndPoint peer)
     {
-        UiState.MessageWindow?.Write($"[red]Punching: {peer}[/]");
+        UiState.MessageWindow.Write($"[red]Punching: {peer}[/]");
         byte[] poke = Encoding.UTF8.GetBytes("poke");
 
         // tries for 30s

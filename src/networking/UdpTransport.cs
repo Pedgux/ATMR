@@ -5,7 +5,7 @@ using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading.Tasks;
-using ATMR.Game;
+using ATMR.Input;
 
 /// <summary>
 /// Handles all UDP. heh.
@@ -29,17 +29,17 @@ public static class UdpTransport
     {
         connected = false;
         _udp = new UdpClient(0);
-        UiState.MessageWindow?.Write($"Local UDP bound: {_udp.Client.LocalEndPoint}");
+        UiState.MessageWindow.Write($"Local UDP bound: {_udp.Client.LocalEndPoint}");
         var (ip, port) = await Stun.GetPublicIPAsync();
 
-        UiState.MessageWindow?.Write($"[green]Address from STUN: {ip}:{port}[/]");
+        UiState.MessageWindow.Write($"[green]Address from STUN: {ip}:{port}[/]");
 
         await Lobby.Initialize();
 
         string playerId =
             Lobby.Auth?.LocalId
             ?? throw new InvalidOperationException("Lobby.Auth or LocalId is null");
-        UiState.MessageWindow?.Write($"[yellow]playerId is: {playerId}[/]");
+        UiState.MessageWindow.Write($"[yellow]playerId is: {playerId}[/]");
         await Lobby.Join(lobbyId, playerId, ip, port);
 
         string? blob = await Lobby.GetOtherPlayerBlob(lobbyId, playerId);
@@ -68,7 +68,7 @@ public static class UdpTransport
     /// <returns>??</returns>
     public static async Task ReceiveLoop(IPEndPoint peer)
     {
-        UiState.MessageWindow?.Write("[blue]Starting Receiveloop![/]");
+        UiState.MessageWindow.Write("[blue]Starting Receiveloop![/]");
         while (true)
         {
             try
@@ -84,14 +84,14 @@ public static class UdpTransport
 
                 if (result.Buffer.Length == 1 && result.Buffer[0] == 0x01)
                 {
-                    UiState.MessageWindow?.Write("[blue]alive[/]");
+                    UiState.MessageWindow.Write("[blue]alive[/]");
                 }
 
                 if (message == "poke")
                 {
                     if (!connected)
                     {
-                        UiState.MessageWindow?.Write("[green]Got a connection![/]");
+                        UiState.MessageWindow.Write("[green]Got a connection![/]");
                         connected = true;
                         await KeepAliveLoop(peer);
                     }
@@ -100,7 +100,7 @@ public static class UdpTransport
             }
             catch (Exception ex)
             {
-                UiState.MessageWindow?.Write($"[red]Receive error: {ex}[/]");
+                UiState.MessageWindow.Write($"[red]Receive error: {ex}[/]");
             }
         }
     }
@@ -112,16 +112,16 @@ public static class UdpTransport
     /// <returns>????</returns>
     public static async Task SendMessage(string message)
     {
-        //UiState.MessageWindow?.Write("[green]trying to send message[/]");
+        //UiState.MessageWindow.Write("[green]trying to send message[/]");
         var messageByte = Encoding.UTF8.GetBytes(message);
         try
         {
             await Udp.SendAsync(messageByte, messageByte.Length, peerEndpoint);
-            //UiState.MessageWindow?.Write($"[green]sent {message}[/]");
+            //UiState.MessageWindow.Write($"[green]sent {message}[/]");
         }
         catch (Exception ex)
         {
-            UiState.MessageWindow?.Write($"KeepAlive send error to {peerEndpoint}: {ex.Message}");
+            UiState.MessageWindow.Write($"KeepAlive send error to {peerEndpoint}: {ex.Message}");
         }
     }
 
@@ -143,7 +143,7 @@ public static class UdpTransport
                 }
                 catch (Exception ex)
                 {
-                    UiState.MessageWindow?.Write($"KeepAlive send error to {peer}: {ex.Message}");
+                    UiState.MessageWindow.Write($"KeepAlive send error to {peer}: {ex.Message}");
                 }
             }
         });

@@ -12,7 +12,6 @@ public sealed class UI
     public UI()
     {
         Initialize();
-        UiState.RootUI = this;
     }
 
     public void Initialize()

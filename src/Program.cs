@@ -5,7 +5,7 @@ Built with Spectre.Console for console UI: https://spectreconsole.net/
 */
 
 using ATMR;
-using ATMR.Game;
+using ATMR.Input;
 using ATMR.Networking;
 using ATMR.UI;
 using Spectre.Console;
@@ -29,17 +29,17 @@ public static class Program
         var lobbyCode = AnsiConsole.Prompt(new TextPrompt<string>("Type out a lobby code: "));
         AnsiConsole.Clear();
 
-        var ui = new UI();
+        UiState.Ui = new UI();
 
         // Create and register the messages panel (no live started here)
-        UiState.MessageWindow = new Messages(ui);
+        UiState.MessageWindow = new Messages();
 
         // Start networking initialization in background so UI Live runs immediately
         _ = Initialize(lobbyCode);
 
         // Start one Live session bound to the root layout and refresh messages inside it.
         await AnsiConsole
-            .Live(ui.RootLayout)
+            .Live(UiState.Ui.RootLayout)
             .StartAsync(async ctx =>
             {
                 while (true)

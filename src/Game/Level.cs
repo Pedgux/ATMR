@@ -1,4 +1,4 @@
-namespace ATMR.Game;
+namespace ATMR.Level;
 
 using Arch.Core;
 using ATMR.ECS;
