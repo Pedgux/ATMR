@@ -87,17 +87,21 @@ public static class UdpTransport
                     Input.RecieveInput(message);
                 }
 
-                // if we receive a sended ping, we receive and send back
-                if (message == "pingS")
+                // ping/pong using timestamps to calculate RTT
+                if (message.StartsWith("ping:", StringComparison.Ordinal))
                 {
-                    await SendMessage("pingR");
+                    string ts = message.Substring(5).Trim();
+                    await SendMessage($"pong:{ts}");
                 }
-                // if we get our ping back, calculate time
-                if (message == "pingR")
+
+                if (message.StartsWith("pong:", StringComparison.Ordinal))
                 {
-                    long aika = sw.ElapsedMilliseconds / 2;
-                    UiState.MessageWindow.Write($"{aika}");
-                    sw.Reset();
+                    string ts = message.Substring(5).Trim();
+                    if (long.TryParse(ts, out long sentTs))
+                    {
+                        long rtt = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() - sentTs;
+                        UiState.MessageWindow.Write($"{rtt} ms");
+                    }
                 }
 
                 if (result.Buffer.Length == 1 && result.Buffer[0] == 0x01)
@@ -184,8 +188,8 @@ public static class UdpTransport
         {
             while (true)
             {
-                sw.Start();
-                await SendMessage("pingS");
+                long ts = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+                await SendMessage($"ping:{ts}");
                 await Task.Delay(1000);
             }
         });
