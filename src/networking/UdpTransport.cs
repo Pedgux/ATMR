@@ -190,7 +190,7 @@ public static class UdpTransport
             {
                 long ts = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
                 await SendMessage($"ping:{ts}");
-                await Task.Delay(1000);
+                await Task.Delay(5000);
             }
         });
 
