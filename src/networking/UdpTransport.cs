@@ -157,7 +157,7 @@ public static class UdpTransport
             {
                 try
                 {
-                    await Task.Delay(1000);
+                    await Task.Delay(30000);
                     await Udp.SendAsync(poke, poke.Length, peer);
                 }
                 catch (Exception ex)
@@ -186,7 +186,7 @@ public static class UdpTransport
             {
                 sw.Start();
                 await SendMessage("pingS");
-                await Task.Delay(10000);
+                await Task.Delay(1000);
             }
         });
 
