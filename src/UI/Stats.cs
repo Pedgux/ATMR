@@ -20,4 +20,9 @@ public sealed class Stats
         _statsWindow = UiState.Ui.RootLayout["Stats"];
         _statsWindow.Update(_statsPanel);
     }
+
+    // todo / reminder:
+    // Use breakdownchart to represent player health, easily visualizing:
+    // incoming damage (poison, fire),
+    // different types of health (armor, shields)
 }

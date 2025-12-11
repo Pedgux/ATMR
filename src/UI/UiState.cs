@@ -9,6 +9,7 @@ public static class UiState
 {
     public static UI.UI Ui { get; set; } = null!;
     public static UI.Messages MessageWindow { get; set; } = null!;
+    public static UI.Stats StatsWindow { get; set; } = null!;
     public static int ConsoleWidth = Console.WindowWidth;
     public static int ConsoleHeight = Console.WindowHeight;
     private static int _padding = 2;
