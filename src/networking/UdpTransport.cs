@@ -88,10 +88,10 @@ public static class UdpTransport
 
                 if (result.Buffer.Length == 1 && result.Buffer[0] == 0x01)
                 {
-                    UiState.MessageWindow.Write("[blue]alive[/]");
+                    //UiState.MessageWindow.Write("[blue]alive[/]");
                     long aika = sw.ElapsedMilliseconds;
                     UiState.MessageWindow.Write($"{aika}");
-                    sw.Stop();
+                    sw.Reset();
                 }
 
                 if (message == "poke")
