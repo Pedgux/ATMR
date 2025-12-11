@@ -22,8 +22,14 @@ public sealed class UI
                 .Ratio(3)
                 .Size(UiState.leftSize)
                 .SplitRows(
-                    new Layout("Game").MinimumSize(20).Ratio(4),
-                    new Layout("Stats").MinimumSize(5).Ratio(1)
+                    new Layout(
+                        "Game"
+                    ) /*.MinimumSize(20)*/
+                    .Ratio(4),
+                    new Layout(
+                        "Stats"
+                    ) /*.MinimumSize(5)*/
+                    .Ratio(1)
                 ),
             new Layout("Right")
                 .Ratio(2)
