@@ -92,7 +92,7 @@ public static class UdpTransport
                 {
                     await SendMessage("pingR");
                 }
-
+                // if we get our ping back, calculate time
                 if (message == "pingR")
                 {
                     long aika = sw.ElapsedMilliseconds / 2;
@@ -102,7 +102,7 @@ public static class UdpTransport
 
                 if (result.Buffer.Length == 1 && result.Buffer[0] == 0x01)
                 {
-                    UiState.MessageWindow.Write("[blue]alive[/]");
+                    //UiState.MessageWindow.Write("[blue]alive[/]");
                 }
 
                 if (message == "poke")
@@ -157,7 +157,7 @@ public static class UdpTransport
             {
                 try
                 {
-                    await Task.Delay(5000);
+                    await Task.Delay(1000);
                     await Udp.SendAsync(poke, poke.Length, peer);
                 }
                 catch (Exception ex)
