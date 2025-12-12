@@ -100,7 +100,7 @@ public static class UdpTransport
                         long rtt = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() - sentTs;
                         GameState.PingList.Add(rtt);
                         // remove excess
-                        while (GameState.PingList.Count > 5)
+                        while (GameState.PingList.Count > 20)
                         {
                             GameState.PingList.RemoveAt(0);
                         }
@@ -197,7 +197,7 @@ public static class UdpTransport
             {
                 long ts = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
                 await SendMessage($"ping:{ts}");
-                await Task.Delay(5000);
+                await Task.Delay(1000);
             }
         });
 

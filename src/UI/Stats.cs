@@ -29,9 +29,9 @@ public sealed class Stats
     // update the panel, plz work
     public void RefreshPanel()
     {
-        if (GameState.PingList.Count > 3)
+        if (GameState.PingList.Count > 10)
         {
-            var panel = new Panel(new Markup($"Median ping: {GameState.PingList[2]} ms"))
+            var panel = new Panel(new Markup($"Median ping: {GameState.PingList[10]} ms"))
             {
                 Expand = true,
             };
