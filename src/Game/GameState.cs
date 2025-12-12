@@ -12,7 +12,6 @@ public static class GameState
     public static UI.Stats StatsWindow { get; set; } = null!;
     public static int ConsoleWidth = Console.WindowWidth;
     public static int ConsoleHeight = Console.WindowHeight;
-    private static int _padding = 2;
 
     // 6/10 of the Console
     public static int leftSize = (int)Math.Floor(ConsoleWidth / 10.0 * 6);
