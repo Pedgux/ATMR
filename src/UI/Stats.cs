@@ -17,7 +17,7 @@ public sealed class Stats
     public Stats()
     {
         _statsPanel = new Panel("") { Expand = true };
-        _statsWindow = UiState.Ui.RootLayout["Stats"];
+        _statsWindow = GameState.Ui.RootLayout["Stats"];
         _statsWindow.Update(_statsPanel);
     }
 

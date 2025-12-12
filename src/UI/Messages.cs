@@ -23,7 +23,7 @@ public sealed class Messages
     public Messages()
     {
         _messagePanel = new Panel("") { Expand = true };
-        _messageWindow = UiState.Ui.RootLayout["Messages"];
+        _messageWindow = GameState.Ui.RootLayout["Messages"];
         _messageWindow.Update(_messagePanel);
         _messageWindowSize = _messageWindow.Size.GetValueOrDefault() - 2;
     }
@@ -36,7 +36,7 @@ public sealed class Messages
     {
         lock (_messages)
         {
-            int _writableArea = UiState.rightSize - 2;
+            int _writableArea = GameState.rightSize - 2;
             int trueSize = StringHelper.MarkupToString(message).Length;
             // doesnt work because buh width is fucking hard apparently
             // replace size in here with width, as size is relative to the orientation of the layout

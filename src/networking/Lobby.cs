@@ -75,21 +75,21 @@ public static class Lobby
             {
                 // Log or handle the error
                 string errorContent = await response.Content.ReadAsStringAsync();
-                UiState.MessageWindow.Write(
+                GameState.MessageWindow.Write(
                     $"[red]Error signing in anonymously: {response.StatusCode}[/]"
                 );
-                UiState.MessageWindow.Write($"[red]Error details: {errorContent}[/]");
+                GameState.MessageWindow.Write($"[red]Error details: {errorContent}[/]");
                 return null;
             }
         }
         catch (HttpRequestException ex)
         {
-            UiState.MessageWindow.Write($"Network error during anonymous sign-in: {ex.Message}");
+            GameState.MessageWindow.Write($"Network error during anonymous sign-in: {ex.Message}");
             return null;
         }
         catch (JsonException ex)
         {
-            UiState.MessageWindow.Write($"JSON deserialization error: {ex.Message}");
+            GameState.MessageWindow.Write($"JSON deserialization error: {ex.Message}");
             return null;
         }
     }
@@ -101,7 +101,7 @@ public static class Lobby
         if (Auth == null)
             throw new Exception("Anonymous auth failed. Check console output for details.");
 
-        UiState.MessageWindow.Write($"[yellow]Signed in anonymously.[/]");
+        GameState.MessageWindow.Write($"[yellow]Signed in anonymously.[/]");
     }
 
     public static async Task Join(string lobbyCode, string playerId, string ip, int port)
@@ -119,21 +119,21 @@ public static class Lobby
 
         //need to PUT this into existence (pun intended)
         string url = $"{BaseUrl}lobbies/{lobbyCode}/{playerId}.json?auth={idToken}";
-        UiState.MessageWindow.Write($"[purple]Using: {ip}:{port} in blob[/]");
+        GameState.MessageWindow.Write($"[purple]Using: {ip}:{port} in blob[/]");
         string blob = IpPortEncoder.Encode(ip, (ushort)port);
-        UiState.MessageWindow.Write($"[purple]Encoded blob: {blob}[/]");
-        UiState.MessageWindow.Write($"[purple]Decoded blob: {IpPortEncoder.Decode(blob)}[/]");
+        GameState.MessageWindow.Write($"[purple]Encoded blob: {blob}[/]");
+        GameState.MessageWindow.Write($"[purple]Decoded blob: {IpPortEncoder.Decode(blob)}[/]");
         var content = new StringContent($"\"{blob}\"", Encoding.UTF8, "application/json");
-        UiState.MessageWindow.Write($"[green]Trying to create lobby...[/]");
+        GameState.MessageWindow.Write($"[green]Trying to create lobby...[/]");
         var response = await client.PutAsync(url, content);
         response.EnsureSuccessStatusCode(); //pls do not explode
-        UiState.MessageWindow.Write($"[green]Lobby created![/]");
+        GameState.MessageWindow.Write($"[green]Lobby created![/]");
     }
 
     public static async Task<string?> GetOtherPlayerBlob(string lobbyCode, string notThisOne)
     {
         bool found = false;
-        UiState.MessageWindow.Write("[blue]Waiting for players...[/]");
+        GameState.MessageWindow.Write("[blue]Waiting for players...[/]");
         while (found == false)
         {
             // pause before retrying to save data heheee
@@ -160,7 +160,7 @@ public static class Lobby
 
             if (map == null || map.Count == 0)
             {
-                UiState.MessageWindow.Write("Lobby empty or response was 'null'.");
+                GameState.MessageWindow.Write("Lobby empty or response was 'null'.");
                 return null;
             }
 
@@ -169,9 +169,9 @@ public static class Lobby
             {
                 if (!string.Equals(kvp.Key, notThisOne, StringComparison.Ordinal))
                 {
-                    UiState.MessageWindow.Write($"[blue]Found other player [/]");
-                    UiState.MessageWindow.Write($"[blue]ID: {kvp.Key}[/]");
-                    UiState.MessageWindow.Write($"[blue](blob: {kvp.Value})[/]");
+                    GameState.MessageWindow.Write($"[blue]Found other player [/]");
+                    GameState.MessageWindow.Write($"[blue]ID: {kvp.Key}[/]");
+                    GameState.MessageWindow.Write($"[blue](blob: {kvp.Value})[/]");
 
                     return kvp.Value;
                 }

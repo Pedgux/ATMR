@@ -29,22 +29,22 @@ public static class Program
         var lobbyCode = AnsiConsole.Prompt(new TextPrompt<string>("Type out a lobby code: "));
         AnsiConsole.Clear();
 
-        UiState.Ui = new UI();
+        GameState.Ui = new UI();
 
         // Create and register the messages panel (no live started here)
-        UiState.MessageWindow = new Messages();
+        GameState.MessageWindow = new Messages();
 
         // Start networking initialization in background so UI Live runs immediately
         _ = Initialize(lobbyCode);
 
         // Start one Live session bound to the root layout and refresh messages inside it.
         await AnsiConsole
-            .Live(UiState.Ui.RootLayout)
+            .Live(GameState.Ui.RootLayout)
             .StartAsync(async ctx =>
             {
                 while (true)
                 {
-                    UiState.MessageWindow.RefreshPanel();
+                    GameState.MessageWindow.RefreshPanel();
                     ctx.Refresh();
                     await Task.Delay(60).ConfigureAwait(false);
                 }

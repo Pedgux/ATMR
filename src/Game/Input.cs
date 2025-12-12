@@ -38,11 +38,11 @@ public static class Input
     {
         if (message == "iup")
         {
-            UiState.MessageWindow.OffsetUp();
+            GameState.MessageWindow.OffsetUp();
         }
         if (message == "idown")
         {
-            UiState.MessageWindow.OffsetDown();
+            GameState.MessageWindow.OffsetDown();
         }
     }
 
@@ -57,7 +57,7 @@ public static class Input
         {
             [ConsoleKey.UpArrow] = async k =>
             { /* handle up */
-                UiState.MessageWindow.OffsetUp();
+                GameState.MessageWindow.OffsetUp();
                 if (UdpTransport.connected)
                 {
                     await UdpTransport.SendMessage("iup");
@@ -66,7 +66,7 @@ public static class Input
             },
             [ConsoleKey.DownArrow] = async k =>
             { /* handle down */
-                UiState.MessageWindow.OffsetDown();
+                GameState.MessageWindow.OffsetDown();
                 if (UdpTransport.connected)
                 {
                     await UdpTransport.SendMessage("idown");

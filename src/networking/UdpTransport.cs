@@ -33,17 +33,17 @@ public static class UdpTransport
     {
         connected = false;
         _udp = new UdpClient(0);
-        UiState.MessageWindow.Write($"Local UDP bound: {_udp.Client.LocalEndPoint}");
+        GameState.MessageWindow.Write($"Local UDP bound: {_udp.Client.LocalEndPoint}");
         var (ip, port) = await Stun.GetPublicIPAsync();
 
-        UiState.MessageWindow.Write($"[green]Address from STUN: {ip}:{port}[/] ");
+        GameState.MessageWindow.Write($"[green]Address from STUN: {ip}:{port}[/] ");
 
         await Lobby.Initialize();
 
         string playerId =
             Lobby.Auth?.LocalId
             ?? throw new InvalidOperationException("Lobby.Auth or LocalId is null");
-        UiState.MessageWindow.Write($"[yellow]playerId is: {playerId}[/]");
+        GameState.MessageWindow.Write($"[yellow]playerId is: {playerId}[/]");
         await Lobby.Join(lobbyId, playerId, ip, port);
 
         string? blob = await Lobby.GetOtherPlayerBlob(lobbyId, playerId);
@@ -73,7 +73,7 @@ public static class UdpTransport
     public static async Task ReceiveLoop(IPEndPoint peer)
     {
         // test push
-        UiState.MessageWindow.Write("[blue]Starting Receiveloop![/]");
+        GameState.MessageWindow.Write("[blue]Starting Receiveloop![/]");
         while (true)
         {
             try
@@ -100,20 +100,20 @@ public static class UdpTransport
                     if (long.TryParse(ts, out long sentTs))
                     {
                         long rtt = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() - sentTs;
-                        UiState.MessageWindow.Write($"{rtt} ms");
+                        GameState.MessageWindow.Write($"{rtt} ms");
                     }
                 }
 
                 if (result.Buffer.Length == 1 && result.Buffer[0] == 0x01)
                 {
-                    //UiState.MessageWindow.Write("[blue]alive[/]");
+                    //GameState.MessageWindow.Write("[blue]alive[/]");
                 }
 
                 if (message == "poke")
                 {
                     if (!connected)
                     {
-                        UiState.MessageWindow.Write("[green]Got a connection![/]");
+                        GameState.MessageWindow.Write("[green]Got a connection![/]");
                         connected = true;
                         await KeepAliveLoop(peer);
                         await PingLoop();
@@ -123,7 +123,7 @@ public static class UdpTransport
             }
             catch (Exception ex)
             {
-                UiState.MessageWindow.Write($"[red]Receive error: {ex}[/]");
+                GameState.MessageWindow.Write($"[red]Receive error: {ex}[/]");
             }
         }
     }
@@ -135,16 +135,16 @@ public static class UdpTransport
     /// <returns>????</returns>
     public static async Task SendMessage(string message)
     {
-        //UiState.MessageWindow.Write("[green]trying to send message[/]");
+        //GameState.MessageWindow.Write("[green]trying to send message[/]");
         var messageByte = Encoding.UTF8.GetBytes(message);
         try
         {
             await Udp.SendAsync(messageByte, messageByte.Length, peerEndpoint);
-            //UiState.MessageWindow.Write($"[green]sent {message}[/]");
+            //GameState.MessageWindow.Write($"[green]sent {message}[/]");
         }
         catch (Exception ex)
         {
-            UiState.MessageWindow.Write($"KeepAlive send error to {peerEndpoint}: {ex.Message}");
+            GameState.MessageWindow.Write($"KeepAlive send error to {peerEndpoint}: {ex.Message}");
         }
     }
 
@@ -166,7 +166,7 @@ public static class UdpTransport
                 }
                 catch (Exception ex)
                 {
-                    UiState.MessageWindow.Write($"KeepAlive send error to {peer}: {ex.Message}");
+                    GameState.MessageWindow.Write($"KeepAlive send error to {peer}: {ex.Message}");
                 }
             }
         });
