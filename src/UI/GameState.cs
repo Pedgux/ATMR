@@ -15,8 +15,8 @@ public static class UiState
     private static int _padding = 2;
 
     // 6/10 of the Console
-    public static int leftSize = (int)Math.Floor(ConsoleWidth / 10.0 * 6) - _padding;
+    public static int leftSize = (int)Math.Floor(ConsoleWidth / 10.0 * 6);
 
     // 4/10 of the Console
-    public static int rightSize = (int)Math.Floor(ConsoleWidth / 10.0 * 4) - _padding;
+    public static int rightSize = (int)Math.Floor(ConsoleWidth / 10.0 * 4);
 }

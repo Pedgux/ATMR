@@ -19,7 +19,6 @@ public sealed class UI
         // Create the UI
         _root = new Layout("Root").SplitColumns(
             new Layout("Left")
-                .Ratio(3)
                 .Size(UiState.leftSize)
                 .SplitRows(
                     new Layout(
@@ -32,7 +31,6 @@ public sealed class UI
                     .Ratio(1)
                 ),
             new Layout("Right")
-                .Ratio(2)
                 .Size(UiState.rightSize)
                 .SplitRows(new Layout("Messages").Size(7), new Layout("Inventory").Ratio(10))
         );

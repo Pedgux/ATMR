@@ -36,7 +36,7 @@ public static class UdpTransport
         UiState.MessageWindow.Write($"Local UDP bound: {_udp.Client.LocalEndPoint}");
         var (ip, port) = await Stun.GetPublicIPAsync();
 
-        UiState.MessageWindow.Write($"[green]Address from STUN: {ip}:{port}[/]");
+        UiState.MessageWindow.Write($"[green]Address from STUN: {ip}:{port}[/] ");
 
         await Lobby.Initialize();
 
@@ -190,7 +190,7 @@ public static class UdpTransport
             {
                 long ts = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
                 await SendMessage($"ping:{ts}");
-                await Task.Delay(1000);
+                await Task.Delay(5000);
             }
         });
 
