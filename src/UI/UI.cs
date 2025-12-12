@@ -14,7 +14,7 @@ public sealed class UI
         Initialize();
     }
 
-    public void Initialize()
+    public Task Initialize()
     {
         // Create the UI
         _root = new Layout("Root").SplitColumns(
@@ -44,5 +44,6 @@ public sealed class UI
 
         _root["Stats"].Update(statsTable);
         */
+        return Task.CompletedTask;
     }
 }

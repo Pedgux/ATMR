@@ -25,4 +25,14 @@ public sealed class Stats
     // Use breakdownchart to represent player health, easily visualizing:
     // incoming damage (poison, fire),
     // different types of health (armor, shields)
+
+    // update the panel, plz work
+    public void RefreshPanel()
+    {
+        var panel = new Panel(new Markup($"Median ping: {GameState.PingList[3]} ms"))
+        {
+            Expand = true,
+        };
+        _statsWindow.Update(panel);
+    }
 }

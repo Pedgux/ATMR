@@ -34,6 +34,8 @@ public static class Program
         // Create and register the messages panel (no live started here)
         GameState.MessageWindow = new Messages();
 
+        GameState.StatsWindow = new Stats();
+
         // Start networking initialization in background so UI Live runs immediately
         _ = Initialize(lobbyCode);
 
@@ -45,6 +47,7 @@ public static class Program
                 while (true)
                 {
                     GameState.MessageWindow.RefreshPanel();
+                    GameState.StatsWindow.RefreshPanel();
                     ctx.Refresh();
                     await Task.Delay(60).ConfigureAwait(false);
                 }

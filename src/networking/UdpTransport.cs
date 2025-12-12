@@ -3,9 +3,7 @@ namespace ATMR.Networking;
 using System;
 using System.Diagnostics;
 using System.Net;
-using System.Net.NetworkInformation;
 using System.Net.Sockets;
-using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 using ATMR.Input;
@@ -100,17 +98,26 @@ public static class UdpTransport
                     if (long.TryParse(ts, out long sentTs))
                     {
                         long rtt = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() - sentTs;
-                        GameState.MessageWindow.Write($"{rtt} ms");
+                        GameState.PingList.Add(rtt);
+                        // remove excess
+                        while (GameState.PingList.Count > 5)
+                        {
+                            GameState.PingList.RemoveAt(0);
+                        }
+                        // sort it so we can get accurate median
+                        GameState.PingList.Sort();
+                        //GameState.MessageWindow.Write($"{rtt} ms");
                     }
                 }
 
                 if (result.Buffer.Length == 1 && result.Buffer[0] == 0x01)
                 {
-                    //GameState.MessageWindow.Write("[blue]alive[/]");
+                    GameState.MessageWindow.Write("[blue]alive[/]");
                 }
 
                 if (message == "poke")
                 {
+                    // check if we get an connection, and start keepalive and ping calculation
                     if (!connected)
                     {
                         GameState.MessageWindow.Write("[green]Got a connection![/]");

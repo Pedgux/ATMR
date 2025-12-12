@@ -18,4 +18,5 @@ public static class GameState
 
     // 4/10 of the Console
     public static int rightSize = (int)Math.Floor(ConsoleWidth / 10.0 * 4);
+    public static List<long> PingList = [];
 }
