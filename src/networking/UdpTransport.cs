@@ -104,8 +104,6 @@ public static class UdpTransport
                         {
                             GameState.PingList.RemoveAt(0);
                         }
-                        // sort it so we can get accurate median
-                        GameState.PingList.Sort();
                         //GameState.MessageWindow.Write($"{rtt} ms");
                     }
                 }

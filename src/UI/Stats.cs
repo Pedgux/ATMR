@@ -31,10 +31,9 @@ public sealed class Stats
     {
         if (GameState.PingList.Count > 10)
         {
-            var panel = new Panel(new Markup($"Median ping: {GameState.PingList[10]} ms"))
-            {
-                Expand = true,
-            };
+            List<long> tempList = GameState.PingList;
+            tempList.Sort();
+            var panel = new Panel(new Markup($"Median ping: {tempList[10]} ms")) { Expand = true };
             _statsWindow.Update(panel);
         }
     }
