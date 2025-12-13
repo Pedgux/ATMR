@@ -1,4 +1,4 @@
-namespace ATMR.ECS;
+namespace ATMR.Components;
 
 public record struct Position(int X, int Y);
 

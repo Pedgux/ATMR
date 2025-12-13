@@ -1,7 +1,7 @@
 namespace ATMR.Level;
 
 using Arch.Core;
-using ATMR.ECS;
+using ATMR.Components;
 
 public class Level
 {
