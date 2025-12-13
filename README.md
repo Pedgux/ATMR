@@ -12,7 +12,7 @@ Uses Arch as it's ECS: https://github.com/genaray/Arch
 
 This is a personal project, which I hope to bring to light someday.
 
-### Installation
+## Installation
 
 Prerequisites: .NET 8 SDK installed (https://dotnet.microsoft.com/download).
 
