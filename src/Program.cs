@@ -19,7 +19,7 @@ public static class Program
 
     public static async Task Main()
     {
-        string lobbyCode = "";
+        string lobbyCode = string.Empty;
 
         var multiplayer = AnsiConsole.Prompt(
             new TextPrompt<string>("Would you like to play multiplayer? (y/n): ")
