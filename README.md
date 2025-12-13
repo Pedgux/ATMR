@@ -1,5 +1,5 @@
 # Attempt At a Multiplayer Roguelike (ATMR) 
-![dotnet](https://img.shields.io/badge/dotnet-8.0-blue)
+![dotnet](https://img.shields.io/badge/dotnet-10.0-blue)
 [![CI](https://img.shields.io/github/actions/workflow/status/Pedgux/ATMR/dotnet.yml?branch=main)](https://github.com/Pedgux/ATMR/actions)
 [![license](https://img.shields.io/github/license/Pedgux/ATMR)](https://github.com/Pedgux/ATMR/blob/main/LICENSE) 
 ![status](https://img.shields.io/badge/status-work%20in%20progress-yellow)
@@ -15,7 +15,7 @@ This is a personal project, which I hope to bring to light someday.
 
 ## Installation
 
-Prerequisites: .NET 8 SDK installed (https://dotnet.microsoft.com/download).
+Prerequisites: .NET 10 SDK installed (https://dotnet.microsoft.com/download).
 
 Quick start:
 
