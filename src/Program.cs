@@ -10,8 +10,6 @@ using ATMR.Networking;
 using ATMR.UI;
 using Spectre.Console;
 
-//ragma warning disable CS1998
-
 public static class Program
 {
     public static async Task InitializeNetworking(string lobbyCode)
