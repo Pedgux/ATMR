@@ -25,4 +25,5 @@ public static class GameState
     public static List<long> PingList = [];
 
     // temporary thing to hold level 0 for testing
+    public static Level Level = new(0);
 }
