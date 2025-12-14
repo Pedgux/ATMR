@@ -15,7 +15,5 @@ public class Level
     {
         World = World.Create();
         LevelNumber = levelNumber;
-
-        var dwarf = World.Create(new Position(0, 0));
     }
 }
