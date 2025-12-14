@@ -1,4 +1,4 @@
-namespace ATMR.Level;
+namespace ATMR.Game;
 
 using Arch.Core;
 using ATMR.Components;
@@ -8,14 +8,14 @@ using ATMR.Components;
 /// </summary>
 public class Level
 {
-    private World _world;
+    public World World;
     public int LevelNumber { get; private set; }
 
     public Level(int levelNumber)
     {
-        _world = World.Create();
+        World = World.Create();
         LevelNumber = levelNumber;
 
-        var dwarf = _world.Create(new Position(0, 0));
+        var dwarf = World.Create(new Position(0, 0));
     }
 }
