@@ -23,7 +23,7 @@ public sealed class UI
                 .Size(GameState.leftSize)
                 .SplitRows(
                     new Layout(
-                        "Game"
+                        "Grid"
                     ) /*.MinimumSize(20)*/
                     .Ratio(4),
                     new Layout(
