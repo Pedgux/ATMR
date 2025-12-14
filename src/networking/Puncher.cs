@@ -1,10 +1,9 @@
 namespace ATMR.Networking;
 
 using System.Net;
-using System.Net.Sockets;
 using System.Text;
 using System.Threading.Tasks;
-using Spectre.Console;
+using ATMR.Game;
 
 /// <summary>
 /// Handles nat punching & gets address from STUN to establish a P2P connection.

@@ -1,5 +1,6 @@
 namespace ATMR.UI;
 
+using ATMR.Game;
 using Spectre.Console;
 
 public sealed class UI

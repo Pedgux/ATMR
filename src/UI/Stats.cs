@@ -1,8 +1,7 @@
 namespace ATMR.UI;
 
 using System.Collections.Generic;
-using System.Linq;
-using ATMR.Helpers;
+using ATMR.Game;
 using Spectre.Console;
 
 /// <summary>
