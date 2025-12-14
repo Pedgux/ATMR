@@ -1,6 +1,4 @@
-using Spectre.Console;
-
-namespace ATMR;
+namespace ATMR.Game;
 
 /// <summary>
 /// Global application state to bridge data accross stuff
@@ -25,4 +23,6 @@ public static class GameState
 
     // holds pings. wow.
     public static List<long> PingList = [];
+
+    // temporary thing to hold level 0 for testing
 }

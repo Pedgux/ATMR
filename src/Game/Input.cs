@@ -1,7 +1,7 @@
 namespace ATMR.Input;
 
 using System.Threading.Channels;
-using ATMR;
+using ATMR.Game;
 using ATMR.Networking;
 
 public static class Input
