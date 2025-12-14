@@ -14,6 +14,7 @@ public static class RenderSystem
             in query,
             (Entity entity, ref Position position, ref Glyph glyph) =>
             {
+                // guh write to grid later when it exists
                 string renderable =
                     $"{glyph.MarkupEntry}{glyph.Symbol}[/] [white]({position.X}, {position.Y})";
                 GameState.MessageWindow.Write($"{renderable}[/]");
