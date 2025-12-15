@@ -46,6 +46,7 @@ public static class Program
         GameState.Ui = new UI();
         GameState.MessageWindow = new Messages();
         GameState.StatsWindow = new Stats();
+        GameState.GridWindow = new ATMR.UI.Grid();
 
         // optional multiplayer
         if (multiplayer == "y")
@@ -76,6 +77,7 @@ public static class Program
                         {
                             GameState.MessageWindow.RefreshPanel();
                             GameState.StatsWindow.RefreshPanel();
+                            GameState.GridWindow.RefreshPanel();
                             ctx.Refresh();
                             await Task.Delay(60);
                         }
@@ -84,8 +86,8 @@ public static class Program
         );
 
         // testing grounds, level stuff.
-        var player1 = GameState.Level.World.Create(new Position(0, 0), new Glyph('@', "[red]"));
-        var player2 = GameState.Level.World.Create(new Position(4, 0), new Glyph('@', "[blue]"));
+        var player1 = GameState.Level.World.Create(new Position(3, 1), new Glyph('@', "[red]"));
+        var player2 = GameState.Level.World.Create(new Position(4, 8), new Glyph('@', "[blue]"));
         RenderSystem.Run(GameState.Level.World);
 
         // keep app alive until cancellation (e.g. ctrl-c or other signal)
