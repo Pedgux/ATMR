@@ -1,6 +1,7 @@
 using Arch.Core;
 using ATMR.Components;
 using ATMR.Game;
+using Spectre.Console;
 
 namespace ATMR.Systems;
 
@@ -15,9 +16,14 @@ public static class RenderSystem
             (Entity entity, ref Position position, ref Glyph glyph) =>
             {
                 // guh write to grid later when it exists
-                string renderable =
-                    $"{glyph.MarkupEntry}{glyph.Symbol}[/] [white]({position.X}, {position.Y})";
-                GameState.MessageWindow.Write($"{renderable}[/]");
+                string renderable = $"{glyph.MarkupEntry}{glyph.Symbol}[/]";
+
+                GameState.GridWindow.SetGridCell(position.X, position.Y, renderable);
+                GameState.MessageWindow.Write($"X: {position.X} Y: {position.Y}");
+                //GameState.GridWindow
+
+                //var panel = new Panel(new Markup(renderable)) { Expand = true };
+                //GameState.Ui.RootLayout["Grid"].Update(panel);
             }
         );
     }
