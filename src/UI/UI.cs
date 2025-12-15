@@ -20,19 +20,19 @@ public sealed class UI
         // Create the UI
         _root = new Layout("Root").SplitColumns(
             new Layout("Left")
-                .Size(GameState.leftSize)
+                .Size(GameState.LeftWidth)
                 .SplitRows(
                     new Layout(
                         "Grid"
                     ) /*.MinimumSize(20)*/
-                    .Ratio(4),
+                    .Size(GameState.LeftTop),
                     new Layout(
                         "Stats"
                     ) /*.MinimumSize(5)*/
-                    .Ratio(1)
+                    .Size(GameState.LeftBottom)
                 ),
             new Layout("Right")
-                .Size(GameState.rightSize)
+                .Size(GameState.RightWidth)
                 .SplitRows(new Layout("Messages").Size(7), new Layout("Inventory").Ratio(10))
         );
 
