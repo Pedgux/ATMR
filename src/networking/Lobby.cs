@@ -12,6 +12,8 @@ using ATMR.Game;
 
 public static class Lobby
 {
+    public static int PlayerNumber;
+
     // link to database
     private const string BaseUrl =
         "https://p2plobbysignaler-default-rtdb.europe-west1.firebasedatabase.app/";
@@ -174,7 +176,15 @@ public static class Lobby
                     GameState.MessageWindow.Write($"[blue]ID: {kvp.Key}[/]");
                     GameState.MessageWindow.Write($"[blue](blob: {kvp.Value})[/]");
 
+                    found = true;
+                    PlayerNumber = 2;
+
                     return kvp.Value;
+                }
+                else
+                {
+                    // we are only player
+                    PlayerNumber = 1;
                 }
             }
         }
