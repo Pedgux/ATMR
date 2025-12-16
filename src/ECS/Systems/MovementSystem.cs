@@ -14,11 +14,11 @@ public static class MovementSystem
 
         world.Query(
             in movables,
-            (Entity entity, ref Position pos, ref Velocity move) =>
+            (Entity entity, ref Position pos, ref Velocity vel) =>
             {
                 // move the entity to Velocity position
-                pos.X += move.X;
-                pos.Y += move.Y;
+                pos.X += vel.X;
+                pos.Y += vel.Y;
             }
         );
     }
