@@ -78,6 +78,7 @@ public static class UdpTransport
             try
             {
                 var result = await Udp.ReceiveAsync();
+                //GameState.MessageWindow.Write(" öööh ");
 
                 // decode bytes to string (UTF-8)
                 string message = Encoding.UTF8.GetString(result.Buffer, 0, result.Buffer.Length);

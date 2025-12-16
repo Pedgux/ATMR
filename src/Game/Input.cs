@@ -1,6 +1,8 @@
 namespace ATMR.Input;
 
 using System.Threading.Channels;
+using Arch.Core;
+using ATMR.Components;
 using ATMR.Game;
 using ATMR.Networking;
 
@@ -55,8 +57,9 @@ public static class Input
         // Map keys to handlers (delegates)
         var handlers = new Dictionary<ConsoleKey, Func<ConsoleKeyInfo, Task>>
         {
+            /*
             [ConsoleKey.UpArrow] = async k =>
-            { /* handle up */
+            {
                 GameState.MessageWindow.OffsetUp();
                 if (UdpTransport.connected)
                 {
@@ -65,11 +68,32 @@ public static class Input
                 await Task.CompletedTask;
             },
             [ConsoleKey.DownArrow] = async k =>
-            { /* handle down */
+            {
                 GameState.MessageWindow.OffsetDown();
                 if (UdpTransport.connected)
                 {
                     await UdpTransport.SendMessage("idown");
+                }
+                await Task.CompletedTask;
+            },*/
+            [ConsoleKey.DownArrow] = async k =>
+            {
+                var players = new QueryDescription().WithAll<Player, Position, Velocity>();
+                GameState.Level.World.Query(
+                    in players,
+                    (Entity entity, ref Position pos, ref Velocity move, ref Player player) =>
+                    {
+                        if (Lobby.PlayerNumber == player.ID)
+                        {
+                            // move the entity to Velocity position
+                            velo.X += move.X;
+                            pos.Y += move.Y;
+                        }
+                    }
+                );
+                if (UdpTransport.connected)
+                {
+                    await UdpTransport.SendMessage($"i{Lobby.PlayerNumber}alas");
                 }
                 await Task.CompletedTask;
             },
