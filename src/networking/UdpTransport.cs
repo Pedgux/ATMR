@@ -109,7 +109,9 @@ public static class UdpTransport
                     }
                 }
 
-                if (result.Buffer.Length == 1 && result.Buffer[0] == 0x01)
+                // older code used a single-byte keepalive (0x01). Switch to zero-length
+                // datagrams to minimize payload; detect by checking for empty buffer.
+                if (result.Buffer.Length == 0)
                 {
                     GameState.MessageWindow.Write("[blue]alive[/]");
                 }
@@ -156,11 +158,9 @@ public static class UdpTransport
 
     private static Task KeepAliveLoop(IPEndPoint peer)
     {
-        byte[] poke = { 0x01 };
-
         // Use a background Task loop instead of a Timer so the work isn't
         // garbage-collected when this method returns. The Task runs forever
-        // and sends a single-byte keepalive every 30 seconds.
+        // and sends an empty datagram every 30 seconds (smallest possible payload).
         _ = Task.Run(async () =>
         {
             while (true)
@@ -168,7 +168,7 @@ public static class UdpTransport
                 try
                 {
                     await Task.Delay(30000);
-                    await Udp.SendAsync(poke, poke.Length, peer);
+                    await Udp.SendAsync(Array.Empty<byte>(), 0, peer);
                 }
                 catch (Exception ex)
                 {
@@ -185,11 +185,7 @@ public static class UdpTransport
     /// </summary>
     private static Task PingLoop()
     {
-        byte[] poke = { 0x01 };
-
-        // Use a background Task loop instead of a Timer so the work isn't
-        // garbage-collected when this method returns. The Task runs forever
-        // and sends a single-byte keepalive every 30 seconds.
+        // Send periodic ping messages to measure RTT.
         _ = Task.Run(async () =>
         {
             while (true)

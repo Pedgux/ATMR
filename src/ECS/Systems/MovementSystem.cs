@@ -9,14 +9,16 @@ public static class MovementSystem
 {
     public static void Run(World world)
     {
-        var query = new QueryDescription().WithAll<Position, Move>();
+        var movables = new QueryDescription().WithAll<Position, MoveIntent>();
+        var obstacles = new QueryDescription().WithAll<Position, Solid>();
 
         world.Query(
-            in query,
-            (Entity entity, ref Position position, ref Move move) =>
+            in movables,
+            (Entity entity, ref Position pos, ref MoveIntent move) =>
             {
-                position.X = move.X;
-                position.Y = move.Y;
+                // move the entity to MoveIntent position
+                pos.X = move.X;
+                pos.Y = move.Y;
             }
         );
     }
