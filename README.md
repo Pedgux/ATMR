@@ -6,7 +6,7 @@
 
 ## Info
 
-Inspired by Nathan Daniel's paper: [Roguelike Theory of Relativity (RTOR) ](docs/Nathan_Daniels_-_RTOR__Roguelike_Theory_of_Relativity_(2009).pdf)  
+Inspired by Nathan Daniels' paper: [Roguelike Theory of Relativity (RTOR) ](docs/Nathan_Daniels_-_RTOR__Roguelike_Theory_of_Relativity_(2009).pdf)  
 Built with Spectre.Console for console UI and rendering: https://spectreconsole.net/  
 Uses Arch as it's ECS: https://github.com/genaray/Arch 
 

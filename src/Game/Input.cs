@@ -11,6 +11,11 @@ public static class Input
     // Start the background poller and return the channel reader
     public static ChannelReader<ConsoleKeyInfo> StartPolling(CancellationToken token = default)
     {
+        var players = new QueryDescription().WithAll<Player, Position, Velocity>();
+        GameState.Level.World.Query(
+            in players,
+            (Entity entity, ref Position pos, ref Velocity vel, ref Player player) => { }
+        );
         var chan = Channel.CreateUnbounded<ConsoleKeyInfo>(
             new UnboundedChannelOptions { SingleReader = false, SingleWriter = true }
         );
@@ -76,21 +81,14 @@ public static class Input
                 }
                 await Task.CompletedTask;
             },*/
+
             [ConsoleKey.DownArrow] = async k =>
             {
-                var players = new QueryDescription().WithAll<Player, Position, Velocity>();
-                GameState.Level.World.Query(
-                    in players,
-                    (Entity entity, ref Position pos, ref Velocity move, ref Player player) =>
-                    {
-                        if (Lobby.PlayerNumber == player.ID)
-                        {
-                            // move the entity to Velocity position
-                            velo.X += move.X;
-                            pos.Y += move.Y;
-                        }
-                    }
-                );
+                if (Lobby.PlayerNumber == player.ID)
+                {
+                    // move the entity to Velocity position
+                    vel.Y += 1;
+                }
                 if (UdpTransport.connected)
                 {
                     await UdpTransport.SendMessage($"i{Lobby.PlayerNumber}alas");
