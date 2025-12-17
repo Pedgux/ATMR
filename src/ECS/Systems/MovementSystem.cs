@@ -19,6 +19,9 @@ public static class MovementSystem
                 // move the entity to Velocity position
                 pos.X += vel.X;
                 pos.Y += vel.Y;
+
+                vel.X = 0;
+                vel.Y = 0;
             }
         );
     }
