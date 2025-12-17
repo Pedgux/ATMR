@@ -85,7 +85,7 @@ public static class Program
             cts.Token
         );
         // testing grounds, level stuff.
-
+        GameState.InitPlayers();
         RenderSystem.Run(GameState.Level0.World);
 
         // keep app alive until cancellation (e.g. ctrl-c or other signal)
