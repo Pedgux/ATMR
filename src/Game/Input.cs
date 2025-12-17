@@ -1,7 +1,10 @@
 namespace ATMR.Input;
 
+using System;
+using System.Collections.Generic;
 using System.Threading.Channels;
 using Arch.Core;
+using Arch.Core.Extensions;
 using ATMR.Components;
 using ATMR.Game;
 using ATMR.Networking;
@@ -81,20 +84,18 @@ public static class Input
                 }
                 await Task.CompletedTask;
             },*/
-            /*
+
             [ConsoleKey.DownArrow] = async k =>
             {
-                if (Lobby.PlayerNumber == player.ID)
-                {
-                    // move the entity to Velocity position
-                    vel.Y += 1;
-                }
+                // move the entity to Velocity position
+                ref var velocity = ref GameState.Player1.Get<Velocity>();
+                velocity.Y += 1;
                 if (UdpTransport.connected)
                 {
                     await UdpTransport.SendMessage($"i{Lobby.PlayerNumber}alas");
                 }
                 await Task.CompletedTask;
-            },*/
+            },
         };
 
         await foreach (var keyInfo in reader.ReadAllAsync(token))
