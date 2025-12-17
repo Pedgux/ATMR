@@ -78,6 +78,8 @@ public static class Program
                             GameState.MessageWindow.RefreshPanel();
                             GameState.StatsWindow.RefreshPanel();
                             GameState.GridWindow.RefreshPanel();
+                            RenderSystem.Run(GameState.Level0.World);
+                            MovementSystem.Run(GameState.Level0.World);
                             ctx.Refresh();
                             await Task.Delay(60);
                         }
