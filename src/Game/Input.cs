@@ -96,6 +96,39 @@ public static class Input
                 }
                 await Task.CompletedTask;
             },
+            [ConsoleKey.UpArrow] = async k =>
+            {
+                // move the entity to Velocity position
+                ref var velocity = ref GameState.Player1.Get<Velocity>();
+                velocity.Y -= 1;
+                if (UdpTransport.connected)
+                {
+                    await UdpTransport.SendMessage($"i{Lobby.PlayerNumber}alas");
+                }
+                await Task.CompletedTask;
+            },
+            [ConsoleKey.RightArrow] = async k =>
+            {
+                // move the entity to Velocity position
+                ref var velocity = ref GameState.Player1.Get<Velocity>();
+                velocity.X += 1;
+                if (UdpTransport.connected)
+                {
+                    await UdpTransport.SendMessage($"i{Lobby.PlayerNumber}alas");
+                }
+                await Task.CompletedTask;
+            },
+            [ConsoleKey.LeftArrow] = async k =>
+            {
+                // move the entity to Velocity position
+                ref var velocity = ref GameState.Player1.Get<Velocity>();
+                velocity.X -= 1;
+                if (UdpTransport.connected)
+                {
+                    await UdpTransport.SendMessage($"i{Lobby.PlayerNumber}alas");
+                }
+                await Task.CompletedTask;
+            },
         };
 
         await foreach (var keyInfo in reader.ReadAllAsync(token))
