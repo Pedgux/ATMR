@@ -85,29 +85,8 @@ public static class Program
             cts.Token
         );
         // testing grounds, level stuff.
-        var player1 = GameState.Level.World.Create(
-            new Position(3, 1),
-            new Glyph('@', "[red]"),
-            new Player(Lobby.PlayerNumber)
-        );
-        if (Lobby.PlayerNumber == 1)
-        {
-            var player2 = GameState.Level.World.Create(
-                new Position(4, 8),
-                new Glyph('@', "[blue]"),
-                2
-            );
-        }
-        if (Lobby.PlayerNumber == 2)
-        {
-            var player2 = GameState.Level.World.Create(
-                new Position(4, 8),
-                new Glyph('@', "[blue]"),
-                1
-            );
-        }
 
-        RenderSystem.Run(GameState.Level.World);
+        RenderSystem.Run(GameState.Level0.World);
 
         // keep app alive until cancellation (e.g. ctrl-c or other signal)
         await Task.Delay(Timeout.Infinite, cts.Token);
