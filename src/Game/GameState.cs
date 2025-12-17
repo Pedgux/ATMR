@@ -1,5 +1,11 @@
 namespace ATMR.Game;
 
+using System;
+using System.Collections.Generic;
+using Arch.Core;
+using ATMR.Components;
+using ATMR.Networking;
+
 /// <summary>
 /// Global application state to bridge data accross stuff
 /// </summary>
@@ -30,8 +36,38 @@ public static class GameState
     public static int LeftTop = (int)Math.Floor(ConsoleHeight / 10.0 * 8);
 
     // holds pings. wow.
-    public static List<long> PingList = [];
+    public static List<long> PingList = new List<long>();
 
     // temporary thing to hold level 0 for testing
-    public static Level Level = new(0);
+    public static Level Level0 = new(0);
+
+    // player entity holders
+    public static Entity Player1 { get; private set; }
+    public static Entity Player2 { get; private set; }
+
+    public static void InitPlayers()
+    {
+        Player1 = Level0.World.Create(
+            new Position(3, 1),
+            new Glyph('@', "[red]"),
+            new Player(Lobby.PlayerNumber)
+        );
+
+        if (Lobby.PlayerNumber == 1)
+        {
+            Player2 = Level0.World.Create(
+                new Position(4, 8),
+                new Glyph('@', "[blue]"),
+                new Player(2)
+            );
+        }
+        else if (Lobby.PlayerNumber == 2)
+        {
+            Player2 = Level0.World.Create(
+                new Position(4, 8),
+                new Glyph('@', "[blue]"),
+                new Player(1)
+            );
+        }
+    }
 }
