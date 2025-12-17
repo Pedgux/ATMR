@@ -50,7 +50,8 @@ public static class GameState
         Player1 = Level0.World.Create(
             new Position(3, 1),
             new Glyph('@', "[red]"),
-            new Player(Lobby.PlayerNumber)
+            new Player(Lobby.PlayerNumber),
+            new Velocity(0, 0)
         );
 
         if (Lobby.PlayerNumber == 1)
@@ -58,7 +59,8 @@ public static class GameState
             Player2 = Level0.World.Create(
                 new Position(4, 8),
                 new Glyph('@', "[blue]"),
-                new Player(2)
+                new Player(2),
+                new Velocity(0, 0)
             );
         }
         else if (Lobby.PlayerNumber == 2)
@@ -66,7 +68,8 @@ public static class GameState
             Player2 = Level0.World.Create(
                 new Position(4, 8),
                 new Glyph('@', "[blue]"),
-                new Player(1)
+                new Player(1),
+                new Velocity(0, 0)
             );
         }
     }
