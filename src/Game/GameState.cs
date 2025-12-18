@@ -26,7 +26,12 @@ public static class GameState
 
     // 4/10 of the Console
     // probably some weird rounding error, but this leaves out 1 tile, hence the +1. Investigate later
-    public static int RightWidth = (int)Math.Floor(ConsoleWidth / 10.0 * 4) + 1;
+    // and uhh not +1 when on desktop. fuck
+    public static int RightWidth = (int)
+        Math.Floor(
+            ConsoleWidth / 10.0 * 4
+        ) /*+ 1*/
+    ;
 
     // 2/10 of the Console
     // more weird rounding raah

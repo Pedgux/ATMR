@@ -21,18 +21,18 @@ public sealed class UI
         _root = new Layout("Root").SplitColumns(
             new Layout("Left")
                 .Size(GameState.LeftWidth)
+                .Ratio(6)
                 .SplitRows(
-                    new Layout(
-                        "Grid"
-                    ) /*.MinimumSize(20)*/
-                    .Size(GameState.LeftTop),
-                    new Layout(
-                        "Stats"
-                    ) /*.MinimumSize(5)*/
-                    .Size(GameState.LeftBottom)
+                    new Layout("Grid") /*.MinimumSize(20)*/
+                        .Size(GameState.LeftTop)
+                        .Ratio(8),
+                    new Layout("Stats") /*.MinimumSize(5)*/
+                        .Size(GameState.LeftBottom)
+                        .Ratio(2)
                 ),
             new Layout("Right")
                 .Size(GameState.RightWidth)
+                .Ratio(4)
                 .SplitRows(new Layout("Messages").Size(7), new Layout("Inventory").Ratio(10))
         );
 
