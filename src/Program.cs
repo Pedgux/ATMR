@@ -32,6 +32,11 @@ public static class Program
         if (multiplayer == "y")
         {
             lobbyCode = AnsiConsole.Prompt(new TextPrompt<string>("Type out a lobby code: "));
+            GameState.Mode = "multiplayer";
+        }
+        else
+        {
+            GameState.Mode = "singleplayer";
         }
 
         // Start input polling and consumer

@@ -49,20 +49,20 @@ public static class GameState
     // player entity holders
     public static Entity Player1 { get; private set; }
     public static Entity Player2 { get; private set; }
+    public static string Mode { get; set; } = null!;
 
     public static void InitPlayers()
     {
-        Player1 = Level0.World.Create(
-            new Position(3, 1),
-            new Glyph('@', "[red]"),
-            new Player(Lobby.PlayerNumber),
-            new Velocity(0, 0)
-        );
-
         while (true)
         {
-            if (Lobby.PlayerNumber != 0)
+            if (Lobby.PlayerNumber != 0 || Mode == "singleplayer")
             {
+                Player1 = Level0.World.Create(
+                    new Position(3, 1),
+                    new Glyph('@', "[white]"),
+                    new Player(Lobby.PlayerNumber),
+                    new Velocity(0, 0)
+                );
                 if (Lobby.PlayerNumber == 1)
                 {
                     Player2 = Level0.World.Create(
