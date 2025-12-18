@@ -7,7 +7,7 @@ namespace ATMR.Systems;
 
 public static class RenderSystem
 {
-    public static void Run(World world)
+    public static async Task Run(World world)
     {
         var query = new QueryDescription().WithAll<Position, Glyph>();
 
@@ -20,10 +20,6 @@ public static class RenderSystem
 
                 GameState.GridWindow.SetGridCell(position.X, position.Y, renderable);
                 GameState.MessageWindow.Write($"X: {position.X} Y: {position.Y}");
-                //GameState.GridWindow
-
-                //var panel = new Panel(new Markup(renderable)) { Expand = true };
-                //GameState.Ui.RootLayout["Grid"].Update(panel);
             }
         );
     }

@@ -78,8 +78,6 @@ public static class Program
                             GameState.MessageWindow.RefreshPanel();
                             GameState.StatsWindow.RefreshPanel();
                             GameState.GridWindow.RefreshPanel();
-                            RenderSystem.Run(GameState.Level0.World);
-                            MovementSystem.Run(GameState.Level0.World);
                             ctx.Refresh();
                             await Task.Delay(60);
                         }
@@ -88,7 +86,6 @@ public static class Program
         );
         // testing grounds, level stuff.
         GameState.InitPlayers();
-        RenderSystem.Run(GameState.Level0.World);
 
         // keep app alive until cancellation (e.g. ctrl-c or other signal)
         await Task.Delay(Timeout.Infinite, cts.Token);

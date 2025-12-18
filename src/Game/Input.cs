@@ -13,12 +13,7 @@ public static class Input
 {
     // Start the background poller and return the channel reader
     public static ChannelReader<ConsoleKeyInfo> StartPolling(CancellationToken token = default)
-    { /*
-        var players = new QueryDescription().WithAll<Player, Position, Velocity>();
-        GameState.Level.World.Query(
-            in players,
-            (Entity entity, ref Position pos, ref Velocity vel, ref Player player) => { }
-        );*/
+    {
         var chan = Channel.CreateUnbounded<ConsoleKeyInfo>(
             new UnboundedChannelOptions { SingleReader = false, SingleWriter = true }
         );
@@ -65,68 +60,14 @@ public static class Input
         // Map keys to handlers (delegates)
         var handlers = new Dictionary<ConsoleKey, Func<ConsoleKeyInfo, Task>>
         {
-            /*
-            [ConsoleKey.UpArrow] = async k =>
+            [ConsoleKey.PageUp] = async _ =>
             {
                 GameState.MessageWindow.OffsetUp();
-                if (UdpTransport.connected)
-                {
-                    await UdpTransport.SendMessage("iup");
-                }
                 await Task.CompletedTask;
             },
-            [ConsoleKey.DownArrow] = async k =>
+            [ConsoleKey.PageDown] = async _ =>
             {
                 GameState.MessageWindow.OffsetDown();
-                if (UdpTransport.connected)
-                {
-                    await UdpTransport.SendMessage("idown");
-                }
-                await Task.CompletedTask;
-            },*/
-
-            [ConsoleKey.DownArrow] = async k =>
-            {
-                // move the entity to Velocity position
-                ref var velocity = ref GameState.Player1.Get<Velocity>();
-                velocity.Y += 1;
-                if (UdpTransport.connected)
-                {
-                    await UdpTransport.SendMessage($"i{Lobby.PlayerNumber}alas");
-                }
-                await Task.CompletedTask;
-            },
-            [ConsoleKey.UpArrow] = async k =>
-            {
-                // move the entity to Velocity position
-                ref var velocity = ref GameState.Player1.Get<Velocity>();
-                velocity.Y -= 1;
-                if (UdpTransport.connected)
-                {
-                    await UdpTransport.SendMessage($"i{Lobby.PlayerNumber}alas");
-                }
-                await Task.CompletedTask;
-            },
-            [ConsoleKey.RightArrow] = async k =>
-            {
-                // move the entity to Velocity position
-                ref var velocity = ref GameState.Player1.Get<Velocity>();
-                velocity.X += 1;
-                if (UdpTransport.connected)
-                {
-                    await UdpTransport.SendMessage($"i{Lobby.PlayerNumber}alas");
-                }
-                await Task.CompletedTask;
-            },
-            [ConsoleKey.LeftArrow] = async k =>
-            {
-                // move the entity to Velocity position
-                ref var velocity = ref GameState.Player1.Get<Velocity>();
-                velocity.X -= 1;
-                if (UdpTransport.connected)
-                {
-                    await UdpTransport.SendMessage($"i{Lobby.PlayerNumber}alas");
-                }
                 await Task.CompletedTask;
             },
         };
