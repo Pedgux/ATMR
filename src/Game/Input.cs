@@ -239,6 +239,7 @@ public static class Input
                 var playerId = level.World.Get<Player>(GameState.Player1).ID;
                 if (UdpTransport.connected)
                 {
+                    GameState.MessageWindow.Write($"{playerId}");
                     // Mirror local input to peers: "i{playerId}{ConsoleKey}".
                     var message = $"i{playerId}{keyInfo.Key}";
                     await UdpTransport.SendMessage(message);
