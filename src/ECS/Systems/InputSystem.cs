@@ -7,20 +7,43 @@ namespace ATMR.Systems;
 
 public static class InputSystem
 {
-    public static void Run(World world, Dictionary<int, ConsoleKeyInfo>)
+    // eli siis itse inputtien toiminnot.
+    public static async Task Run(World world, Dictionary<int, ConsoleKeyInfo> inputs)
     {
-        /*
-        world.Query(
-            in movables,
-            (Entity entity, ref Position pos, ref Velocity vel) =>
-            {
-                // move the entity to Velocity position
-                pos.X += vel.X;
-                pos.Y += vel.Y;
+        Entity player = GameState.Player1;
 
-                vel.X = 0;
-                vel.Y = 0;
+        var query = new QueryDescription().WithAll<Player>();
+        world.Query(
+            in query,
+            (Entity entity, ref Player player) =>
+            {
+                foreach (var kvp in inputs)
+                {
+                    ref var velocity = ref world.Get<Velocity>(entity);
+                    if (player.ID == kvp.Key)
+                    {
+                        switch (kvp.Value.Key)
+                        {
+                            case ConsoleKey.UpArrow:
+                                velocity.Y -= 1;
+                                break;
+                            case ConsoleKey.DownArrow:
+                                velocity.Y += 1;
+                                break; /*
+                        case ConsoleKey.UpArrow:
+                            ref var velocity = ref world.Get<Velocity>(player);
+                            velocity.Y -= 1;
+                            break;
+                        case ConsoleKey.UpArrow:
+                            ref var velocity = ref world.Get<Velocity>(player);
+                            velocity.Y -= 1;
+                            break;*/
+                            default:
+                                break;
+                        }
+                    }
+                }
             }
-        );*/
+        );
     }
 }

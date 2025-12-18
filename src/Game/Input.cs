@@ -8,6 +8,7 @@ using Arch.Core.Extensions;
 using ATMR.Components;
 using ATMR.Game;
 using ATMR.Networking;
+using ATMR.Tick;
 
 public static class Input
 {
@@ -57,40 +58,40 @@ public static class Input
         CancellationToken token = default
     )
     {
-        // Map keys to handlers (delegates)
-        var handlers = new Dictionary<ConsoleKey, Func<ConsoleKeyInfo, Task>>
-        {
-            [ConsoleKey.PageUp] = async _ =>
-            {
-                GameState.MessageWindow.OffsetUp();
-                await Task.CompletedTask;
-            },
-            [ConsoleKey.PageDown] = async _ =>
-            {
-                GameState.MessageWindow.OffsetDown();
-                await Task.CompletedTask;
-            },
-        };
-
         await foreach (var keyInfo in reader.ReadAllAsync(token))
         {
-            if (handlers.TryGetValue(keyInfo.Key, out var handler))
+            if (keyInfo.Key == ConsoleKey.PageUp)
             {
                 try
                 {
-                    await handler(keyInfo);
+                    GameState.MessageWindow.OffsetUp();
                 }
-                catch
-                { /* log/ignore handler errors */
-                }
+                catch { }
+
+                continue;
             }
-            else
+
+            if (keyInfo.Key == ConsoleKey.PageDown)
             {
-                // fallback: text input, or ignore
-                var ch = keyInfo.KeyChar;
-                if (!char.IsControl(ch))
-                { /* process text char */
+                try
+                {
+                    GameState.MessageWindow.OffsetDown();
                 }
+                catch { }
+
+                continue;
+            }
+
+            try
+            {
+                var level = GameState.Level0;
+                var playerId = level.World.Get<Player>(GameState.Player1).ID;
+                var inputs = new Dictionary<int, ConsoleKeyInfo> { [playerId] = keyInfo };
+                await Tick.CreateAsync(inputs, level);
+            }
+            catch
+            {
+                // ignore input until world/player is initialized
             }
         }
     }
