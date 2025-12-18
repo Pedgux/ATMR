@@ -84,7 +84,8 @@ public static class UdpTransport
                 string message = Encoding.UTF8.GetString(result.Buffer, 0, result.Buffer.Length);
                 if (message.StartsWith("i"))
                 {
-                    Input.RecieveInput(message);
+                    await Input.RecieveInput(message);
+                    continue;
                 }
 
                 // ping/pong using timestamps to calculate RTT
