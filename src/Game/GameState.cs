@@ -58,7 +58,7 @@ public static class GameState
             if (Lobby.PlayerNumber != 0 || Mode == "singleplayer")
             {
                 Player1 = Level0.World.Create(
-                    new Position(3, 1),
+                    new Position(4, 8),
                     new Glyph('@', "[white]"),
                     new Player(Lobby.PlayerNumber),
                     new Velocity(0, 0)
