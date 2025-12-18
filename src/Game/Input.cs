@@ -12,7 +12,7 @@ using ATMR.Tick;
 
 public static class Input
 {
-    private static readonly TimeSpan TickCoalesceWindow = TimeSpan.FromMilliseconds(20);
+    private static readonly TimeSpan TickCoalesceWindow = TimeSpan.FromMilliseconds(50);
     private static readonly Channel<(int playerId, ConsoleKeyInfo keyInfo)> InputEvents =
         Channel.CreateUnbounded<(int playerId, ConsoleKeyInfo keyInfo)>(
             new UnboundedChannelOptions { SingleReader = true, SingleWriter = false }
@@ -198,8 +198,11 @@ public static class Input
             {
                 var level = GameState.Level0;
                 var playerId = level.World.Get<Player>(GameState.Player1).ID;
-                var message = $"i{playerId}{keyInfo.Key}";
-                await UdpTransport.SendMessage(message);
+                if (UdpTransport.connected)
+                {
+                    var message = $"i{playerId}{keyInfo.Key}";
+                    await UdpTransport.SendMessage(message);
+                }
                 EnqueueInput(playerId, keyInfo, token);
             }
             catch
