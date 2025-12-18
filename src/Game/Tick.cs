@@ -1,9 +1,7 @@
 namespace ATMR.Tick;
 
-using Arch.Core;
 using ATMR.Game;
 using ATMR.Systems;
-using Microsoft.VisualBasic;
 
 public class Tick
 {
