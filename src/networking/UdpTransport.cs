@@ -84,7 +84,7 @@ public static class UdpTransport
                 string message = Encoding.UTF8.GetString(result.Buffer, 0, result.Buffer.Length);
                 if (message.StartsWith("i"))
                 {
-                    await Input.RecieveInput(message);
+                    await Input.ReceiveInput(message);
                     continue;
                 }
 
