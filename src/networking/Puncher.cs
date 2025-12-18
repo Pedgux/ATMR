@@ -18,11 +18,8 @@ public static class Puncher
         // tries for 30s
         for (int i = 0; i < 600; i++)
         {
-            if (!UdpTransport.connected)
-            {
-                await UdpTransport.Udp.SendAsync(poke, poke.Length, peer);
-                await Task.Delay(50);
-            }
+            await UdpTransport.Udp.SendAsync(poke, poke.Length, peer);
+            await Task.Delay(50);
         }
     }
 }

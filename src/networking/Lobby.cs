@@ -42,6 +42,17 @@ public static class Lobby
         public bool IsNewUser { get; set; } // Will be true for anonymous sign-up
     }
 
+    // Represents a player's presence in the lobby.
+    // "joinedAt" should be a Firebase server timestamp.
+    public sealed class PlayerEntry
+    {
+        [JsonPropertyName("blob")]
+        public string? Blob { get; set; }
+
+        [JsonPropertyName("joinedAt")]
+        public long? JoinedAt { get; set; }
+    }
+
     /// <summary>
     /// Performs initial anonymous sign-in to Firebase and returns auth tokens.
     /// </summary>
@@ -126,7 +137,15 @@ public static class Lobby
         string blob = IpPortEncoder.Encode(ip, (ushort)port);
         GameState.MessageWindow.Write($"[purple]Encoded blob: {blob}[/]");
         GameState.MessageWindow.Write($"[purple]Decoded blob: {IpPortEncoder.Decode(blob)}[/]");
-        var content = new StringContent($"\"{blob}\"", Encoding.UTF8, "application/json");
+        // Store an object with the encoded blob and a server-side join timestamp.
+        // This allows deterministic ordering of players later.
+        var payload = new
+        {
+            blob,
+            joinedAt = new Dictionary<string, string> { [".sv"] = "timestamp" },
+        };
+        var json = JsonSerializer.Serialize(payload);
+        var content = new StringContent(json, Encoding.UTF8, "application/json");
         GameState.MessageWindow.Write($"[green]Trying to create lobby...[/]");
         var response = await client.PutAsync(url, content);
         response.EnsureSuccessStatusCode(); //pls do not explode
@@ -157,8 +176,9 @@ public static class Lobby
             response.EnsureSuccessStatusCode();
 
             var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
-            Dictionary<string, string>? map = await response.Content.ReadFromJsonAsync<
-                Dictionary<string, string>
+            // Prefer structured PlayerEntry objects; fall back to raw string blobs if needed.
+            Dictionary<string, PlayerEntry>? map = await response.Content.ReadFromJsonAsync<
+                Dictionary<string, PlayerEntry>
             >(options);
 
             if (map == null || map.Count == 0)
@@ -167,25 +187,38 @@ public static class Lobby
                 return null;
             }
 
-            // Find the first player ID that is not the client's ID (notThisOne)
-            foreach (var kvp in map)
+            // Compute our index among players by join time (ascending).
+            // If joinedAt is missing, treat those entries as "latest" to avoid mislabeling.
+            var ordered = new List<(string id, long sortKey, string? blob)>();
+            foreach (var (id, entry) in map)
             {
-                if (!string.Equals(kvp.Key, notThisOne, StringComparison.Ordinal))
+                long sortKey = entry?.JoinedAt ?? long.MaxValue;
+                ordered.Add((id, sortKey, entry?.Blob));
+            }
+
+            ordered.Sort((a, b) => a.sortKey.CompareTo(b.sortKey));
+
+            int index = 1;
+            string? otherBlob = null;
+            foreach (var item in ordered)
+            {
+                if (item.id == notThisOne)
                 {
-                    GameState.MessageWindow.Write($"[blue]Found other player [/]");
-                    GameState.MessageWindow.Write($"[blue]ID: {kvp.Key}[/]");
-                    GameState.MessageWindow.Write($"[blue](blob: {kvp.Value})[/]");
-
-                    found = true;
-                    PlayerNumber = 2;
-
-                    return kvp.Value;
+                    PlayerNumber = index;
                 }
                 else
                 {
-                    // we are only player
-                    PlayerNumber = 1;
+                    // cache the first other player's blob (if any)
+                    otherBlob ??= item.blob;
                 }
+                index++;
+            }
+
+            if (otherBlob != null)
+            {
+                GameState.MessageWindow.Write($"[blue]Found other player [/]");
+                found = true;
+                return otherBlob;
             }
         }
         return null;
