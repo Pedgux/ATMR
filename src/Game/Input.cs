@@ -236,7 +236,7 @@ public static class Input
             try
             {
                 var level = GameState.Level0;
-                var playerId = level.World.Get<Player>(GameState.Player1).ID;
+                var playerId = Lobby.PlayerNumber;
                 if (UdpTransport.connected)
                 {
                     GameState.MessageWindow.Write($"{playerId}");
