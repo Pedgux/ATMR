@@ -15,8 +15,9 @@ public class Tick
         var turn = new Tick();
         // await so they fully execute before another starts
         await InputSystem.Run(level.World, input);
-        await RenderSystem.Run(level.World);
         await MovementSystem.Run(level.World);
+        await RenderSystem.Run(level.World);
+
         return turn;
     }
 }

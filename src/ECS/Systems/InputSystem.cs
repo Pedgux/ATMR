@@ -29,15 +29,14 @@ public static class InputSystem
                                 break;
                             case ConsoleKey.DownArrow:
                                 velocity.Y += 1;
-                                break; /*
-                        case ConsoleKey.UpArrow:
-                            ref var velocity = ref world.Get<Velocity>(player);
-                            velocity.Y -= 1;
-                            break;
-                        case ConsoleKey.UpArrow:
-                            ref var velocity = ref world.Get<Velocity>(player);
-                            velocity.Y -= 1;
-                            break;*/
+                                break;
+                            case ConsoleKey.LeftArrow:
+                                velocity.X -= 1;
+                                break;
+                            case ConsoleKey.RightArrow:
+                                velocity.X += 1;
+                                break;
+
                             default:
                                 break;
                         }
