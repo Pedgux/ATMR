@@ -115,7 +115,11 @@ public static class Input
             try
             {
                 // Advance the game by one tick with the snapshot of inputs.
-                await Tick.CreateAsync(inputs, GameState.Level0);
+                await Tick.CreateAsync(
+                    inputs,
+                    GameState.Level0,
+                    0 /*change the 0 later to the actual tick number, when tick storage exists*/
+                );
             }
             catch
             {
