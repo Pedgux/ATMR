@@ -10,11 +10,8 @@ using ATMR.Tick;
 public static class Input
 {
     // Batches keystrokes for a short window so multiple players' inputs
-    // can be processed together in a single game tick.
-    private static TimeSpan TickWaitWindow =>
-        string.Equals(GameState.Mode, "singleplayer", StringComparison.OrdinalIgnoreCase)
-            ? TimeSpan.Zero
-            : TimeSpan.FromMilliseconds(50);
+    // can be processed together in a single game tick for multiplayer.
+    private static TimeSpan TickWaitWindow = TimeSpan.FromMilliseconds(50);
 
     // Central, thread-safe pipeline of input events coming from local or network sources.
     // Tuple payload: (playerId, key pressed). Single reader (the tick pump) with many writers.
@@ -28,6 +25,10 @@ public static class Input
 
     // Ensures only one background pump is started across threads.
     private static readonly object TickPumpLock = new();
+
+    // Rate-limit singleplayer ticks to smooth out OS keyboard repeat floods.
+    private static DateTime LastTickTime = DateTime.MinValue;
+    private const int TickDelayMs = 50;
 
     // Start the background poller and return the channel reader
     public static ChannelReader<ConsoleKeyInfo> StartPolling(CancellationToken token = default)
@@ -80,7 +81,7 @@ public static class Input
 
     private static async Task TickPumpSingleplayer(CancellationToken token)
     {
-        // Singleplayer: one input event = one tick immediately, no coalescing.
+        // Singleplayer: drain all buffered inputs immediately, keep only the latest per player.
         var reader = InputEvents.Reader;
 
         while (await reader.WaitToReadAsync(token))
@@ -92,25 +93,29 @@ public static class Input
 
             var inputs = new Dictionary<int, ConsoleKeyInfo> { [first.playerId] = first.keyInfo };
 
+            // Drain all pending inputs in the queue, keeping only the latest per player.
+            // This prevents OS keyboard repeat buffer from causing movement overshoot.
+            while (reader.TryRead(out var next))
+            {
+                inputs[next.playerId] = next.keyInfo;
+            }
+
             try
             {
-                // If a player has no new input but had input before, re-use their last key.
-                // This creates smooth, consistent repeats at the tick rate instead of
-                // waiting for OS keyboard repeat (which has a 500ms delay then variable repeat).
-                foreach (var (playerId, lastKey) in inputs)
-                {
-                    if (!inputs.ContainsKey(playerId))
-                    {
-                        inputs[playerId] = lastKey;
-                    }
-                }
-
                 // Advance the game by one tick with the snapshot of inputs.
                 await Tick.CreateAsync(
                     inputs,
                     GameState.Level0,
                     0 /*change the 0 later to the actual tick number, when tick storage exists*/
                 );
+
+                // Rate-limit ticks to smooth out OS keyboard repeat floods.
+                var elapsed = DateTime.UtcNow - LastTickTime;
+                if (elapsed < TimeSpan.FromMilliseconds(TickDelayMs))
+                {
+                    await Task.Delay(TickDelayMs - (int)elapsed.TotalMilliseconds);
+                }
+                LastTickTime = DateTime.UtcNow;
             }
             catch
             {
