@@ -3,9 +3,6 @@ namespace ATMR.Input;
 using System;
 using System.Collections.Generic;
 using System.Threading.Channels;
-using Arch.Core;
-using Arch.Core.Extensions;
-using ATMR.Components;
 using ATMR.Game;
 using ATMR.Networking;
 using ATMR.Tick;
@@ -14,7 +11,10 @@ public static class Input
 {
     // Batches keystrokes for a short window so multiple players' inputs
     // can be processed together in a single game tick.
-    private static readonly TimeSpan TickCoalesceWindow = TimeSpan.FromMilliseconds(50);
+    private static TimeSpan TickWaitWindow =>
+        string.Equals(GameState.Mode, "singleplayer", StringComparison.OrdinalIgnoreCase)
+            ? TimeSpan.Zero
+            : TimeSpan.FromMilliseconds(50);
 
     // Central, thread-safe pipeline of input events coming from local or network sources.
     // Tuple payload: (playerId, key pressed). Single reader (the tick pump) with many writers.
@@ -86,7 +86,7 @@ public static class Input
             // Collect the first event and then coalesce additional inputs
             // for a short window so the tick sees a snapshot for all players.
             var inputs = new Dictionary<int, ConsoleKeyInfo> { [first.playerId] = first.keyInfo };
-            var deadline = DateTime.UtcNow + TickCoalesceWindow;
+            var deadline = DateTime.UtcNow + TickWaitWindow;
 
             while (true)
             {
@@ -177,22 +177,26 @@ public static class Input
             return Task.CompletedTask;
 
         // Expect: i{playerId}{ConsoleKey}, e.g., i2UpArrow
+        // loop until you've got the whole player number
         int index = 1;
         while (index < message.Length && char.IsDigit(message[index]))
         {
             index++;
         }
 
+        // above did not happen, too short of a message
         if (index == 1 || index >= message.Length)
         {
             return Task.CompletedTask;
         }
 
+        // get the player ID with the index
         if (!int.TryParse(message.AsSpan(1, index - 1), out int playerId))
         {
             return Task.CompletedTask;
         }
 
+        // grab the thing after player ID, e.g. the Console Key after it.
         string keyText = message.Substring(index);
         if (!Enum.TryParse<ConsoleKey>(keyText, ignoreCase: false, out var key))
         {
