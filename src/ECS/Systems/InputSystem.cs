@@ -36,6 +36,34 @@ public static class InputSystem
                             case ConsoleKey.RightArrow:
                                 velocity.X += 1;
                                 break;
+                            case ConsoleKey.H:
+                                velocity.X -= 1;
+                                break;
+                            case ConsoleKey.J:
+                                velocity.Y += 1;
+                                break;
+                            case ConsoleKey.K:
+                                velocity.Y -= 1;
+                                break;
+                            case ConsoleKey.L:
+                                velocity.X += 1;
+                                break;
+                            case ConsoleKey.Y:
+                                velocity.X -= 1;
+                                velocity.Y -= 1;
+                                break;
+                            case ConsoleKey.U:
+                                velocity.X += 1;
+                                velocity.Y -= 1;
+                                break;
+                            case ConsoleKey.B:
+                                velocity.X -= 1;
+                                velocity.Y += 1;
+                                break;
+                            case ConsoleKey.N:
+                                velocity.X += 1;
+                                velocity.Y += 1;
+                                break;
 
                             default:
                                 break;
