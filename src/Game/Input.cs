@@ -50,8 +50,8 @@ public static class Input
                     }
                     else
                     {
-                        // Back off a bit when there's no input to avoid busy-waiting.
-                        await Task.Delay(10, token);
+                        // Back off a bit so we don't burn 100% of the thread.
+                        await Task.Delay(1, token);
                     }
                 }
                 // Signal to readers that no more keys will arrive.
@@ -67,13 +67,61 @@ public static class Input
         lock (TickPumpLock)
         {
             // Start the single tick pump lazily on first input.
-            _tickPump ??= Task.Run(() => TickPump(token), token);
+            if (string.Equals(GameState.Mode, "singleplayer", StringComparison.OrdinalIgnoreCase))
+            {
+                _tickPump ??= Task.Run(() => TickPumpSingleplayer(token), token);
+            }
+            else
+            {
+                _tickPump ??= Task.Run(() => TickPumpMultiplayer(token), token);
+            }
         }
     }
 
-    private static async Task TickPump(CancellationToken token)
+    private static async Task TickPumpSingleplayer(CancellationToken token)
     {
-        // Single consumer that coalesces inputs into a single game tick.
+        // Singleplayer: one input event = one tick immediately, no coalescing.
+        var reader = InputEvents.Reader;
+
+        while (await reader.WaitToReadAsync(token))
+        {
+            if (!reader.TryRead(out var first))
+            {
+                continue;
+            }
+
+            var inputs = new Dictionary<int, ConsoleKeyInfo> { [first.playerId] = first.keyInfo };
+
+            try
+            {
+                // If a player has no new input but had input before, re-use their last key.
+                // This creates smooth, consistent repeats at the tick rate instead of
+                // waiting for OS keyboard repeat (which has a 500ms delay then variable repeat).
+                foreach (var (playerId, lastKey) in inputs)
+                {
+                    if (!inputs.ContainsKey(playerId))
+                    {
+                        inputs[playerId] = lastKey;
+                    }
+                }
+
+                // Advance the game by one tick with the snapshot of inputs.
+                await Tick.CreateAsync(
+                    inputs,
+                    GameState.Level0,
+                    0 /*change the 0 later to the actual tick number, when tick storage exists*/
+                );
+            }
+            catch
+            {
+                // Swallow errors until the world/player is initialized.
+            }
+        }
+    }
+
+    private static async Task TickPumpMultiplayer(CancellationToken token)
+    {
+        // Multiplayer: coalesce inputs within a window for synchronization.
         var reader = InputEvents.Reader;
 
         while (await reader.WaitToReadAsync(token))
@@ -114,6 +162,17 @@ public static class Input
 
             try
             {
+                // If a player has no new input but had input before, re-use their last key.
+                // This creates smooth, consistent repeats at the tick rate instead of
+                // waiting for OS keyboard repeat (which has a 500ms delay then variable repeat).
+                foreach (var (playerId, lastKey) in inputs)
+                {
+                    if (!inputs.ContainsKey(playerId))
+                    {
+                        inputs[playerId] = lastKey;
+                    }
+                }
+
                 // Advance the game by one tick with the snapshot of inputs.
                 await Tick.CreateAsync(
                     inputs,
