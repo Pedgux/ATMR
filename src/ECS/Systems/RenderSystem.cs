@@ -19,8 +19,11 @@ public static class RenderSystem
                 string renderable = $"{glyph.MarkupEntry}{glyph.Symbol}[/]";
 
                 GameState.GridWindow.SetGridCell(position.X, position.Y, renderable);
-                GameState.MessageWindow.Write($"X: {position.X} Y: {position.Y}");
+                //GameState.MessageWindow.Write($"X: {position.X} Y: {position.Y}");
             }
         );
+
+        // Refresh the grid immediately so rendering stays in sync with game state.
+        GameState.GridWindow.RefreshPanel();
     }
 }

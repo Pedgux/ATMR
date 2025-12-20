@@ -82,7 +82,6 @@ public static class Program
                         {
                             GameState.MessageWindow.RefreshPanel();
                             GameState.StatsWindow.RefreshPanel();
-                            GameState.GridWindow.RefreshPanel();
                             ctx.Refresh();
                             await Task.Delay(60);
                         }
