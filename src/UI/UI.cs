@@ -32,8 +32,10 @@ public sealed class UI
                 ),
             new Layout("Right")
                 .Size(GameState.RightWidth)
-                .Ratio(4)
-                .SplitRows(new Layout("Messages").Size(7), new Layout("Inventory").Ratio(10))
+                .SplitRows(
+                    new Layout("Messages").Size(GameState.RightTop),
+                    new Layout("Inventory").Size(GameState.RightBottom)
+                )
         );
 
         /*
@@ -46,5 +48,22 @@ public sealed class UI
         _root["Stats"].Update(statsTable);
         */
         return Task.CompletedTask;
+    }
+
+    /// <summary>
+    /// Re-assigns the correct sizes to each UI element.
+    /// </summary>
+    public void Fit()
+    {
+        // todo reminder thingy:
+        // Stuff like messagewindow and grid will likely break. Gotta re assign their sizes too.
+        GameState.RecalculateConsoleSizes();
+
+        _root["Left"].Size = GameState.LeftWidth;
+        _root["Grid"].Size = GameState.LeftTop;
+        _root["Stats"].Size = GameState.LeftBottom;
+        _root["Right"].Size = GameState.RightWidth;
+        _root["Messages"].Size = GameState.RightTop;
+        _root["Inventory"].Size = GameState.RightBottom;
     }
 }
