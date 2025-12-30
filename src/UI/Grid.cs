@@ -34,11 +34,7 @@ public sealed class Grid
         {
             _grid[i] = " ";
         }
-        string gridString = string.Empty;
-        for (int i = 0; i < _grid.Length; i++)
-        {
-            gridString += _grid[i];
-        }
+        string gridString = GridToString();
 
         _gridPanel = new Panel(gridString) { Expand = true };
         _gridWindow = GameState.Ui.RootLayout["Grid"];
