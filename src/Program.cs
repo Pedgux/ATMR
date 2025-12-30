@@ -80,6 +80,7 @@ public static class Program
 
                         while (!cts.Token.IsCancellationRequested)
                         {
+                            //GameState.Ui.Fit();
                             GameState.MessageWindow.RefreshPanel();
                             GameState.StatsWindow.RefreshPanel();
                             ctx.Refresh();
