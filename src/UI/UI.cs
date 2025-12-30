@@ -56,7 +56,7 @@ public sealed class UI
     public void Fit()
     {
         // todo reminder thingy:
-        // Stuff like messagewindow and grid will likely break. Gotta re assign their sizes too.
+        // Grid currently breaks with this. Gotta rebuild it or something. Maybe support this in the future when a camera is implemented.
         GameState.RecalculateConsoleSizes();
 
         _root["Left"].Size = GameState.LeftWidth;
