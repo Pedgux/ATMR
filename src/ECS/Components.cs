@@ -16,9 +16,12 @@ public record struct Player(int ID);
 
 public record struct Solid();
 
-/// <summary>
-/// A simple view to the game world.
-/// </summary>
+// todo reminder thing:
+// Remove position from here, need to make a Camera entity.
+// Which would have the Camera, Teleport and Position component.
+// Then maybe some modes? Or a reference to a X and Y it follows.
+// Support resizing...
+
 public record struct Camera(int X, int Y)
 {
     public int LeftTop { get; set; }
