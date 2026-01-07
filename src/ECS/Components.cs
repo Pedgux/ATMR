@@ -10,6 +10,8 @@ public record struct Glyph(char Symbol, string MarkupEntry = "[white]");
 
 public record struct Velocity(int X, int Y);
 
+public record struct Teleport(int X, int Y);
+
 public record struct Player(int ID);
 
 public record struct Solid();
