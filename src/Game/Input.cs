@@ -23,6 +23,8 @@ public static class Input
     // Background task that drains the InputEvents channel and emits game ticks.
     private static Task? _tickPump;
 
+    //private static List<> _inputBuffer;
+
     // Ensures only one background pump is started across threads.
     private static readonly object TickPumpLock = new();
 
@@ -95,6 +97,7 @@ public static class Input
 
             // Drain all pending inputs in the queue, keeping only the latest per player.
             // This prevents OS keyboard repeat buffer from causing movement overshoot.
+
             while (reader.TryRead(out var next))
             {
                 inputs[next.playerId] = next.keyInfo;
@@ -135,7 +138,6 @@ public static class Input
             {
                 continue;
             }
-
             // Collect the first event and then coalesce additional inputs
             // for a short window so the tick sees a snapshot for all players.
             var inputs = new Dictionary<int, ConsoleKeyInfo> { [first.playerId] = first.keyInfo };
@@ -143,11 +145,12 @@ public static class Input
 
             while (true)
             {
+                /*
                 while (reader.TryRead(out var next))
                 {
                     // For each player, keep only the latest key within the window.
                     inputs[next.playerId] = next.keyInfo;
-                }
+                }*/
 
                 var remaining = deadline - DateTime.UtcNow;
                 if (remaining <= TimeSpan.Zero)
