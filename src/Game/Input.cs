@@ -29,6 +29,8 @@ public static class Input
     // Rate-limit singleplayer ticks to smooth out OS keyboard repeat floods.
     private static DateTime LastTickTime = DateTime.MinValue;
     private const int TickDelayMs = 50;
+    private static DateTime _previousTime = DateTime.UtcNow;
+    private static TimeSpan _previousDelay;
 
     // Start the background poller and return the channel reader
     public static ChannelReader<ConsoleKeyInfo> StartPolling(CancellationToken token = default)
@@ -139,15 +141,34 @@ public static class Input
             // Collect the first event and then coalesce additional inputs
             // for a short window so the tick sees a snapshot for all players.
             var inputs = new Dictionary<int, ConsoleKeyInfo> { [first.playerId] = first.keyInfo };
-            var deadline = DateTime.UtcNow + TickWaitWindow;
+            // var deadline = DateTime.UtcNow + TickWaitWindow - (TickWaitWindow-(DateTime.UtcNow-edellisen DateTime.UtcNow));
+            // jos DateTime.UtcNow-edellisen DateTime.UtcNow on > 50ms, deadline = DateTime.UtcNow + TickWaitWindow
+            /*
+            var deadline =
+                DateTime.UtcNow
+                + TickWaitWindow
+                - (_previousTime + _previousDelay - DateTime.UtcNow);
+            */
+            var time = DateTime.UtcNow;
+            var delta = time - _previousTime;
+            if (delta > TickWaitWindow)
+            {
+                delta = TickWaitWindow;
+            }
+
+            var deadline = time + delta;
+
+            _previousTime = time;
 
             while (true)
             {
+                /*
                 while (reader.TryRead(out var next))
                 {
                     // For each player, keep only the latest key within the window.
                     inputs[next.playerId] = next.keyInfo;
                 }
+                */
 
                 var remaining = deadline - DateTime.UtcNow;
                 if (remaining <= TimeSpan.Zero)
