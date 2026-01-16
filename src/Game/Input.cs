@@ -11,7 +11,7 @@ public static class Input
 {
     // Batches keystrokes for a short window so multiple players' inputs
     // can be processed together in a single game tick for multiplayer.
-    private static TimeSpan TickWaitWindow = TimeSpan.FromMilliseconds(50);
+    private static TimeSpan TickWaitWindow = TimeSpan.FromMilliseconds(500);
 
     // Central, thread-safe pipeline of input events coming from local or network sources.
     // Tuple payload: (playerId, key pressed). Single reader (the tick pump) with many writers.
