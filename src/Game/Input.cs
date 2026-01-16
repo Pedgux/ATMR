@@ -91,16 +91,12 @@ public static class Input
 
         while (await reader.WaitToReadAsync(token))
         {
-            if (!reader.TryRead(out var first))
-            {
-                continue;
-            }
+            reader.TryRead(out var first);
 
             var inputs = new Dictionary<int, ConsoleKeyInfo> { [first.playerId] = first.keyInfo };
 
             // Drain all pending inputs in the queue, keeping only the latest per player.
             // This prevents OS keyboard repeat buffer from causing movement overshoot.
-
             while (reader.TryRead(out var next))
             {
                 inputs[next.playerId] = next.keyInfo;
@@ -137,10 +133,8 @@ public static class Input
 
         while (await reader.WaitToReadAsync(token))
         {
-            if (!reader.TryRead(out var first))
-            {
-                continue;
-            }
+            reader.TryRead(out var first);
+
             // Collect the first event and then coalesce additional inputs
             // for a short window so the tick sees a snapshot for all players.
             var inputs = new Dictionary<int, ConsoleKeyInfo> { [first.playerId] = first.keyInfo };
