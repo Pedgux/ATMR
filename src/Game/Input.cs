@@ -349,7 +349,7 @@ public static class Input
             }
             catch
             {
-                // Ignore input until world/player is initialized.
+                // Ignore input if error
             }
         }
     }
