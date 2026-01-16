@@ -20,6 +20,16 @@ public static class Puncher
         {
             await UdpTransport.Udp.SendAsync(poke, poke.Length, peer);
             await Task.Delay(50);
+
+            if (UdpTransport.connected)
+            {
+                break;
+            }
+        }
+
+        if (!UdpTransport.connected)
+        {
+            GameState.MessageWindow.Write("[red] Puncher timed out[/]");
         }
     }
 }
