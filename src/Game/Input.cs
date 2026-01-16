@@ -156,6 +156,7 @@ public static class Input
             */
             var time = DateTime.UtcNow;
             var delta = time - _previousTime;
+            GameState.MessageWindow.Write($"Delta: {delta}");
             if (delta > TickWaitWindow)
             {
                 delta = TickWaitWindow;
