@@ -193,17 +193,6 @@ public static class Input
 
             try
             {
-                // If a player has no new input but had input before, re-use their last key.
-                // This creates smooth, consistent repeats at the tick rate instead of
-                // waiting for OS keyboard repeat (which has a 500ms delay then variable repeat).
-                foreach (var (playerId, lastKey) in inputs)
-                {
-                    if (!inputs.ContainsKey(playerId))
-                    {
-                        inputs[playerId] = lastKey;
-                    }
-                }
-
                 // Advance the game by one tick with the snapshot of inputs.
                 await Tick.CreateAsync(
                     inputs,
