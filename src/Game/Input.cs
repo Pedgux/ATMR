@@ -11,7 +11,7 @@ public static class Input
 {
     // Batches keystrokes for a short window so multiple players' inputs
     // can be processed together in a single game tick for multiplayer.
-    private static TimeSpan TickWaitWindow = TimeSpan.FromMilliseconds(5000);
+    private static TimeSpan TickWaitWindow = TimeSpan.FromMilliseconds(50);
 
     // Central, thread-safe pipeline of input events coming from local or network sources.
     // Tuple payload: (playerId, key pressed). Single reader (the tick pump) with many writers.
@@ -50,9 +50,7 @@ public static class Input
                     // Poll the console without blocking so we can honor cancellation.
                     if (Console.KeyAvailable)
                     {
-                        GameState.MessageWindow.Write(
-                            $"input pressed: {DateTime.UtcNow:mm:ss.fff}"
-                        );
+                        //GameState.MessageWindow.Write($"input pressed: {DateTime.UtcNow:mm:ss.fff}");
                         var key = Console.ReadKey(intercept: true);
                         await chan.Writer.WriteAsync(key, token);
                     }
@@ -156,10 +154,12 @@ public static class Input
             */
             var time = DateTime.UtcNow;
             var delta = time - _previousTime;
-            if (delta > TickWaitWindow)
+            /*if (delta > TickWaitWindow)
             {
                 delta = TickWaitWindow;
-            }
+            }*/
+            GameState.MessageWindow.Write(delta.ToString(@"mm\:ss\.fff"));
+            GameState.MessageWindow.Write($"a: {time:mm:ss.fff} {_previousTime:mm:ss.fff}");
 
             var deadline = time + delta;
 
@@ -295,7 +295,7 @@ public static class Input
         // Build a ConsoleKeyInfo with our derived char (if any) and no modifiers.
         var keyInfo = new ConsoleKeyInfo(KeyCharFromConsoleKey(key), key, false, false, false);
         EnqueueInput(playerId, keyInfo, CancellationToken.None);
-        GameState.MessageWindow.Write($"enqueued Received input : {DateTime.UtcNow:mm:ss.fff}");
+        //GameState.MessageWindow.Write($"enqueued Received input : {DateTime.UtcNow:mm:ss.fff}");
         return Task.CompletedTask;
     }
 
@@ -342,7 +342,7 @@ public static class Input
                     // Mirror local input to peers: "i{playerId}{ConsoleKey}".
                     var message = $"i{playerId}{keyInfo.Key}";
                     await UdpTransport.SendMessage(message);
-                    GameState.MessageWindow.Write($"input sent: {DateTime.UtcNow:mm:ss.fff}");
+                    //GameState.MessageWindow.Write($"input sent: {DateTime.UtcNow:mm:ss.fff}");
                 }
                 // Always feed local input into the authoritative pipeline.
                 EnqueueInput(playerId, keyInfo, token);
