@@ -44,6 +44,9 @@ public class Tick
         await MovementSystem.Run(level.World);
         await RenderSystem.Run(level.World);
 
+        // Advance the global tick by 1.
+        GameState.TickNumber++;
+
         return tick;
     }
 }
