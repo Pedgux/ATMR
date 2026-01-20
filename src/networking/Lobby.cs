@@ -9,10 +9,12 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using ATMR.Game;
+using ATMR.Helpers;
 
 public static class Lobby
 {
     public static int PlayerNumber;
+    public static int PlayerAmount = 2;
 
     // link to database
     private const string BaseUrl =
