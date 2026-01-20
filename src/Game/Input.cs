@@ -135,14 +135,10 @@ public static class Input
         // list
         while (await reader.WaitToReadAsync(token))
         {
-            // get all iinputs from reader to list
-            var inputs = new Dictionary<int, ConsoleKeyInfo>();
-
             // Collect the first event and then coalesce additional inputs
             // for a short window so the tick sees a snapshot for all players. öö EI
-
             reader.TryRead(out var first);
-            inputs = new Dictionary<int, ConsoleKeyInfo> { [first.playerId] = first.keyInfo };
+            var inputs = new Dictionary<int, ConsoleKeyInfo> { [first.playerId] = first.keyInfo };
 
             bool localPlayerInput = true;
             if (localPlayerInput)
@@ -182,6 +178,9 @@ public static class Input
 
             try
             {
+                // Advance the global tick by 1.
+                GameState.TickNumber++;
+
                 // Advance the game by one tick with the snapshot of inputs.
                 await Tick.CreateAsync(inputs, GameState.Level0, GameState.TickNumber);
             }
