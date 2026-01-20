@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Channels;
 using ATMR.Game;
+using ATMR.Helpers;
 using ATMR.Networking;
 using ATMR.Tick;
 
@@ -200,6 +201,8 @@ public static class Input
             {
                 // Advance the game by one tick with the snapshot of inputs.
                 await Tick.CreateAsync(inputs, GameState.Level0, GameState.TickNumber);
+                // Advance the global tick by 1.
+                GameState.TickNumber++;
             }
             catch
             {
@@ -239,8 +242,8 @@ public static class Input
         // Special cases:
         //  - "iup"   : scroll message window up
         //  - "idown" : scroll message window down
-        // General format for keystrokes: i{playerId}{ConsoleKey}
-        //   e.g., "i2UpArrow" means player 2 pressed UpArrow.
+        // General format for keystrokes: i{playerId}{action}{actionInfo}t{tickNumber}
+        //   e.g., "i2M6t42" means player 2 performed action M with info 6 on tick 42.
         if (message == "iup")
         {
             GameState.MessageWindow.OffsetUp();
@@ -256,37 +259,71 @@ public static class Input
         if (string.IsNullOrWhiteSpace(message) || message[0] != 'i')
             return Task.CompletedTask;
 
-        // Expect: i{playerId}{ConsoleKey}, e.g., i2UpArrow
-        // loop until you've got the whole player number
+        // Expect: i{playerId}{action}{actionInfo}t{tickNumber}
+        // Parse player ID: extract digits after 'i'
         int index = 1;
         while (index < message.Length && char.IsDigit(message[index]))
         {
             index++;
         }
 
-        // above did not happen, too short of a message
         if (index == 1 || index >= message.Length)
         {
             return Task.CompletedTask;
         }
 
-        // get the player ID with the index
         if (!int.TryParse(message.AsSpan(1, index - 1), out int playerId))
         {
             return Task.CompletedTask;
         }
 
-        // grab the thing after player ID, e.g. the Console Key after it.
-        string keyText = message.Substring(index);
-        if (!Enum.TryParse<ConsoleKey>(keyText, ignoreCase: false, out var key))
+        // Parse action: single character after player ID
+        char action = message[index];
+        index++;
+
+        // Parse actionInfo: digits/characters until 't'
+        int actionInfoStart = index;
+        while (index < message.Length && message[index] != 't')
+        {
+            index++;
+        }
+
+        if (index == actionInfoStart || index >= message.Length)
         {
             return Task.CompletedTask;
         }
 
-        // Build a ConsoleKeyInfo with our derived char (if any) and no modifiers.
-        var keyInfo = new ConsoleKeyInfo(KeyCharFromConsoleKey(key), key, false, false, false);
+        string actionInfo = message.Substring(actionInfoStart, index - actionInfoStart);
+        index++; // skip the 't'
+
+        // Parse tick number (remaining part)
+        if (index >= message.Length)
+        {
+            return Task.CompletedTask;
+        }
+
+        if (!int.TryParse(message.AsSpan(index), out int tickNumber))
+        {
+            return Task.CompletedTask;
+        }
+
+        // For now, map actionInfo to a ConsoleKey for EnqueueInput
+        // actionInfo contains direction numbers like "6", "4", "8", "2", etc.
+        // Map these back to movement keys or handle appropriately
+        ConsoleKey mappedKey = Keybinds.ActionInfoToConsoleKey(actionInfo);
+        if (mappedKey == ConsoleKey.NoName)
+        {
+            return Task.CompletedTask;
+        }
+
+        var keyInfo = new ConsoleKeyInfo(
+            KeyCharFromConsoleKey(mappedKey),
+            mappedKey,
+            false,
+            false,
+            false
+        );
         EnqueueInput(playerId, keyInfo, CancellationToken.None);
-        //GameState.MessageWindow.Write($"enqueued Received input : {DateTime.UtcNow:mm:ss.fff}");
         return Task.CompletedTask;
     }
 
@@ -329,9 +366,11 @@ public static class Input
                 if (UdpTransport.connected)
                 {
                     //GameState.MessageWindow.Write($"{playerId}");
-
+                    var action = "M";
+                    var actionInfo = Keybinds.GetActionWithKey(keyInfo.Key);
                     // Mirror local input to peers: "i{playerId}{ConsoleKey}".
-                    var message = $"i{playerId}{keyInfo.Key}";
+                    var message = $"i{playerId}{action}{actionInfo}t{GameState.TickNumber}";
+                    GameState.MessageWindow.Write(message);
                     await UdpTransport.SendMessage(message);
                     //GameState.MessageWindow.Write($"input sent: {DateTime.UtcNow:mm:ss.fff}");
                 }
