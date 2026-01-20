@@ -244,6 +244,8 @@ public static class Input
         //  - "idown" : scroll message window down
         // General format for keystrokes: i{playerId}{action}{actionInfo}t{tickNumber}
         //   e.g., "i2M6t42" means player 2 performed action M with info 6 on tick 42.
+        GameState.MessageWindow.Write(" vastaanotto: " + message);
+
         if (message == "iup")
         {
             GameState.MessageWindow.OffsetUp();
@@ -370,7 +372,7 @@ public static class Input
                     var actionInfo = Keybinds.GetActionWithKey(keyInfo.Key);
                     // Mirror local input to peers: "i{playerId}{ConsoleKey}".
                     var message = $"i{playerId}{action}{actionInfo}t{GameState.TickNumber}";
-                    GameState.MessageWindow.Write(message);
+                    GameState.MessageWindow.Write(" lokaali: " + message);
                     await UdpTransport.SendMessage(message);
                     //GameState.MessageWindow.Write($"input sent: {DateTime.UtcNow:mm:ss.fff}");
                 }
