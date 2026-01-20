@@ -24,15 +24,15 @@ public static class Keybinds
             },
             "numpad" => key switch
             {
-                ConsoleKey.NumPad6 => "6",
-                ConsoleKey.NumPad4 => "4",
-                ConsoleKey.NumPad8 => "8",
-                ConsoleKey.NumPad2 => "2",
+                ConsoleKey.D6 => "6",
+                ConsoleKey.D4 => "4",
+                ConsoleKey.D8 => "8",
+                ConsoleKey.D2 => "2",
 
-                ConsoleKey.NumPad7 => "7",
-                ConsoleKey.NumPad1 => "1",
-                ConsoleKey.NumPad5 => "5",
-                ConsoleKey.NumPad3 => "3",
+                ConsoleKey.D7 => "7",
+                ConsoleKey.D1 => "1",
+                ConsoleKey.D5 => "5",
+                ConsoleKey.D3 => "3",
                 _ => "",
             },
             _ => throw new InvalidOperationException($"Buh? '{GameState.preset}'."),
@@ -60,15 +60,15 @@ public static class Keybinds
             },
             "numpad" => actionInfo switch
             {
-                "6" => ConsoleKey.NumPad6,
-                "4" => ConsoleKey.NumPad4,
-                "8" => ConsoleKey.NumPad8,
-                "2" => ConsoleKey.NumPad2,
+                "6" => ConsoleKey.D6,
+                "4" => ConsoleKey.D4,
+                "8" => ConsoleKey.D8,
+                "2" => ConsoleKey.D2,
 
-                "7" => ConsoleKey.NumPad7,
-                "1" => ConsoleKey.NumPad1,
-                "5" => ConsoleKey.NumPad5,
-                "3" => ConsoleKey.NumPad3,
+                "7" => ConsoleKey.D7,
+                "1" => ConsoleKey.D1,
+                "5" => ConsoleKey.D5,
+                "3" => ConsoleKey.D3,
 
                 _ => ConsoleKey.NoName,
             },
