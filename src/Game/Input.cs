@@ -164,8 +164,8 @@ public static class Input
                     delta = TickWaitWindow;
                 }
 
-                GameState.MessageWindow.Write("Delta: " + delta.ToString(@"mm\:ss\.fff"));
-                GameState.MessageWindow.Write($"Times: {time:mm:ss.fff} {_previousTime:mm:ss.fff}");
+                //GameState.MessageWindow.Write("Delta: " + delta.ToString(@"mm\:ss\.fff"));
+                //GameState.MessageWindow.Write($"Times: {time:mm:ss.fff} {_previousTime:mm:ss.fff}");
 
                 var deadline = time + delta;
 
