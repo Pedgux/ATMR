@@ -144,14 +144,6 @@ public static class Input
             reader.TryRead(out var first);
             inputs = new Dictionary<int, ConsoleKeyInfo> { [first.playerId] = first.keyInfo };
 
-            //var deadline = DateTime.UtcNow + TickWaitWindow - (TickWaitWindow-(DateTime.UtcNow-edellisen DateTime.UtcNow));
-            // jos DateTime.UtcNow-edellisen DateTime.UtcNow on > 50ms, deadline = DateTime.UtcNow + TickWaitWindow
-            /*
-            var deadline =
-                DateTime.UtcNow
-                + TickWaitWindow
-                - (_previousTime + _previousDelay - DateTime.UtcNow);
-            */
             bool localPlayerInput = true;
             if (localPlayerInput)
             {
@@ -171,13 +163,6 @@ public static class Input
 
                 while (true)
                 {
-                    /*
-                    while (reader.TryRead(out var next))
-                    {
-                        // For each player, keep only the latest key within the window.
-                        inputs[next.playerId] = next.keyInfo;
-                    }*/
-
                     var remaining = deadline - DateTime.UtcNow;
                     if (remaining <= TimeSpan.Zero)
                     {
@@ -199,8 +184,6 @@ public static class Input
             {
                 // Advance the game by one tick with the snapshot of inputs.
                 await Tick.CreateAsync(inputs, GameState.Level0, GameState.TickNumber);
-                // Advance the global tick by 1.
-                GameState.TickNumber++;
             }
             catch
             {
