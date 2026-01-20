@@ -139,12 +139,10 @@ public static class Input
             var inputs = new Dictionary<int, ConsoleKeyInfo>();
 
             // Collect the first event and then coalesce additional inputs
-            // for a short window so the tick sees a snapshot for all players.
-            for (var i = 0; i < Lobby.PlayerAmount; i++)
-            {
-                reader.TryRead(out var first);
-                inputs = new Dictionary<int, ConsoleKeyInfo> { [first.playerId] = first.keyInfo };
-            }
+            // for a short window so the tick sees a snapshot for all players. öö EI
+
+            reader.TryRead(out var first);
+            inputs = new Dictionary<int, ConsoleKeyInfo> { [first.playerId] = first.keyInfo };
 
             //var deadline = DateTime.UtcNow + TickWaitWindow - (TickWaitWindow-(DateTime.UtcNow-edellisen DateTime.UtcNow));
             // jos DateTime.UtcNow-edellisen DateTime.UtcNow on > 50ms, deadline = DateTime.UtcNow + TickWaitWindow
@@ -325,6 +323,19 @@ public static class Input
             false,
             false
         );
+        GameState.MessageWindow.Write(
+            " vasta: "
+                + mappedKey
+                + " "
+                + action
+                + " "
+                + actionInfo
+                + " "
+                + tickNumber
+                + " "
+                + playerId
+        );
+
         EnqueueInput(playerId, keyInfo, CancellationToken.None);
         return Task.CompletedTask;
     }
