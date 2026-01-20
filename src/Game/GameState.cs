@@ -11,6 +11,9 @@ using ATMR.Networking;
 /// </summary>
 public static class GameState
 {
+    public static int TickNumber = 0;
+    public static string preset = "hjkl";
+
     // UI stuff
     public static UI.UI Ui { get; set; } = null!;
     public static UI.Messages MessageWindow { get; set; } = null!;
