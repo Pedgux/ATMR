@@ -178,11 +178,12 @@ public static class Input
 
             try
             {
+                // Advance the game by one tick with the snapshot of inputs.
+                await Tick.CreateAsync(inputs, GameState.Level0, GameState.TickNumber);
                 // Advance the global tick by 1.
                 GameState.TickNumber++;
 
-                // Advance the game by one tick with the snapshot of inputs.
-                await Tick.CreateAsync(inputs, GameState.Level0, GameState.TickNumber);
+                GameState.MessageWindow.Write("tickstarted: " + GameState.TickNumber);
             }
             catch
             {
@@ -304,18 +305,6 @@ public static class Input
             false,
             false,
             false
-        );
-        GameState.MessageWindow.Write(
-            " vasta: "
-                + mappedKey
-                + " "
-                + action
-                + " "
-                + actionInfo
-                + " "
-                + tickNumber
-                + " "
-                + playerId
         );
 
         EnqueueInput(playerId, keyInfo, CancellationToken.None);
