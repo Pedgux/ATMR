@@ -15,6 +15,7 @@ public static class Keybinds
                 ConsoleKey.J => "4",
                 ConsoleKey.K => "8",
                 ConsoleKey.L => "2",
+
                 ConsoleKey.Y => "7",
                 ConsoleKey.U => "1",
                 ConsoleKey.B => "5",
@@ -27,6 +28,7 @@ public static class Keybinds
                 ConsoleKey.NumPad4 => "4",
                 ConsoleKey.NumPad8 => "8",
                 ConsoleKey.NumPad2 => "2",
+
                 ConsoleKey.NumPad7 => "7",
                 ConsoleKey.NumPad1 => "1",
                 ConsoleKey.NumPad5 => "5",
@@ -44,26 +46,30 @@ public static class Keybinds
         {
             "hjkl" => actionInfo switch
             {
-                "1" => ConsoleKey.U,
-                "2" => ConsoleKey.L,
-                "3" => ConsoleKey.N,
-                "4" => ConsoleKey.J,
-                "5" => ConsoleKey.B,
                 "6" => ConsoleKey.H,
-                "7" => ConsoleKey.Y,
+                "4" => ConsoleKey.J,
                 "8" => ConsoleKey.K,
+                "2" => ConsoleKey.L,
+
+                "7" => ConsoleKey.Y,
+                "1" => ConsoleKey.U,
+                "5" => ConsoleKey.B,
+                "3" => ConsoleKey.N,
+
                 _ => ConsoleKey.NoName,
             },
             "numpad" => actionInfo switch
             {
-                "1" => ConsoleKey.NumPad1,
-                "2" => ConsoleKey.NumPad2,
-                "3" => ConsoleKey.NumPad3,
-                "4" => ConsoleKey.NumPad4,
-                "5" => ConsoleKey.NumPad5,
                 "6" => ConsoleKey.NumPad6,
-                "7" => ConsoleKey.NumPad7,
+                "4" => ConsoleKey.NumPad4,
                 "8" => ConsoleKey.NumPad8,
+                "2" => ConsoleKey.NumPad2,
+
+                "7" => ConsoleKey.NumPad7,
+                "1" => ConsoleKey.NumPad1,
+                "5" => ConsoleKey.NumPad5,
+                "3" => ConsoleKey.NumPad3,
+
                 _ => ConsoleKey.NoName,
             },
             _ => ConsoleKey.NoName,
