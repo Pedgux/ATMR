@@ -11,27 +11,29 @@ public static class Keybinds
         {
             "hjkl" => key switch
             {
-                ConsoleKey.H => "6",
-                ConsoleKey.J => "4",
+                ConsoleKey.H => "4",
+                ConsoleKey.J => "2",
                 ConsoleKey.K => "8",
-                ConsoleKey.L => "2",
+                ConsoleKey.L => "6",
 
                 ConsoleKey.Y => "7",
-                ConsoleKey.U => "1",
-                ConsoleKey.B => "5",
+                ConsoleKey.U => "9",
+                ConsoleKey.B => "1",
                 ConsoleKey.N => "3",
                 _ => "",
             },
             "numpad" => key switch
             {
-                ConsoleKey.D6 => "6",
                 ConsoleKey.D4 => "4",
-                ConsoleKey.D8 => "8",
                 ConsoleKey.D2 => "2",
+                ConsoleKey.D6 => "6",
+                ConsoleKey.D8 => "8",
+
+                ConsoleKey.D5 => "5",
 
                 ConsoleKey.D7 => "7",
+                ConsoleKey.D9 => "9",
                 ConsoleKey.D1 => "1",
-                ConsoleKey.D5 => "5",
                 ConsoleKey.D3 => "3",
                 _ => "",
             },
@@ -46,28 +48,30 @@ public static class Keybinds
         {
             "hjkl" => actionInfo switch
             {
-                "6" => ConsoleKey.H,
-                "4" => ConsoleKey.J,
+                "4" => ConsoleKey.H,
+                "2" => ConsoleKey.J,
                 "8" => ConsoleKey.K,
-                "2" => ConsoleKey.L,
+                "6" => ConsoleKey.L,
 
                 "7" => ConsoleKey.Y,
-                "1" => ConsoleKey.U,
-                "5" => ConsoleKey.B,
+                "9" => ConsoleKey.U,
+                "1" => ConsoleKey.B,
                 "3" => ConsoleKey.N,
 
                 _ => ConsoleKey.NoName,
             },
             "numpad" => actionInfo switch
             {
-                "6" => ConsoleKey.D6,
                 "4" => ConsoleKey.D4,
-                "8" => ConsoleKey.D8,
                 "2" => ConsoleKey.D2,
+                "6" => ConsoleKey.D6,
+                "8" => ConsoleKey.D8,
+
+                "5" => ConsoleKey.D5,
 
                 "7" => ConsoleKey.D7,
+                "9" => ConsoleKey.D9,
                 "1" => ConsoleKey.D1,
-                "5" => ConsoleKey.D5,
                 "3" => ConsoleKey.D3,
 
                 _ => ConsoleKey.NoName,
