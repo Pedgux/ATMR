@@ -131,14 +131,21 @@ public static class Input
         // Multiplayer: coalesce inputs within a window for synchronization.
         var reader = InputEvents.Reader;
 
+        // list
         while (await reader.WaitToReadAsync(token))
         {
-            reader.TryRead(out var first);
+            // get all iinputs from reader to list
+            var inputs = new Dictionary<int, ConsoleKeyInfo>();
 
             // Collect the first event and then coalesce additional inputs
             // for a short window so the tick sees a snapshot for all players.
-            var inputs = new Dictionary<int, ConsoleKeyInfo> { [first.playerId] = first.keyInfo };
-            // var deadline = DateTime.UtcNow + TickWaitWindow - (TickWaitWindow-(DateTime.UtcNow-edellisen DateTime.UtcNow));
+            for (var i = 0; i < Lobby.PlayerAmount; i++)
+            {
+                reader.TryRead(out var first);
+                inputs = new Dictionary<int, ConsoleKeyInfo> { [first.playerId] = first.keyInfo };
+            }
+
+            //var deadline = DateTime.UtcNow + TickWaitWindow - (TickWaitWindow-(DateTime.UtcNow-edellisen DateTime.UtcNow));
             // jos DateTime.UtcNow-edellisen DateTime.UtcNow on > 50ms, deadline = DateTime.UtcNow + TickWaitWindow
             /*
             var deadline =
@@ -146,53 +153,53 @@ public static class Input
                 + TickWaitWindow
                 - (_previousTime + _previousDelay - DateTime.UtcNow);
             */
-            var time = DateTime.UtcNow;
-            var delta = time - _previousTime;
-            if (delta > TickWaitWindow)
+            bool localPlayerInput = true;
+            if (localPlayerInput)
             {
-                delta = TickWaitWindow;
-            }
-
-            GameState.MessageWindow.Write("Delta: " + delta.ToString(@"mm\:ss\.fff"));
-            GameState.MessageWindow.Write($"Times: {time:mm:ss.fff} {_previousTime:mm:ss.fff}");
-
-            var deadline = time + delta;
-
-            _previousTime = time + delta;
-
-            while (true)
-            {
-                /*
-                while (reader.TryRead(out var next))
+                var time = DateTime.UtcNow;
+                var delta = time - _previousTime;
+                if (delta > TickWaitWindow)
                 {
-                    // For each player, keep only the latest key within the window.
-                    inputs[next.playerId] = next.keyInfo;
-                }*/
-
-                var remaining = deadline - DateTime.UtcNow;
-                if (remaining <= TimeSpan.Zero)
-                {
-                    break;
+                    delta = TickWaitWindow;
                 }
 
-                // Wait for either more input or the coalescing timeout to elapse.
-                var waitForMore = reader.WaitToReadAsync(token).AsTask();
-                var timeout = Task.Delay(remaining, token);
-                var completed = await Task.WhenAny(waitForMore, timeout);
-                if (completed == timeout)
+                GameState.MessageWindow.Write("Delta: " + delta.ToString(@"mm\:ss\.fff"));
+                GameState.MessageWindow.Write($"Times: {time:mm:ss.fff} {_previousTime:mm:ss.fff}");
+
+                var deadline = time + delta;
+
+                _previousTime = time + delta;
+
+                while (true)
                 {
-                    break;
+                    /*
+                    while (reader.TryRead(out var next))
+                    {
+                        // For each player, keep only the latest key within the window.
+                        inputs[next.playerId] = next.keyInfo;
+                    }*/
+
+                    var remaining = deadline - DateTime.UtcNow;
+                    if (remaining <= TimeSpan.Zero)
+                    {
+                        break;
+                    }
+
+                    // Wait for either more input or the coalescing timeout to elapse.
+                    var waitForMore = reader.WaitToReadAsync(token).AsTask();
+                    var timeout = Task.Delay(remaining, token);
+                    var completed = await Task.WhenAny(waitForMore, timeout);
+                    if (completed == timeout)
+                    {
+                        break;
+                    }
                 }
             }
 
             try
             {
                 // Advance the game by one tick with the snapshot of inputs.
-                await Tick.CreateAsync(
-                    inputs,
-                    GameState.Level0,
-                    0 /*change the 0 later to the actual tick number, when tick storage exists*/
-                );
+                await Tick.CreateAsync(inputs, GameState.Level0, GameState.TickNumber);
             }
             catch
             {
