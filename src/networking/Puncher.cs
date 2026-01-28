@@ -13,18 +13,12 @@ public static class Puncher
     public static async Task Punch(IPEndPoint peer)
     {
         GameState.MessageWindow.Write($"[red]Punching: {peer}[/]");
-        byte[] poke = Encoding.UTF8.GetBytes("poke");
 
         // tries for 30s
         for (int i = 0; i < 600; i++)
         {
-            await UdpTransport.Udp.SendAsync(poke, poke.Length, peer);
+            await UdpTransport.SendMessage("poke");
             await Task.Delay(50);
-
-            if (UdpTransport.connected)
-            {
-                break;
-            }
         }
 
         if (!UdpTransport.connected)
