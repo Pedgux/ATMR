@@ -131,6 +131,8 @@ public static class Input
     {
         // Multiplayer: coalesce inputs within a window for synchronization.
         var reader = InputEvents.Reader;
+        // Put all inputs from reader here, to enable multiple inputs in 1 tick.
+        var inputList = new Dictionary<int, Dictionary<int, ConsoleKeyInfo>>();
 
         // list
         while (await reader.WaitToReadAsync(token))
@@ -183,7 +185,7 @@ public static class Input
                 // Advance the global tick by 1.
                 GameState.TickNumber++;
 
-                GameState.MessageWindow.Write("tickstarted: " + GameState.TickNumber);
+                GameState.MessageWindow.Write($"tick: {GameState.TickNumber}");
             }
             catch
             {
@@ -317,8 +319,6 @@ public static class Input
         CancellationToken token = default
     )
     {
-        // Drain the provided reader (from StartPolling or elsewhere) and route
-        // keys either to UI controls (PageUp/PageDown) or into the input pipeline.
         await foreach (var keyInfo in reader.ReadAllAsync(token))
         {
             if (keyInfo.Key == ConsoleKey.PageUp)
@@ -354,7 +354,7 @@ public static class Input
                     var actionInfo = Keybinds.GetActionWithKey(keyInfo.Key);
                     // Mirror local input to peers: "i{playerId}{ConsoleKey}".
                     var message = $"i{playerId}{action}{actionInfo}t{GameState.TickNumber}";
-                    GameState.MessageWindow.Write(" lokaali: " + message);
+
                     await UdpTransport.SendMessage(message);
                     //GameState.MessageWindow.Write($"input sent: {DateTime.UtcNow:mm:ss.fff}");
                 }
