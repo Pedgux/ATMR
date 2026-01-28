@@ -12,14 +12,19 @@ public static class Input
 {
     // Batches keystrokes for a short window so multiple players' inputs
     // can be processed together in a single game tick for multiplayer.
-    private static TimeSpan TickWaitWindow = TimeSpan.FromMilliseconds(50);
+    private static TimeSpan TickWaitWindow = TimeSpan.FromMilliseconds(1000);
 
     // Central, thread-safe pipeline of input events coming from local or network sources.
     // Tuple payload: (playerId, key pressed). Single reader (the tick pump) with many writers.
-    private static readonly Channel<(int playerId, ConsoleKeyInfo keyInfo)> InputEvents =
-        Channel.CreateUnbounded<(int playerId, ConsoleKeyInfo keyInfo)>(
-            new UnboundedChannelOptions { SingleReader = true, SingleWriter = false }
-        );
+    private static readonly Channel<(
+        int playerId,
+        ConsoleKeyInfo keyInfo,
+        int tickNumber
+    )> InputEvents = Channel.CreateUnbounded<(
+        int playerId,
+        ConsoleKeyInfo keyInfo,
+        int tickNumber
+    )>(new UnboundedChannelOptions { SingleReader = true, SingleWriter = false });
 
     // Background task that drains the InputEvents channel and emits game ticks.
     private static Task? _tickPump;
@@ -132,15 +137,23 @@ public static class Input
         // Multiplayer: coalesce inputs within a window for synchronization.
         var reader = InputEvents.Reader;
         // Put all inputs from reader here, to enable multiple inputs in 1 tick.
+        // Holds all inputs from all players, discards them when read later
+        // format is: <ticknumber, <playernumber, consolekeyinfo>>
         var inputList = new Dictionary<int, Dictionary<int, ConsoleKeyInfo>>();
 
-        // list
         while (await reader.WaitToReadAsync(token))
         {
             // Collect the first event and then coalesce additional inputs
             // for a short window so the tick sees a snapshot for all players. öö EI
-            reader.TryRead(out var first);
-            var inputs = new Dictionary<int, ConsoleKeyInfo> { [first.playerId] = first.keyInfo };
+            while (reader.TryRead(out var first))
+            {
+                inputList.Add(
+                    first.tickNumber,
+                    new Dictionary<int, ConsoleKeyInfo> { [first.playerId] = first.keyInfo }
+                );
+            }
+
+            var inputs = inputList[GameState.TickNumber];
 
             bool localPlayerInput = true;
             if (localPlayerInput)
@@ -194,11 +207,16 @@ public static class Input
         }
     }
 
-    private static void EnqueueInput(int playerId, ConsoleKeyInfo keyInfo, CancellationToken token)
+    private static void EnqueueInput(
+        int playerId,
+        ConsoleKeyInfo keyInfo,
+        CancellationToken token,
+        int tickNumber
+    )
     {
         // Ensure the tick pump is running before writing; write is non-blocking here.
         EnsureTickPumpStarted(token);
-        InputEvents.Writer.TryWrite((playerId, keyInfo));
+        InputEvents.Writer.TryWrite((playerId, keyInfo, tickNumber));
     }
 
     private static char KeyCharFromConsoleKey(ConsoleKey key)
@@ -309,7 +327,7 @@ public static class Input
             false
         );
 
-        EnqueueInput(playerId, keyInfo, CancellationToken.None);
+        EnqueueInput(playerId, keyInfo, CancellationToken.None, tickNumber);
         return Task.CompletedTask;
     }
 
@@ -359,7 +377,7 @@ public static class Input
                     //GameState.MessageWindow.Write($"input sent: {DateTime.UtcNow:mm:ss.fff}");
                 }
                 // Always feed local input into the authoritative pipeline.
-                EnqueueInput(playerId, keyInfo, token);
+                EnqueueInput(playerId, keyInfo, token, GameState.TickNumber);
             }
             catch
             {
