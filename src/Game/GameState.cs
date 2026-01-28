@@ -12,7 +12,7 @@ using ATMR.Networking;
 public static class GameState
 {
     public static int TickNumber = 0;
-    public static string preset = "numpad";
+    public static string preset = "hjkl";
 
     // UI stuff
     public static UI.UI Ui { get; set; } = null!;
