@@ -40,7 +40,14 @@ public sealed class Stats
         {
             List<long> tempList = GameState.PingList;
             tempList.Sort();
-            var panel = new Panel(new Markup($"Median ping: {tempList[10]} ms")) { Expand = true };
+            var panel = new Panel(
+                new Markup(
+                    $"Median ping: {tempList[10]} ms       Local tick: {GameState.TickNumber}"
+                )
+            )
+            {
+                Expand = true,
+            };
             _statsWindow.Update(panel);
         }
     }
