@@ -147,6 +147,9 @@ public static class Input
             // for a short window so the tick sees a snapshot for all players. öö EI
             while (reader.TryRead(out var first))
             {
+                GameState.MessageWindow.Write(
+                    $"Added a input: tick {first.tickNumber} PID: {first.playerId}"
+                );
                 inputList.Add(
                     first.tickNumber,
                     new Dictionary<int, ConsoleKeyInfo> { [first.playerId] = first.keyInfo }
@@ -198,7 +201,7 @@ public static class Input
                 // Advance the global tick by 1.
                 GameState.TickNumber++;
 
-                GameState.MessageWindow.Write($"tick: {GameState.TickNumber}");
+                GameState.MessageWindow.Write($"newTick: {GameState.TickNumber}");
             }
             catch
             {
@@ -245,7 +248,7 @@ public static class Input
         //  - "idown" : scroll message window down
         // General format for keystrokes: i{playerId}{action}{actionInfo}t{tickNumber}
         //   e.g., "i2M6t42" means player 2 performed action M with info 6 on tick 42.
-        GameState.MessageWindow.Write(" vastaanotto: " + message);
+        GameState.MessageWindow.Write("Received: " + message);
 
         if (message == "iup")
         {
