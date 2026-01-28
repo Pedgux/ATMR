@@ -44,7 +44,7 @@ public static class InputSystem
                         velocity.Y += dy;
                     }
                 }
-                GameState.MessageWindow.Write(players);
+                GameState.MessageWindow.Write($"Processed: {players}");
             }
         );
     }
