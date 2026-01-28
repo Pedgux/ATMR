@@ -139,7 +139,7 @@ public static class Input
         // Put all inputs from reader here, to enable multiple inputs in 1 tick.
         // Holds all inputs from all players, discards them when read later
         // format is: <ticknumber, <playernumber, consolekeyinfo>>
-        var inputList = new Dictionary<int, Dictionary<int, ConsoleKeyInfo>>();
+        var inputList = new List<Dictionary<int, Dictionary<int, ConsoleKeyInfo>>>();
 
         while (await reader.WaitToReadAsync(token))
         {
@@ -151,12 +151,20 @@ public static class Input
                     $"Added a input: tick {first.tickNumber} PID: {first.playerId}"
                 );
                 inputList.Add(
-                    first.tickNumber,
-                    new Dictionary<int, ConsoleKeyInfo> { [first.playerId] = first.keyInfo }
+                    new Dictionary<int, Dictionary<int, ConsoleKeyInfo>>
+                    {
+                        {
+                            first.tickNumber,
+                            new Dictionary<int, ConsoleKeyInfo> { [first.playerId] = first.keyInfo }
+                        },
+                    }
                 );
             }
 
-            var inputs = inputList[GameState.TickNumber];
+            var inputs = inputList
+                .Where(dict => dict.ContainsKey(GameState.TickNumber))
+                .Select(dict => dict[GameState.TickNumber])
+                .FirstOrDefault();
 
             bool localPlayerInput = true;
             if (localPlayerInput)
@@ -175,6 +183,7 @@ public static class Input
 
                 _previousTime = time + delta;
 
+                // input delay
                 while (true)
                 {
                     var remaining = deadline - DateTime.UtcNow;
@@ -198,12 +207,23 @@ public static class Input
                         $"Added a input: tick {first.tickNumber} PID: {first.playerId}"
                     );
                     inputList.Add(
-                        first.tickNumber,
-                        new Dictionary<int, ConsoleKeyInfo> { [first.playerId] = first.keyInfo }
+                        new Dictionary<int, Dictionary<int, ConsoleKeyInfo>>
+                        {
+                            {
+                                first.tickNumber,
+                                new Dictionary<int, ConsoleKeyInfo>
+                                {
+                                    [first.playerId] = first.keyInfo,
+                                }
+                            },
+                        }
                     );
                 }
 
-                inputs = inputList[GameState.TickNumber];
+                inputs = inputList
+                    .Where(dict => dict.ContainsKey(GameState.TickNumber))
+                    .Select(dict => dict[GameState.TickNumber])
+                    .FirstOrDefault();
             }
 
             try
