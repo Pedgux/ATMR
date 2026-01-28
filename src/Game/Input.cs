@@ -160,11 +160,12 @@ public static class Input
                     }
                 );
             }
-
+            /*
             var inputs = inputList
                 .Where(dict => dict.ContainsKey(GameState.TickNumber))
                 .Select(dict => dict[GameState.TickNumber])
                 .FirstOrDefault();
+            */
 
             bool localPlayerInput = true;
             if (localPlayerInput)
@@ -220,14 +221,20 @@ public static class Input
                     );
                 }
 
-                inputs = inputList
+                /*
+                var inputs = inputList
                     .Where(dict => dict.ContainsKey(GameState.TickNumber))
                     .Select(dict => dict[GameState.TickNumber])
                     .FirstOrDefault();
+                */
             }
 
             try
             {
+                var inputs = inputList
+                    .Where(dict => dict.ContainsKey(GameState.TickNumber))
+                    .Select(dict => dict[GameState.TickNumber])
+                    .FirstOrDefault();
                 // Advance the game by one tick with the snapshot of inputs.
                 await Tick.CreateAsync(inputs, GameState.Level0, GameState.TickNumber);
                 // Advance the global tick by 1.
