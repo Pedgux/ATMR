@@ -11,12 +11,12 @@ public static class InputSystem
     // eli siis itse inputtien toiminnot.
     public static async Task Run(World world, Dictionary<int, ConsoleKeyInfo> inputs)
     {
+        string players = "";
         var query = new QueryDescription().WithAll<Player>();
         world.Query(
             in query,
             (Entity entity, ref Player player) =>
             {
-                string players = "";
                 foreach (var kvp in inputs)
                 {
                     if (player.ID == kvp.Key)
@@ -44,8 +44,8 @@ public static class InputSystem
                         velocity.Y += dy;
                     }
                 }
-                GameState.MessageWindow.Write($"Processed: {players}");
             }
         );
+        GameState.MessageWindow.Write($"Processed: {players}");
     }
 }
