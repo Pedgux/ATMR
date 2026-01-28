@@ -231,10 +231,33 @@ public static class Input
 
             try
             {
-                var inputs = inputList
+                // Find all dictionaries containing the current tick
+                var relevantDicts = inputList
                     .Where(dict => dict.ContainsKey(GameState.TickNumber))
-                    .Select(dict => dict[GameState.TickNumber])
-                    .FirstOrDefault();
+                    .ToList();
+
+                // For each player, take their oldest input (first occurrence)
+                var inputs = new Dictionary<int, ConsoleKeyInfo>();
+                foreach (var tickDict in relevantDicts)
+                {
+                    foreach (var kvp in tickDict[GameState.TickNumber])
+                    {
+                        int playerId = kvp.Key;
+                        ConsoleKeyInfo keyInfo = kvp.Value;
+
+                        // Only add if we haven't already processed this player
+                        if (!inputs.ContainsKey(playerId))
+                        {
+                            inputs[playerId] = keyInfo;
+                        }
+                    }
+                }
+
+                // Remove all processed dictionaries from inputList to avoid reprocessing
+                foreach (var tickDict in relevantDicts)
+                {
+                    inputList.Remove(tickDict);
+                }
                 // Advance the game by one tick with the snapshot of inputs.
                 GameState.MessageWindow.Write($"Starting tick: {GameState.TickNumber}");
                 await Tick.CreateAsync(inputs, GameState.Level0, GameState.TickNumber);
