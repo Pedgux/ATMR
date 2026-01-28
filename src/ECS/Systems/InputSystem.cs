@@ -16,9 +16,12 @@ public static class InputSystem
             in query,
             (Entity entity, ref Player player) =>
             {
+                string players = "";
                 foreach (var kvp in inputs)
+                {
                     if (player.ID == kvp.Key)
                     {
+                        players += player.ID + " ";
                         ref var velocity = ref world.Get<Velocity>(entity);
 
                         (int dx, int dy) = Keybinds.GetActionWithKey(kvp.Value.Key) switch
@@ -40,6 +43,8 @@ public static class InputSystem
                         velocity.X += dx;
                         velocity.Y += dy;
                     }
+                }
+                GameState.MessageWindow.Write(players);
             }
         );
     }

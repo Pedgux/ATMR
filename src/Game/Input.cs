@@ -148,7 +148,7 @@ public static class Input
             while (reader.TryRead(out var first))
             {
                 GameState.MessageWindow.Write(
-                    $"Added a input: tick {first.tickNumber} PID: {first.playerId}"
+                    $"1 Added a input: tick {first.tickNumber} PID: {first.playerId}"
                 );
                 inputList.Add(
                     new Dictionary<int, Dictionary<int, ConsoleKeyInfo>>
@@ -205,7 +205,7 @@ public static class Input
                 while (reader.TryRead(out var first))
                 {
                     GameState.MessageWindow.Write(
-                        $"Added a input: tick {first.tickNumber} PID: {first.playerId}"
+                        $"2 Added a input: tick {first.tickNumber} PID: {first.playerId}"
                     );
                     inputList.Add(
                         new Dictionary<int, Dictionary<int, ConsoleKeyInfo>>
