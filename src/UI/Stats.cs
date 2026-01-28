@@ -2,6 +2,7 @@ namespace ATMR.UI;
 
 using System.Collections.Generic;
 using ATMR.Game;
+using ATMR.Networking;
 using Spectre.Console;
 
 /// <summary>
@@ -42,7 +43,7 @@ public sealed class Stats
             tempList.Sort();
             var panel = new Panel(
                 new Markup(
-                    $"Median ping: {tempList[10]} ms       Local tick: {GameState.TickNumber}"
+                    $"Median ping: {tempList[10]} ms       Local tick: {GameState.TickNumber}       Player number: {Lobby.PlayerNumber}"
                 )
             )
             {

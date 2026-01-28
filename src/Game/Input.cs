@@ -236,11 +236,10 @@ public static class Input
                     .Select(dict => dict[GameState.TickNumber])
                     .FirstOrDefault();
                 // Advance the game by one tick with the snapshot of inputs.
+                GameState.MessageWindow.Write($"Starting tick: {GameState.TickNumber}");
                 await Tick.CreateAsync(inputs, GameState.Level0, GameState.TickNumber);
                 // Advance the global tick by 1.
                 GameState.TickNumber++;
-
-                GameState.MessageWindow.Write($"newTick: {GameState.TickNumber}");
             }
             catch
             {

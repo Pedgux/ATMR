@@ -21,7 +21,7 @@ public static class InputSystem
                 {
                     if (player.ID == kvp.Key)
                     {
-                        players += player.ID + " ";
+                        players += player.ID + ", ";
                         ref var velocity = ref world.Get<Velocity>(entity);
 
                         (int dx, int dy) = Keybinds.GetActionWithKey(kvp.Value.Key) switch
@@ -46,6 +46,6 @@ public static class InputSystem
                 }
             }
         );
-        GameState.MessageWindow.Write($"Processed: {players}");
+        GameState.MessageWindow.Write($"Processed players: {players}");
     }
 }
