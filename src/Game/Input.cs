@@ -476,7 +476,7 @@ public static class Input
                     //GameState.MessageWindow.Write($"input sent: {DateTime.UtcNow:mm:ss.fff}");
                 }
                 // Always feed local input into the authoritative pipeline.
-                EnqueueInput(playerId, keyInfo, token, GameState.TickNumber);
+                EnqueueInput(playerId, keyInfo, token, tickNumber);
             }
             catch
             {
