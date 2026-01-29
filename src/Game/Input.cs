@@ -38,7 +38,6 @@ public static class Input
     private static DateTime LastTickTime = DateTime.MinValue;
     private const int TickDelayMs = 50;
     private static DateTime _previousTime = DateTime.UtcNow;
-    private static TimeSpan _previousDelay;
 
     // Start the background poller and return the channel reader
     public static ChannelReader<ConsoleKeyInfo> StartPolling(CancellationToken token = default)
@@ -167,7 +166,26 @@ public static class Input
                 .FirstOrDefault();
             */
 
-            bool localPlayerInput = true;
+            // Find all dictionaries containing the current tick
+            var relevantDicts1 = inputList
+                .Where(dict => dict.ContainsKey(GameState.TickNumber))
+                .ToList();
+
+            bool localPlayerInput = false;
+
+            // For each player, take inputs
+            foreach (var tickDict in relevantDicts1)
+            {
+                foreach (var kvp in tickDict[GameState.TickNumber])
+                {
+                    int playerId = kvp.Key;
+                    if (playerId == Lobby.PlayerNumber)
+                    {
+                        localPlayerInput = true;
+                    }
+                }
+            }
+
             if (localPlayerInput)
             {
                 var time = DateTime.UtcNow;
@@ -181,10 +199,8 @@ public static class Input
                 //GameState.MessageWindow.Write($"Times: {time:mm:ss.fff} {_previousTime:mm:ss.fff}");
 
                 var deadline = time + delta;
-
                 _previousTime = time + delta;
 
-                // input delay
                 while (true)
                 {
                     var remaining = deadline - DateTime.UtcNow;
@@ -236,7 +252,7 @@ public static class Input
                     .Where(dict => dict.ContainsKey(GameState.TickNumber))
                     .ToList();
 
-                // For each player, take their oldest input (first occurrence)
+                // For each player, take inputs
                 var inputs = new Dictionary<int, ConsoleKeyInfo>();
                 foreach (var tickDict in relevantDicts)
                 {
@@ -244,11 +260,12 @@ public static class Input
                     {
                         int playerId = kvp.Key;
                         ConsoleKeyInfo keyInfo = kvp.Value;
+                        inputs[playerId] = keyInfo;
 
-                        // Only add if we haven't already processed this player
-                        if (!inputs.ContainsKey(playerId))
+                        // Oh no scenario
+                        if (inputs.ContainsKey(playerId))
                         {
-                            inputs[playerId] = keyInfo;
+                            GameState.MessageWindow.Write("[red]!!! Double inputs detected !!![/]");
                         }
                     }
                 }
@@ -434,8 +451,9 @@ public static class Input
                     //GameState.MessageWindow.Write($"{playerId}");
                     var action = "M";
                     var actionInfo = Keybinds.GetActionWithKey(keyInfo.Key);
+                    var tickNumber = GameState.TickNumber;
                     // Mirror local input to peers: "i{playerId}{ConsoleKey}".
-                    var message = $"i{playerId}{action}{actionInfo}t{GameState.TickNumber}";
+                    var message = $"i{playerId}{action}{actionInfo}t{tickNumber}";
 
                     await UdpTransport.SendMessage(message);
                     //GameState.MessageWindow.Write($"input sent: {DateTime.UtcNow:mm:ss.fff}");
