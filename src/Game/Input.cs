@@ -260,13 +260,12 @@ public static class Input
                     {
                         int playerId = kvp.Key;
                         ConsoleKeyInfo keyInfo = kvp.Value;
-                        inputs[playerId] = keyInfo;
-
                         // Oh no scenario
                         if (inputs.ContainsKey(playerId))
                         {
                             GameState.MessageWindow.Write("[red]!!! Double inputs detected !!![/]");
                         }
+                        inputs[playerId] = keyInfo;
                     }
                 }
 
