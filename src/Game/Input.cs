@@ -38,6 +38,8 @@ public static class Input
     private static DateTime LastTickTime = DateTime.MinValue;
     private const int TickDelayMs = 50;
     private static DateTime _previousTime = DateTime.UtcNow;
+    private static int NextLocalTickNumber = -1;
+    private static readonly object NextLocalTickLock = new();
 
     // Start the background poller and return the channel reader
     public static ChannelReader<ConsoleKeyInfo> StartPolling(CancellationToken token = default)
@@ -168,7 +170,7 @@ public static class Input
 
             // Find all dictionaries containing the current tick
             var relevantDicts1 = inputList
-                .Where(dict => dict.ContainsKey(GameState.TickNumber))
+                .Where(dict => dict.ContainsKey(GameState.TickNumber + 1))
                 .ToList();
 
             bool localPlayerInput = false;
@@ -176,7 +178,7 @@ public static class Input
             // For each player, take inputs
             foreach (var tickDict in relevantDicts1)
             {
-                foreach (var kvp in tickDict[GameState.TickNumber])
+                foreach (var kvp in tickDict[GameState.TickNumber + 1])
                 {
                     int playerId = kvp.Key;
                     if (playerId == Lobby.PlayerNumber)
@@ -249,14 +251,14 @@ public static class Input
             {
                 // Find all dictionaries containing the current tick
                 var relevantDicts = inputList
-                    .Where(dict => dict.ContainsKey(GameState.TickNumber))
+                    .Where(dict => dict.ContainsKey(GameState.TickNumber + 1))
                     .ToList();
 
                 // For each player, take inputs
                 var inputs = new Dictionary<int, ConsoleKeyInfo>();
                 foreach (var tickDict in relevantDicts)
                 {
-                    foreach (var kvp in tickDict[GameState.TickNumber])
+                    foreach (var kvp in tickDict[GameState.TickNumber + 1])
                     {
                         int playerId = kvp.Key;
                         ConsoleKeyInfo keyInfo = kvp.Value;
@@ -275,8 +277,8 @@ public static class Input
                     inputList.Remove(tickDict);
                 }
                 // Advance the game by one tick with the snapshot of inputs.
-                GameState.MessageWindow.Write($"Starting tick: {GameState.TickNumber}");
-                await Tick.CreateAsync(inputs, GameState.Level0, GameState.TickNumber);
+                GameState.MessageWindow.Write($"Starting tick: {GameState.TickNumber + 1}");
+                await Tick.CreateAsync(inputs, GameState.Level0, GameState.TickNumber + 1);
                 // Advance the global tick by 1.
                 GameState.TickNumber++;
             }
@@ -445,12 +447,28 @@ public static class Input
             {
                 var level = GameState.Level0;
                 var playerId = Lobby.PlayerNumber;
+                var tickNumber = GameState.TickNumber;
                 if (UdpTransport.connected)
                 {
                     //GameState.MessageWindow.Write($"{playerId}");
                     var action = "M";
                     var actionInfo = Keybinds.GetActionWithKey(keyInfo.Key);
-                    var tickNumber = GameState.TickNumber;
+                    lock (NextLocalTickLock)
+                    {
+                        if (NextLocalTickNumber == -1)
+                        {
+                            // First input ever: initialize to current global tick
+                            NextLocalTickNumber = GameState.TickNumber;
+                        }
+                        else if (NextLocalTickNumber <= GameState.TickNumber)
+                        {
+                            // We've fallen behind (multiplayer inputs advanced the global tick)
+                            // Resync to the next available tick
+                            NextLocalTickNumber = GameState.TickNumber + 1;
+                        }
+                        tickNumber = NextLocalTickNumber + 1;
+                        NextLocalTickNumber++;
+                    }
                     // Mirror local input to peers: "i{playerId}{ConsoleKey}".
                     var message = $"i{playerId}{action}{actionInfo}t{tickNumber}";
 
