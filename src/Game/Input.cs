@@ -38,7 +38,7 @@ public static class Input
     private static DateTime LastTickTime = DateTime.MinValue;
     private const int TickDelayMs = 50;
     private static DateTime _previousTime = DateTime.UtcNow;
-    private static int NextLocalTickNumber = -1;
+    private static int NextLocalTickNumber = -10;
     private static readonly object NextLocalTickLock = new();
 
     // Start the background poller and return the channel reader
@@ -149,7 +149,7 @@ public static class Input
             while (reader.TryRead(out var first))
             {
                 GameState.MessageWindow.Write(
-                    $"1 Added a input: tick {first.tickNumber} PID: {first.playerId}"
+                    $"1 Added a input: for tick {first.tickNumber + 1} PID: {first.playerId}"
                 );
                 inputList.Add(
                     new Dictionary<int, Dictionary<int, ConsoleKeyInfo>>
@@ -455,7 +455,7 @@ public static class Input
                     var actionInfo = Keybinds.GetActionWithKey(keyInfo.Key);
                     lock (NextLocalTickLock)
                     {
-                        if (NextLocalTickNumber == -1)
+                        if (NextLocalTickNumber == -10)
                         {
                             // First input ever: initialize to current global tick
                             NextLocalTickNumber = GameState.TickNumber;
