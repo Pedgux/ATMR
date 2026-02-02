@@ -147,7 +147,7 @@ public static class Input
             while (reader.TryRead(out var first))
             {
                 GameState.MessageWindow.Write(
-                    $"Added a input: for tick {first.tickNumber} PID: {first.playerId}"
+                    $"[green]Added a input: for tick {first.tickNumber} PID: {first.playerId}[/]"
                 );
                 inputList.Add(
                     new Dictionary<int, Dictionary<int, ConsoleKeyInfo>>
@@ -192,6 +192,7 @@ public static class Input
 
         while (await WaitForNextTickInputAsync(inputList, token))
         {
+            GameState.MessageWindow.Write("[yellow]Tapahtuu[/]");
             // Find all dictionaries containing the current tick
             var relevantDicts1 = inputList
                 .Where(dict => dict.ContainsKey(GameState.TickNumber + 1))
@@ -276,7 +277,9 @@ public static class Input
                     inputList.Remove(tickDict);
                 }
                 // Advance the game by one tick with the snapshot of inputs.
-                GameState.MessageWindow.Write($"Starting tick: {GameState.TickNumber + 1}");
+                GameState.MessageWindow.Write(
+                    $"[yellow]Starting tick: {GameState.TickNumber + 1}[/]"
+                );
                 await Tick.CreateAsync(inputs, GameState.Level0, GameState.TickNumber + 1);
                 // Advance the global tick by 1.
                 GameState.TickNumber++;
@@ -326,7 +329,7 @@ public static class Input
         //  - "idown" : scroll message window down
         // General format for keystrokes: i{playerId}{action}{actionInfo}t{tickNumber}
         //   e.g., "i2M6t42" means player 2 performed action M with info 6 on tick 42.
-        GameState.MessageWindow.Write("Received: " + message);
+        GameState.MessageWindow.Write($"[blue]Received: {message}[/]");
 
         if (message == "iup")
         {
