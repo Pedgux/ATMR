@@ -7,6 +7,7 @@ using ATMR.Game;
 using ATMR.Helpers;
 using ATMR.Networking;
 using ATMR.Tick;
+using Microsoft.VisualBasic;
 
 public static class Input
 {
@@ -133,26 +134,20 @@ public static class Input
         }
     }
 
-    private static async Task TickPumpMultiplayer(CancellationToken token)
+    private static async Task ReadReaderAsync(
+        ChannelReader<(int playerId, ConsoleKeyInfo keyInfo, int tickNumber)> reader,
+        CancellationToken token,
+        List<Dictionary<int, Dictionary<int, ConsoleKeyInfo>>> inputList
+    )
     {
-        // Multiplayer: coalesce inputs within a window for synchronization.
-        var reader = InputEvents.Reader;
-        // Put all inputs from reader here, to enable multiple inputs in 1 tick.
-        // Holds all inputs from all players, discards them when read later
-        // format is: <ticknumber, <playernumber, consolekeyinfo>>
-        var inputList = new List<Dictionary<int, Dictionary<int, ConsoleKeyInfo>>>();
-
-        while (
-            await reader.WaitToReadAsync(token)
-            || inputList.Any(dict => dict.ContainsKey(GameState.TickNumber + 1))
-        )
+        while (await reader.WaitToReadAsync(token))
         {
             // Collect the first event and then coalesce additional inputs
             // for a short window so the tick sees a snapshot for all players. öö EI
             while (reader.TryRead(out var first))
             {
                 GameState.MessageWindow.Write(
-                    $"1 Added a input: for tick {first.tickNumber} PID: {first.playerId}"
+                    $"Added a input: for tick {first.tickNumber} PID: {first.playerId}"
                 );
                 inputList.Add(
                     new Dictionary<int, Dictionary<int, ConsoleKeyInfo>>
@@ -164,13 +159,22 @@ public static class Input
                     }
                 );
             }
-            /*
-            var inputs = inputList
-                .Where(dict => dict.ContainsKey(GameState.TickNumber))
-                .Select(dict => dict[GameState.TickNumber])
-                .FirstOrDefault();
-            */
+        }
+    }
 
+    private static async Task TickPumpMultiplayer(CancellationToken token)
+    {
+        // Multiplayer: coalesce inputs within a window for synchronization.
+        ChannelReader<(int playerId, ConsoleKeyInfo keyInfo, int tickNumber)> reader =
+            InputEvents.Reader;
+        // Put all inputs from reader here, to enable multiple inputs in 1 tick.
+        // Holds all inputs from all players, discards them when read later
+        // format is: <ticknumber, <playernumber, consolekeyinfo>>
+        var inputList = new List<Dictionary<int, Dictionary<int, ConsoleKeyInfo>>>();
+        _ = Task.Run(() => ReadReaderAsync(reader, token, inputList), token);
+
+        while (inputList.Any(dict => dict.ContainsKey(GameState.TickNumber + 1)))
+        {
             // Find all dictionaries containing the current tick
             var relevantDicts1 = inputList
                 .Where(dict => dict.ContainsKey(GameState.TickNumber + 1))
@@ -223,31 +227,6 @@ public static class Input
                         break;
                     }
                 }
-                while (reader.TryRead(out var first))
-                {
-                    GameState.MessageWindow.Write(
-                        $"2 Added a input: tick {first.tickNumber} PID: {first.playerId}"
-                    );
-                    inputList.Add(
-                        new Dictionary<int, Dictionary<int, ConsoleKeyInfo>>
-                        {
-                            {
-                                first.tickNumber,
-                                new Dictionary<int, ConsoleKeyInfo>
-                                {
-                                    [first.playerId] = first.keyInfo,
-                                }
-                            },
-                        }
-                    );
-                }
-
-                /*
-                var inputs = inputList
-                    .Where(dict => dict.ContainsKey(GameState.TickNumber))
-                    .Select(dict => dict[GameState.TickNumber])
-                    .FirstOrDefault();
-                */
             }
 
             try
