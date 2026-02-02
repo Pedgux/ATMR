@@ -142,6 +142,7 @@ public static class Input
     {
         while (await reader.WaitToReadAsync(token))
         {
+            GameState.MessageWindow.Write("pääsekö tänne?");
             // Collect the first event and then coalesce additional inputs
             // for a short window so the tick sees a snapshot for all players. öö EI
             while (reader.TryRead(out var first))
@@ -237,9 +238,11 @@ public static class Input
                     }
 
                     // Wait for either more input or the coalescing timeout to elapse.
-                    var waitForMore = reader.WaitToReadAsync(token).AsTask();
+                    //var waitForMore = reader.WaitToReadAsync(token).AsTask();
                     var timeout = Task.Delay(remaining, token);
-                    var completed = await Task.WhenAny(waitForMore, timeout);
+                    var completed = await Task.WhenAny( /*waitForMore,*/
+                        timeout
+                    );
                     if (completed == timeout)
                     {
                         break;
