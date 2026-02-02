@@ -162,6 +162,23 @@ public static class Input
         }
     }
 
+    private static async Task<bool> WaitForNextTickInputAsync(
+        List<Dictionary<int, Dictionary<int, ConsoleKeyInfo>>> inputList,
+        CancellationToken token
+    )
+    {
+        while (!token.IsCancellationRequested)
+        {
+            if (inputList.Any(dict => dict.ContainsKey(GameState.TickNumber + 1)))
+            {
+                return true;
+            }
+            // Yield to let other tasks run, but wake up instantly if data arrives
+            await Task.Yield();
+        }
+        return false;
+    }
+
     private static async Task TickPumpMultiplayer(CancellationToken token)
     {
         // Multiplayer: coalesce inputs within a window for synchronization.
@@ -173,7 +190,7 @@ public static class Input
         var inputList = new List<Dictionary<int, Dictionary<int, ConsoleKeyInfo>>>();
         _ = Task.Run(() => ReadReaderAsync(reader, token, inputList), token);
 
-        while (inputList.Any(dict => dict.ContainsKey(GameState.TickNumber + 1)))
+        while (await WaitForNextTickInputAsync(inputList, token))
         {
             // Find all dictionaries containing the current tick
             var relevantDicts1 = inputList
