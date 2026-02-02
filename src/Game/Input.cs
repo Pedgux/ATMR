@@ -12,7 +12,7 @@ public static class Input
 {
     // Batches keystrokes for a short window so multiple players' inputs
     // can be processed together in a single game tick for multiplayer.
-    private static TimeSpan TickWaitWindow = TimeSpan.FromMilliseconds(5000);
+    private static TimeSpan TickWaitWindow = TimeSpan.FromMilliseconds(50);
 
     // Central, thread-safe pipeline of input events coming from local or network sources.
     // Tuple payload: (playerId, key pressed). Single reader (the tick pump) with many writers.
@@ -149,7 +149,7 @@ public static class Input
             while (reader.TryRead(out var first))
             {
                 GameState.MessageWindow.Write(
-                    $"1 Added a input: for tick {first.tickNumber + 1} PID: {first.playerId}"
+                    $"1 Added a input: for tick {first.tickNumber} PID: {first.playerId}"
                 );
                 inputList.Add(
                     new Dictionary<int, Dictionary<int, ConsoleKeyInfo>>
