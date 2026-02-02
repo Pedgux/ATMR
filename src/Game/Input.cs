@@ -142,7 +142,10 @@ public static class Input
         // format is: <ticknumber, <playernumber, consolekeyinfo>>
         var inputList = new List<Dictionary<int, Dictionary<int, ConsoleKeyInfo>>>();
 
-        while (await reader.WaitToReadAsync(token))
+        while (
+            await reader.WaitToReadAsync(token)
+            || inputList.Any(dict => dict.ContainsKey(GameState.TickNumber + 1))
+        )
         {
             // Collect the first event and then coalesce additional inputs
             // for a short window so the tick sees a snapshot for all players. öö EI
