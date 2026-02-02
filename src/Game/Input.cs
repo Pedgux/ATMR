@@ -464,7 +464,7 @@ public static class Input
                         {
                             // We've fallen behind (multiplayer inputs advanced the global tick)
                             // Resync to the next available tick
-                            NextLocalTickNumber = GameState.TickNumber + 1;
+                            NextLocalTickNumber = GameState.TickNumber;
                         }
                         tickNumber = NextLocalTickNumber + 1;
                         NextLocalTickNumber++;
