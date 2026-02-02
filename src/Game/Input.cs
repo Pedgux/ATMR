@@ -172,11 +172,13 @@ public static class Input
         {
             if (inputList.Any(dict => dict.ContainsKey(GameState.TickNumber + 1)))
             {
+                GameState.MessageWindow.Write("[green]-true-[/])");
                 return true;
             }
             // Yield to let other tasks run, but wake up instantly if data arrives
             await Task.Yield();
         }
+        GameState.MessageWindow.Write("[green]-false-[/])");
         return false;
     }
 
