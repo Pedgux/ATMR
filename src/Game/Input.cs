@@ -13,7 +13,7 @@ public static class Input
 {
     // Batches keystrokes for a short window so multiple players' inputs
     // can be processed together in a single game tick for multiplayer.
-    private static TimeSpan TickWaitWindow = TimeSpan.FromMilliseconds(5000);
+    private static TimeSpan TickWaitWindow = TimeSpan.FromMilliseconds(1000);
 
     // Central, thread-safe pipeline of input events coming from local or network sources.
     // Tuple payload: (playerId, key pressed). Single reader (the tick pump) with many writers.
@@ -34,6 +34,9 @@ public static class Input
 
     // Ensures only one background pump is started across threads.
     private static readonly object TickPumpLock = new();
+
+    // Synchronizes access to inputList in multiplayer mode to prevent race conditions.
+    private static readonly object InputListLock = new();
 
     // Rate-limit singleplayer ticks to smooth out OS keyboard repeat floods.
     private static DateTime LastTickTime = DateTime.MinValue;
@@ -150,15 +153,21 @@ public static class Input
                 GameState.MessageWindow.Write(
                     $"[green]Added a input: for tick {first.tickNumber} PID: {first.playerId}[/]"
                 );
-                inputList.Add(
-                    new Dictionary<int, Dictionary<int, ConsoleKeyInfo>>
-                    {
+                lock (InputListLock)
+                {
+                    inputList.Add(
+                        new Dictionary<int, Dictionary<int, ConsoleKeyInfo>>
                         {
-                            first.tickNumber,
-                            new Dictionary<int, ConsoleKeyInfo> { [first.playerId] = first.keyInfo }
-                        },
-                    }
-                );
+                            {
+                                first.tickNumber,
+                                new Dictionary<int, ConsoleKeyInfo>
+                                {
+                                    [first.playerId] = first.keyInfo,
+                                }
+                            },
+                        }
+                    );
+                }
             }
         }
     }
@@ -170,10 +179,13 @@ public static class Input
     {
         while (!token.IsCancellationRequested)
         {
-            if (inputList.Any(dict => dict.ContainsKey(GameState.TickNumber + 1)))
+            lock (InputListLock)
             {
-                GameState.MessageWindow.Write("[green]-true-[/])");
-                return true;
+                if (inputList.Any(dict => dict.ContainsKey(GameState.TickNumber + 1)))
+                {
+                    GameState.MessageWindow.Write("[green]-true-[/])");
+                    return true;
+                }
             }
             // Yield to let other tasks run, but wake up instantly if data arrives
             await Task.Yield();
@@ -197,9 +209,13 @@ public static class Input
         {
             GameState.MessageWindow.Write("[yellow]Tapahtuu[/]");
             // Find all dictionaries containing the current tick
-            var relevantDicts1 = inputList
-                .Where(dict => dict.ContainsKey(GameState.TickNumber + 1))
-                .ToList();
+            List<Dictionary<int, Dictionary<int, ConsoleKeyInfo>>> relevantDicts1;
+            lock (InputListLock)
+            {
+                relevantDicts1 = inputList
+                    .Where(dict => dict.ContainsKey(GameState.TickNumber + 1))
+                    .ToList();
+            }
 
             bool localPlayerInput = false;
 
@@ -254,32 +270,39 @@ public static class Input
 
             try
             {
-                // Find all dictionaries containing the current tick
-                var relevantDicts = inputList
-                    .Where(dict => dict.ContainsKey(GameState.TickNumber + 1))
-                    .ToList();
-
-                // For each player, take inputs
+                List<Dictionary<int, Dictionary<int, ConsoleKeyInfo>>> relevantDicts;
                 var inputs = new Dictionary<int, ConsoleKeyInfo>();
-                foreach (var tickDict in relevantDicts)
-                {
-                    foreach (var kvp in tickDict[GameState.TickNumber + 1])
-                    {
-                        int playerId = kvp.Key;
-                        ConsoleKeyInfo keyInfo = kvp.Value;
-                        // Oh no scenario
-                        if (inputs.ContainsKey(playerId))
-                        {
-                            GameState.MessageWindow.Write("[red]!!! Double inputs detected !!![/]");
-                        }
-                        inputs[playerId] = keyInfo;
-                    }
-                }
 
-                // Remove all processed dictionaries from inputList to avoid reprocessing
-                foreach (var tickDict in relevantDicts)
+                lock (InputListLock)
                 {
-                    inputList.Remove(tickDict);
+                    // Find all dictionaries containing the current tick
+                    relevantDicts = inputList
+                        .Where(dict => dict.ContainsKey(GameState.TickNumber + 1))
+                        .ToList();
+
+                    // For each player, take inputs
+                    foreach (var tickDict in relevantDicts)
+                    {
+                        foreach (var kvp in tickDict[GameState.TickNumber + 1])
+                        {
+                            int playerId = kvp.Key;
+                            ConsoleKeyInfo keyInfo = kvp.Value;
+                            // Oh no scenario
+                            if (inputs.ContainsKey(playerId))
+                            {
+                                GameState.MessageWindow.Write(
+                                    "[red]!!! Double inputs detected !!![/]"
+                                );
+                            }
+                            inputs[playerId] = keyInfo;
+                        }
+                    }
+
+                    // Remove all processed dictionaries from inputList to avoid reprocessing
+                    foreach (var tickDict in relevantDicts)
+                    {
+                        inputList.Remove(tickDict);
+                    }
                 }
                 // Advance the game by one tick with the snapshot of inputs.
                 GameState.MessageWindow.Write(
