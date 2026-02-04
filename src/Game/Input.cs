@@ -45,9 +45,9 @@ public static class Input
     private static readonly object NextLocalTickLock = new();
 
     // 1 is newest, 3 oldest. Used to send older inputs too.
-    private static string input1 = "";
-    private static string input2 = "";
-    private static string input3 = "";
+    private static string input1 = ""; // now
+    private static string input2 = ""; // yesterday
+    private static string input3 = ""; // eldest
 
     // Start the background poller and return the channel reader
     public static ChannelReader<ConsoleKeyInfo> StartPolling(CancellationToken token = default)
