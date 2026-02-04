@@ -7,13 +7,13 @@ using ATMR.Game;
 using ATMR.Helpers;
 using ATMR.Networking;
 using ATMR.Tick;
-using Microsoft.VisualBasic;
 
 public static class Input
 {
     // Batches keystrokes for a short window so multiple players' inputs
     // can be processed together in a single game tick for multiplayer.
-    private static TimeSpan TickWaitWindow = TimeSpan.FromMilliseconds(1000);
+    private const int TickDelayMs = 1000;
+    private static TimeSpan TickWaitWindow = TimeSpan.FromMilliseconds(TickDelayMs);
 
     // Central, thread-safe pipeline of input events coming from local or network sources.
     // Tuple payload: (playerId, key pressed). Single reader (the tick pump) with many writers.
@@ -40,10 +40,14 @@ public static class Input
 
     // Rate-limit singleplayer ticks to smooth out OS keyboard repeat floods.
     private static DateTime LastTickTime = DateTime.MinValue;
-    private const int TickDelayMs = 50;
     private static DateTime _previousTime = DateTime.UtcNow;
     private static int NextLocalTickNumber = -10;
     private static readonly object NextLocalTickLock = new();
+
+    // 1 is newest, 3 oldest. Used to send older inputs too.
+    private static string input1 = "";
+    private static string input2 = "";
+    private static string input3 = "";
 
     // Start the background poller and return the channel reader
     public static ChannelReader<ConsoleKeyInfo> StartPolling(CancellationToken token = default)
@@ -348,7 +352,7 @@ public static class Input
         return '\0';
     }
 
-    public static Task ReceiveInput(string message)
+    public static Task ReceiveInput(string bigMessage)
     {
         // receive
         // Handles inputs arriving over the network as small text messages.
@@ -357,89 +361,96 @@ public static class Input
         //  - "idown" : scroll message window down
         // General format for keystrokes: i{playerId}{action}{actionInfo}t{tickNumber}
         //   e.g., "i2M6t42" means player 2 performed action M with info 6 on tick 42.
-        GameState.MessageWindow.Write($"[blue]Received: {message}[/]");
+        GameState.MessageWindow.Write($"[blue]Received: {bigMessage}[/]");
 
-        if (message == "iup")
+        string[] messages = bigMessage.Split(',');
+
+        foreach (var message in messages)
         {
-            GameState.MessageWindow.OffsetUp();
-            return Task.CompletedTask;
-        }
+            // get 1 message out of the 3
+            if (message == "iup")
+            {
+                GameState.MessageWindow.OffsetUp();
+                return Task.CompletedTask;
+            }
 
-        if (message == "idown")
-        {
-            GameState.MessageWindow.OffsetDown();
-            return Task.CompletedTask;
-        }
+            if (message == "idown")
+            {
+                GameState.MessageWindow.OffsetDown();
+                return Task.CompletedTask;
+            }
 
-        if (string.IsNullOrWhiteSpace(message) || message[0] != 'i')
-            return Task.CompletedTask;
+            if (string.IsNullOrWhiteSpace(message) || message[0] != 'i')
+                return Task.CompletedTask;
 
-        // Expect: i{playerId}{action}{actionInfo}t{tickNumber}
-        // Parse player ID: extract digits after 'i'
-        int index = 1;
-        while (index < message.Length && char.IsDigit(message[index]))
-        {
+            // Expect: i{playerId}{action}{actionInfo}t{tickNumber}
+            // Parse player ID: extract digits after 'i'
+            int index = 1;
+            while (index < message.Length && char.IsDigit(message[index]))
+            {
+                index++;
+            }
+
+            if (index == 1 || index >= message.Length)
+            {
+                return Task.CompletedTask;
+            }
+
+            if (!int.TryParse(message.AsSpan(1, index - 1), out int playerId))
+            {
+                return Task.CompletedTask;
+            }
+
+            // Parse action: single character after player ID
+            char action = message[index];
             index++;
+
+            // Parse actionInfo: digits/characters until 't'
+            int actionInfoStart = index;
+            while (index < message.Length && message[index] != 't')
+            {
+                index++;
+            }
+
+            if (index == actionInfoStart || index >= message.Length)
+            {
+                return Task.CompletedTask;
+            }
+
+            string actionInfo = message.Substring(actionInfoStart, index - actionInfoStart);
+            index++; // skip the 't'
+
+            // Parse tick number (remaining part)
+            if (index >= message.Length)
+            {
+                return Task.CompletedTask;
+            }
+
+            if (!int.TryParse(message.AsSpan(index), out int tickNumber))
+            {
+                return Task.CompletedTask;
+            }
+
+            // For now, map actionInfo to a ConsoleKey for EnqueueInput
+            // actionInfo contains direction numbers like "6", "4", "8", "2", etc.
+            // Map these back to movement keys or handle appropriately
+            ConsoleKey mappedKey = Keybinds.ActionInfoToConsoleKey(actionInfo);
+            if (mappedKey == ConsoleKey.NoName)
+            {
+                return Task.CompletedTask;
+            }
+
+            var keyInfo = new ConsoleKeyInfo(
+                KeyCharFromConsoleKey(mappedKey),
+                mappedKey,
+                false,
+                false,
+                false
+            );
+
+            EnqueueInput(playerId, keyInfo, CancellationToken.None, tickNumber);
         }
 
-        if (index == 1 || index >= message.Length)
-        {
-            return Task.CompletedTask;
-        }
-
-        if (!int.TryParse(message.AsSpan(1, index - 1), out int playerId))
-        {
-            return Task.CompletedTask;
-        }
-
-        // Parse action: single character after player ID
-        char action = message[index];
-        index++;
-
-        // Parse actionInfo: digits/characters until 't'
-        int actionInfoStart = index;
-        while (index < message.Length && message[index] != 't')
-        {
-            index++;
-        }
-
-        if (index == actionInfoStart || index >= message.Length)
-        {
-            return Task.CompletedTask;
-        }
-
-        string actionInfo = message.Substring(actionInfoStart, index - actionInfoStart);
-        index++; // skip the 't'
-
-        // Parse tick number (remaining part)
-        if (index >= message.Length)
-        {
-            return Task.CompletedTask;
-        }
-
-        if (!int.TryParse(message.AsSpan(index), out int tickNumber))
-        {
-            return Task.CompletedTask;
-        }
-
-        // For now, map actionInfo to a ConsoleKey for EnqueueInput
-        // actionInfo contains direction numbers like "6", "4", "8", "2", etc.
-        // Map these back to movement keys or handle appropriately
-        ConsoleKey mappedKey = Keybinds.ActionInfoToConsoleKey(actionInfo);
-        if (mappedKey == ConsoleKey.NoName)
-        {
-            return Task.CompletedTask;
-        }
-
-        var keyInfo = new ConsoleKeyInfo(
-            KeyCharFromConsoleKey(mappedKey),
-            mappedKey,
-            false,
-            false,
-            false
-        );
-
-        EnqueueInput(playerId, keyInfo, CancellationToken.None, tickNumber);
         return Task.CompletedTask;
     }
 
@@ -499,8 +510,12 @@ public static class Input
                         tickNumber = NextLocalTickNumber + 1;
                         NextLocalTickNumber++;
                     }
+                    input3 = input2;
+                    input2 = input1;
+                    input1 = $"i{playerId}{action}{actionInfo}t{tickNumber}";
+
                     // Mirror local input to peers: "i{playerId}{ConsoleKey}".
-                    var message = $"i{playerId}{action}{actionInfo}t{tickNumber}";
+                    var message = $"{input1},{input2},{input3}";
 
                     await UdpTransport.SendMessage(message);
                     //GameState.MessageWindow.Write($"input sent: {DateTime.UtcNow:mm:ss.fff}");
