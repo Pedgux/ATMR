@@ -16,7 +16,7 @@ public sealed class Messages
     private Panel _messagePanel;
     private readonly Layout _messageWindow;
     private readonly List<string> _messages = new();
-    private int _messageHistory = 99;
+    private int _messageHistory = 999;
     private int _messageWindowSize;
     private int _offset = 0;
 
