@@ -159,18 +159,32 @@ public static class Input
                 );
                 lock (InputListLock)
                 {
-                    inputList.Add(
-                        new Dictionary<int, Dictionary<int, ConsoleKeyInfo>>
-                        {
+                    if (!inputList.Any(dict => dict.ContainsKey(first.tickNumber)))
+                    {
+                        inputList.Add(
+                            new Dictionary<int, Dictionary<int, ConsoleKeyInfo>>
                             {
-                                first.tickNumber,
-                                new Dictionary<int, ConsoleKeyInfo>
                                 {
-                                    [first.playerId] = first.keyInfo,
-                                }
-                            },
-                        }
-                    );
+                                    first.tickNumber,
+                                    new Dictionary<int, ConsoleKeyInfo>
+                                    {
+                                        [first.playerId] = first.keyInfo,
+                                    }
+                                },
+                            }
+                        );
+                    }
+                    else if (inputList.Any(dict => dict.ContainsKey(first.tickNumber)))
+                    {
+                        var tickDict = inputList.First(dict => dict.ContainsKey(first.tickNumber));
+                        tickDict[first.tickNumber][first.playerId] = first.keyInfo;
+                    }
+                    else
+                    {
+                        GameState.MessageWindow.Write(
+                            $"[red]mitä helvettiä: {first.tickNumber}[/]"
+                        );
+                    }
                 }
             }
         }
@@ -207,6 +221,7 @@ public static class Input
         // Holds all inputs from all players, discards them when read later
         // format is: <ticknumber, <playernumber, consolekeyinfo>>
         var inputList = new List<Dictionary<int, Dictionary<int, ConsoleKeyInfo>>>();
+        var megaeList = new List<Dictionary<int, List<Dictionary<int, ConsoleKeyInfo>>>>();
         _ = Task.Run(() => ReadReaderAsync(reader, token, inputList), token);
 
         while (await WaitForNextTickInputAsync(inputList, token))
