@@ -379,8 +379,10 @@ public static class Input
 
             // mega check here to have em put to like tick storage idk
             // only enque inputs that have not been yet done? idk
-
-            EnqueueInput(playerId, keyInfo, CancellationToken.None, tickNumber);
+            if (!GameState.InputStorage[tickNumber].ContainsKey(playerId))
+            {
+                EnqueueInput(playerId, keyInfo, CancellationToken.None, tickNumber);
+            }
         }
 
         return Task.CompletedTask;
