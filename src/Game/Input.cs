@@ -350,23 +350,6 @@ public static class Input
         InputEvents.Writer.TryWrite((playerId, keyInfo, tickNumber));
     }
 
-    private static char KeyCharFromConsoleKey(ConsoleKey key)
-    {
-        // Convert A-Z and 0-9 ConsoleKey values to their char representation.
-        // For non-alphanumeric keys, return NUL (no meaningful char).
-        if (key >= ConsoleKey.A && key <= ConsoleKey.Z)
-        {
-            return (char)('a' + (key - ConsoleKey.A));
-        }
-
-        if (key >= ConsoleKey.D0 && key <= ConsoleKey.D9)
-        {
-            return (char)('0' + (key - ConsoleKey.D0));
-        }
-
-        return '\0';
-    }
-
     public static Task ReceiveInput(string bigMessage)
     {
         // receive
@@ -449,14 +432,14 @@ public static class Input
             // For now, map actionInfo to a ConsoleKey for EnqueueInput
             // actionInfo contains direction numbers like "6", "4", "8", "2", etc.
             // Map these back to movement keys or handle appropriately
-            ConsoleKey mappedKey = Keybinds.ActionInfoToConsoleKey(actionInfo);
+            ConsoleKey mappedKey = InputHelper.ActionInfoToConsoleKey(actionInfo);
             if (mappedKey == ConsoleKey.NoName)
             {
                 return Task.CompletedTask;
             }
 
             var keyInfo = new ConsoleKeyInfo(
-                KeyCharFromConsoleKey(mappedKey),
+                InputHelper.KeyCharFromConsoleKey(mappedKey),
                 mappedKey,
                 false,
                 false,
@@ -511,7 +494,7 @@ public static class Input
                 {
                     //GameState.MessageWindow.Write($"{playerId}");
                     var action = "M";
-                    var actionInfo = Keybinds.GetActionWithKey(keyInfo.Key);
+                    var actionInfo = InputHelper.GetActionWithKey(keyInfo.Key);
                     lock (NextLocalTickLock)
                     {
                         if (NextLocalTickNumber == -10)

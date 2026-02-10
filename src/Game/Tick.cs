@@ -46,4 +46,18 @@ public class Tick
 
         return tick;
     }
+
+    public static async Task<Tick> RollBackCreateAsync(
+        Dictionary<int, ConsoleKeyInfo> input,
+        Level level,
+        int tickNumber
+    )
+    {
+        var tick = new Tick(tickNumber);
+        await InputSystem.Run(level.World, input);
+        await MovementSystem.Run(level.World);
+        //await RenderSystem.Run(level.World);
+
+        return tick;
+    }
 }

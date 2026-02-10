@@ -3,7 +3,7 @@ namespace ATMR.Helpers;
 using System;
 using ATMR.Game;
 
-public static class Keybinds
+public static class InputHelper
 {
     public static string GetActionWithKey(ConsoleKey key)
     {
@@ -78,5 +78,22 @@ public static class Keybinds
             },
             _ => ConsoleKey.NoName,
         };
+    }
+
+    public static char KeyCharFromConsoleKey(ConsoleKey key)
+    {
+        // Convert A-Z and 0-9 ConsoleKey values to their char representation.
+        // For non-alphanumeric keys, return NUL (no meaningful char).
+        if (key >= ConsoleKey.A && key <= ConsoleKey.Z)
+        {
+            return (char)('a' + (key - ConsoleKey.A));
+        }
+
+        if (key >= ConsoleKey.D0 && key <= ConsoleKey.D9)
+        {
+            return (char)('0' + (key - ConsoleKey.D0));
+        }
+
+        return '\0';
     }
 }
