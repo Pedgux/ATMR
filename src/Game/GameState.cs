@@ -20,6 +20,10 @@ public static class GameState
     public static UI.Stats StatsWindow { get; set; } = null!;
     public static UI.Grid GridWindow { get; set; } = null!;
 
+    // storage
+    public static Dictionary<int, World> WorldStorage = new();
+    public static Dictionary<int, Dictionary<int, ConsoleKeyInfo>> InputStorage = new();
+
     // Console stuff
     public static int ConsoleWidth = Console.WindowWidth;
     public static int ConsoleHeight = Console.WindowHeight;

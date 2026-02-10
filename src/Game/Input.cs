@@ -35,8 +35,8 @@ public static class Input
     // Ensures only one background pump is started across threads.
     private static readonly object TickPumpLock = new();
 
-    // Synchronizes access to inputList in multiplayer mode to prevent race conditions.
-    private static readonly object InputListLock = new();
+    // Synchronizes access to InputStorage in multiplayer mode to prevent race conditions.
+    private static readonly object InputStorageLock = new();
 
     // Rate-limit singleplayer ticks to smooth out OS keyboard repeat floods.
     private static DateTime LastTickTime = DateTime.MinValue;
@@ -144,7 +144,7 @@ public static class Input
     private static async Task ReadReaderAsync(
         ChannelReader<(int playerId, ConsoleKeyInfo keyInfo, int tickNumber)> reader,
         CancellationToken token,
-        List<Dictionary<int, Dictionary<int, ConsoleKeyInfo>>> inputList
+        Dictionary<int, Dictionary<int, ConsoleKeyInfo>> InputStorage
     )
     {
         while (await reader.WaitToReadAsync(token))
@@ -157,49 +157,25 @@ public static class Input
                 GameState.MessageWindow.Write(
                     $"[green]Added a input: for tick {first.tickNumber} PID: {first.playerId}[/]"
                 );
-                lock (InputListLock)
+                lock (InputStorageLock)
                 {
-                    if (!inputList.Any(dict => dict.ContainsKey(first.tickNumber)))
-                    {
-                        inputList.Add(
-                            new Dictionary<int, Dictionary<int, ConsoleKeyInfo>>
-                            {
-                                {
-                                    first.tickNumber,
-                                    new Dictionary<int, ConsoleKeyInfo>
-                                    {
-                                        [first.playerId] = first.keyInfo,
-                                    }
-                                },
-                            }
-                        );
-                    }
-                    else if (inputList.Any(dict => dict.ContainsKey(first.tickNumber)))
-                    {
-                        var tickDict = inputList.First(dict => dict.ContainsKey(first.tickNumber));
-                        tickDict[first.tickNumber][first.playerId] = first.keyInfo;
-                    }
-                    else
-                    {
-                        GameState.MessageWindow.Write(
-                            $"[red]mitä helvettiä: {first.tickNumber}[/]"
-                        );
-                    }
+                    InputStorage.TryAdd(first.tickNumber, new Dictionary<int, ConsoleKeyInfo>());
+                    InputStorage[first.tickNumber][first.playerId] = first.keyInfo;
                 }
             }
         }
     }
 
     private static async Task<bool> WaitForNextTickInputAsync(
-        List<Dictionary<int, Dictionary<int, ConsoleKeyInfo>>> inputList,
+        Dictionary<int, Dictionary<int, ConsoleKeyInfo>> InputStorage,
         CancellationToken token
     )
     {
         while (!token.IsCancellationRequested)
         {
-            lock (InputListLock)
+            lock (InputStorageLock)
             {
-                if (inputList.Any(dict => dict.ContainsKey(GameState.TickNumber + 1)))
+                if (InputStorage.ContainsKey(GameState.TickNumber + 1))
                 {
                     GameState.MessageWindow.Write("[green]-true-[/])");
                     return true;
@@ -220,35 +196,18 @@ public static class Input
         // Put all inputs from reader here, to enable multiple inputs in 1 tick.
         // Holds all inputs from all players, discards them when read later
         // format is: <ticknumber, <playernumber, consolekeyinfo>>
-        var inputList = new List<Dictionary<int, Dictionary<int, ConsoleKeyInfo>>>();
-        var megaeList = new List<Dictionary<int, List<Dictionary<int, ConsoleKeyInfo>>>>();
-        _ = Task.Run(() => ReadReaderAsync(reader, token, inputList), token);
 
-        while (await WaitForNextTickInputAsync(inputList, token))
+        _ = Task.Run(() => ReadReaderAsync(reader, token, GameState.InputStorage), token);
+
+        while (await WaitForNextTickInputAsync(GameState.InputStorage, token))
         {
             GameState.MessageWindow.Write("[yellow]Tapahtuu[/]");
-            // Find all dictionaries containing the current tick
-            List<Dictionary<int, Dictionary<int, ConsoleKeyInfo>>> relevantDicts1;
-            lock (InputListLock)
-            {
-                relevantDicts1 = inputList
-                    .Where(dict => dict.ContainsKey(GameState.TickNumber + 1))
-                    .ToList();
-            }
 
             bool localPlayerInput = false;
 
-            // For each player, take inputs
-            foreach (var tickDict in relevantDicts1)
+            if (GameState.InputStorage[GameState.TickNumber + 1].ContainsKey(Lobby.PlayerNumber))
             {
-                foreach (var kvp in tickDict[GameState.TickNumber + 1])
-                {
-                    int playerId = kvp.Key;
-                    if (playerId == Lobby.PlayerNumber)
-                    {
-                        localPlayerInput = true;
-                    }
-                }
+                localPlayerInput = true;
             }
 
             if (localPlayerInput)
@@ -289,39 +248,11 @@ public static class Input
 
             try
             {
-                List<Dictionary<int, Dictionary<int, ConsoleKeyInfo>>> relevantDicts;
                 var inputs = new Dictionary<int, ConsoleKeyInfo>();
 
-                lock (InputListLock)
+                lock (InputStorageLock)
                 {
-                    // Find all dictionaries containing the current tick
-                    relevantDicts = inputList
-                        .Where(dict => dict.ContainsKey(GameState.TickNumber + 1))
-                        .ToList();
-
-                    // For each player, take inputs
-                    foreach (var tickDict in relevantDicts)
-                    {
-                        foreach (var kvp in tickDict[GameState.TickNumber + 1])
-                        {
-                            int playerId = kvp.Key;
-                            ConsoleKeyInfo keyInfo = kvp.Value;
-                            // Oh no scenario
-                            if (inputs.ContainsKey(playerId))
-                            {
-                                GameState.MessageWindow.Write(
-                                    "[red]!!! Double inputs detected !!![/]"
-                                );
-                            }
-                            inputs[playerId] = keyInfo;
-                        }
-                    }
-
-                    // Remove all processed dictionaries from inputList to avoid reprocessing
-                    foreach (var tickDict in relevantDicts)
-                    {
-                        inputList.Remove(tickDict);
-                    }
+                    inputs = GameState.InputStorage[GameState.TickNumber + 1];
                 }
                 // Advance the game by one tick with the snapshot of inputs.
                 GameState.MessageWindow.Write(
