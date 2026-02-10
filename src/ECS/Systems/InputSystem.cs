@@ -24,7 +24,7 @@ public static class InputSystem
                         players += player.ID + ", ";
                         ref var velocity = ref world.Get<Velocity>(entity);
 
-                        (int dx, int dy) = Keybinds.GetActionWithKey(kvp.Value.Key) switch
+                        (int dx, int dy) = InputHelper.GetActionWithKey(kvp.Value.Key) switch
                         {
                             "4" => (-1, 0),
                             "2" => (0, 1),
