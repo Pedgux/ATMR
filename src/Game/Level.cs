@@ -16,4 +16,9 @@ public class Level
         World = World.Create();
         LevelNumber = levelNumber;
     }
+
+    public World GetSnapshot()
+    {
+        return World;
+    }
 }
