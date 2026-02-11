@@ -149,12 +149,13 @@ public static class Input
     {
         while (await reader.WaitToReadAsync(token))
         {
+            GameState.MessageWindow.Write("pääsekö tänne?");
             // Collect the first event and then coalesce additional inputs
             // for a short window so the tick sees a snapshot for all players. öö EI
             while (reader.TryRead(out var first))
             {
                 GameState.MessageWindow.Write(
-                    $"[green]Added an input: Tick {first.tickNumber} | PID {first.playerId}[/]"
+                    $"[green]Added a input: for tick {first.tickNumber} PID: {first.playerId}[/]"
                 );
                 lock (InputStorageLock)
                 {
@@ -176,14 +177,14 @@ public static class Input
             {
                 if (InputStorage.ContainsKey(GameState.TickNumber + 1))
                 {
-                    //GameState.MessageWindow.Write("[green]true[/]");
+                    GameState.MessageWindow.Write("[green]-true-[/])");
                     return true;
                 }
             }
             // Yield to let other tasks run, but wake up instantly if data arrives
             await Task.Yield();
         }
-        //GameState.MessageWindow.Write("[green]false[/]");
+        GameState.MessageWindow.Write("[green]-false-[/])");
         return false;
     }
 
@@ -200,6 +201,8 @@ public static class Input
 
         while (await WaitForNextTickInputAsync(GameState.InputStorage, token))
         {
+            GameState.MessageWindow.Write("[yellow]Tapahtuu[/]");
+
             bool localPlayerInput = false;
 
             if (GameState.InputStorage[GameState.TickNumber + 1].ContainsKey(Lobby.PlayerNumber))
@@ -253,7 +256,7 @@ public static class Input
                 }
                 // Advance the game by one tick with the snapshot of inputs.
                 GameState.MessageWindow.Write(
-                    $"[yellow]Starting tick {GameState.TickNumber + 1}[/]"
+                    $"[yellow]Starting tick: {GameState.TickNumber + 1}[/]"
                 );
                 await Tick.CreateAsync(inputs, GameState.Level0, GameState.TickNumber + 1);
                 // Advance the global tick by 1.
@@ -378,10 +381,8 @@ public static class Input
             // only enque inputs that have not been yet done? idk
             lock (InputStorageLock)
             {
-                if (
-                    !GameState.InputStorage.TryGetValue(tickNumber, out var tickInputs)
-                    || !tickInputs.ContainsKey(playerId)
-                )
+                GameState.InputStorage.TryAdd(tickNumber, new Dictionary<int, ConsoleKeyInfo>());
+                if (!GameState.InputStorage[tickNumber].ContainsKey(playerId))
                 {
                     EnqueueInput(playerId, keyInfo, CancellationToken.None, tickNumber);
                 }
