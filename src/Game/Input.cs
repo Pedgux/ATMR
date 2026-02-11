@@ -400,6 +400,27 @@ public static class Input
 
         await foreach (var keyInfo in reader.ReadAllAsync(token))
         {
+            if (keyInfo.Key == ConsoleKey.PageUp)
+            {
+                try
+                {
+                    GameState.MessageWindow.OffsetUp();
+                }
+                catch { }
+
+                continue;
+            }
+
+            if (keyInfo.Key == ConsoleKey.PageDown)
+            {
+                try
+                {
+                    GameState.MessageWindow.OffsetDown();
+                }
+                catch { }
+
+                continue;
+            }
             try
             {
                 var level = GameState.Level0;
