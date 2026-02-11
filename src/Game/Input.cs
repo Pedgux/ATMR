@@ -12,7 +12,7 @@ public static class Input
 {
     // Batches keystrokes for a short window so multiple players' inputs
     // can be processed together in a single game tick for multiplayer.
-    private const int TickDelayMs = 1000;
+    private const int TickDelayMs = 5000;
     private static TimeSpan TickWaitWindow = TimeSpan.FromMilliseconds(TickDelayMs);
 
     // Central, thread-safe pipeline of input events coming from local or network sources.
@@ -243,7 +243,7 @@ public static class Input
         }
     }
 
-    public static Task ReceiveInput(string bigMessage)
+    public static async Task ReceiveInput(string bigMessage)
     {
         // receive
         // Handles inputs arriving over the network as small text messages.
@@ -262,17 +262,17 @@ public static class Input
             if (message == "iup")
             {
                 GameState.MessageWindow.OffsetUp();
-                return Task.CompletedTask;
+                return;
             }
 
             if (message == "idown")
             {
                 GameState.MessageWindow.OffsetDown();
-                return Task.CompletedTask;
+                return;
             }
 
             if (string.IsNullOrWhiteSpace(message) || message[0] != 'i')
-                return Task.CompletedTask;
+                return;
 
             // Expect: i{playerId}{action}{actionInfo}t{tickNumber}
             // Parse player ID: extract digits after 'i'
@@ -284,12 +284,12 @@ public static class Input
 
             if (index == 1 || index >= message.Length)
             {
-                return Task.CompletedTask;
+                return;
             }
 
             if (!int.TryParse(message.AsSpan(1, index - 1), out int playerId))
             {
-                return Task.CompletedTask;
+                return;
             }
 
             // Parse action: single character after player ID
@@ -305,7 +305,7 @@ public static class Input
 
             if (index == actionInfoStart || index >= message.Length)
             {
-                return Task.CompletedTask;
+                return;
             }
 
             string actionInfo = message.Substring(actionInfoStart, index - actionInfoStart);
@@ -314,12 +314,12 @@ public static class Input
             // Parse tick number (remaining part)
             if (index >= message.Length)
             {
-                return Task.CompletedTask;
+                return;
             }
 
             if (!int.TryParse(message.AsSpan(index), out int tickNumber))
             {
-                return Task.CompletedTask;
+                return;
             }
 
             // For now, map actionInfo to a ConsoleKey for EnqueueInput
@@ -328,7 +328,7 @@ public static class Input
             ConsoleKey mappedKey = InputHelper.ActionInfoToConsoleKey(actionInfo);
             if (mappedKey == ConsoleKey.NoName)
             {
-                return Task.CompletedTask;
+                return;
             }
 
             var keyInfo = new ConsoleKeyInfo(
@@ -341,6 +341,10 @@ public static class Input
 
             // mega check here to have em put to like tick storage idk
             // only enque inputs that have not been yet done? idk
+            bool needsRollback = false;
+            int rollbackFrom = 0;
+            int rollbackTo = 0;
+
             lock (InputStorageLock)
             {
                 GameState.InputStorage.TryAdd(tickNumber, new Dictionary<int, ConsoleKeyInfo>());
@@ -351,11 +355,39 @@ public static class Input
                     GameState.MessageWindow.Write(
                         $"[green]Added a input: for tick {tickNumber} PID: {playerId}[/]"
                     );
+
+                    // do we need to rollback?
+                    if (tickNumber <= GameState.TickNumber)
+                    {
+                        needsRollback = true;
+                        rollbackFrom = tickNumber;
+                        rollbackTo = GameState.TickNumber;
+                    }
+                }
+            }
+
+            if (needsRollback)
+            {
+                for (int i = rollbackFrom; i <= rollbackTo; i++)
+                {
+                    Dictionary<int, ConsoleKeyInfo> rollbackInputs;
+                    lock (InputStorageLock)
+                    {
+                        rollbackInputs = new Dictionary<int, ConsoleKeyInfo>(
+                            GameState.InputStorage[i]
+                        );
+                    }
+                    if (i == rollbackTo)
+                    {
+                        await Tick.CreateAsync(rollbackInputs, GameState.Level0, i);
+                    }
+                    else
+                    {
+                        await Tick.RollBackCreateAsync(rollbackInputs, GameState.Level0, i);
+                    }
                 }
             }
         }
-
-        return Task.CompletedTask;
     }
 
     // Consumer that maps keys to handlers
