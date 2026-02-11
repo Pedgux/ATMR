@@ -381,8 +381,10 @@ public static class Input
             // only enque inputs that have not been yet done? idk
             lock (InputStorageLock)
             {
-                GameState.InputStorage.TryAdd(tickNumber, new Dictionary<int, ConsoleKeyInfo>());
-                if (!GameState.InputStorage[tickNumber].ContainsKey(playerId))
+                if (
+                    !GameState.InputStorage.TryGetValue(tickNumber, out var tickInputs)
+                    || !tickInputs.ContainsKey(playerId)
+                )
                 {
                     EnqueueInput(playerId, keyInfo, CancellationToken.None, tickNumber);
                 }
