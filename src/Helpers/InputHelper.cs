@@ -5,7 +5,7 @@ using ATMR.Game;
 
 public static class InputHelper
 {
-    public static string GetActionWithKey(ConsoleKey key)
+    public static string GetActionInfoWithKey(ConsoleKey key)
     {
         return GameState.preset switch
         {

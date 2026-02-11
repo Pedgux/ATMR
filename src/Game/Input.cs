@@ -373,11 +373,16 @@ public static class Input
                 var level = GameState.Level0;
                 var playerId = Lobby.PlayerNumber;
                 var tickNumber = GameState.TickNumber;
+                var action = "M";
+                var actionInfo = InputHelper.GetActionInfoWithKey(keyInfo.Key);
+                if (actionInfo == "")
+                {
+                    continue;
+                }
                 if (UdpTransport.connected)
                 {
                     //GameState.MessageWindow.Write($"{playerId}");
-                    var action = "M";
-                    var actionInfo = InputHelper.GetActionWithKey(keyInfo.Key);
+
                     lock (NextLocalTickLock)
                     {
                         if (NextLocalTickNumber == -10)
