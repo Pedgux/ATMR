@@ -165,19 +165,11 @@ public static class Input
 
     private static async Task TickPumpMultiplayer(CancellationToken token)
     {
-        // Multiplayer: coalesce inputs within a window for synchronization.
-        ChannelReader<(int playerId, ConsoleKeyInfo keyInfo, int tickNumber)> reader =
-            InputEvents.Reader;
-        // Put all inputs from reader here, to enable multiple inputs in 1 tick.
-        // Holds all inputs from all players, discards them when read later
-        // format is: <ticknumber, <playernumber, consolekeyinfo>>
-
+        // muisto hyvistä ajoista
         //_ = Task.Run(() => ReadReaderAsync(reader, token, GameState.InputStorage), token);
 
         while (await WaitForNextTickInputAsync(GameState.InputStorage, token))
         {
-            //GameState.MessageWindow.Write("[yellow]Tapahtuu[/]");
-
             bool localPlayerInput = false;
 
             lock (InputStorageLock)
