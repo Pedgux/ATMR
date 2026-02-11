@@ -196,15 +196,20 @@ public static class Input
         // Holds all inputs from all players, discards them when read later
         // format is: <ticknumber, <playernumber, consolekeyinfo>>
 
-        _ = Task.Run(() => ReadReaderAsync(reader, token, GameState.InputStorage), token);
+        //_ = Task.Run(() => ReadReaderAsync(reader, token, GameState.InputStorage), token);
 
         while (await WaitForNextTickInputAsync(GameState.InputStorage, token))
         {
             bool localPlayerInput = false;
 
-            if (GameState.InputStorage[GameState.TickNumber + 1].ContainsKey(Lobby.PlayerNumber))
+            lock (InputStorageLock)
             {
-                localPlayerInput = true;
+                if (
+                    GameState.InputStorage[GameState.TickNumber + 1].ContainsKey(Lobby.PlayerNumber)
+                )
+                {
+                    localPlayerInput = true;
+                }
             }
 
             if (localPlayerInput)
@@ -249,7 +254,9 @@ public static class Input
 
                 lock (InputStorageLock)
                 {
-                    inputs = GameState.InputStorage[GameState.TickNumber + 1];
+                    inputs = new Dictionary<int, ConsoleKeyInfo>(
+                        GameState.InputStorage[GameState.TickNumber + 1]
+                    );
                 }
                 // Advance the game by one tick with the snapshot of inputs.
                 GameState.MessageWindow.Write(
@@ -381,7 +388,8 @@ public static class Input
                 GameState.InputStorage.TryAdd(tickNumber, new Dictionary<int, ConsoleKeyInfo>());
                 if (!GameState.InputStorage[tickNumber].ContainsKey(playerId))
                 {
-                    EnqueueInput(playerId, keyInfo, CancellationToken.None, tickNumber);
+                    //EnqueueInput(playerId, keyInfo, CancellationToken.None, tickNumber);
+                    GameState.InputStorage[tickNumber][playerId] = keyInfo;
                 }
             }
         }
@@ -389,7 +397,7 @@ public static class Input
         return Task.CompletedTask;
     }
 
-    // Example consumer that maps keys to handlers
+    // Consumer that maps keys to handlers
     public static async Task RunConsumer(
         ChannelReader<ConsoleKeyInfo> reader,
         CancellationToken token = default
@@ -456,7 +464,14 @@ public static class Input
                     //GameState.MessageWindow.Write($"input sent: {DateTime.UtcNow:mm:ss.fff}");
                 }
                 // Always feed local input into the authoritative pipeline.
-                EnqueueInput(playerId, keyInfo, token, tickNumber);
+                lock (InputStorageLock)
+                {
+                    GameState.InputStorage.TryAdd(
+                        tickNumber,
+                        new Dictionary<int, ConsoleKeyInfo>()
+                    );
+                    GameState.InputStorage[tickNumber][playerId] = keyInfo;
+                }
             }
             catch
             {
