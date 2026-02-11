@@ -406,6 +406,8 @@ public static class Input
         CancellationToken token = default
     )
     {
+        EnsureTickPumpStarted(token);
+
         await foreach (var keyInfo in reader.ReadAllAsync(token))
         {
             if (keyInfo.Key == ConsoleKey.PageUp)
