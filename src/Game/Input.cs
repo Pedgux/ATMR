@@ -141,30 +141,6 @@ public static class Input
         }
     }
 
-    private static async Task ReadReaderAsync(
-        ChannelReader<(int playerId, ConsoleKeyInfo keyInfo, int tickNumber)> reader,
-        CancellationToken token,
-        Dictionary<int, Dictionary<int, ConsoleKeyInfo>> InputStorage
-    )
-    {
-        while (await reader.WaitToReadAsync(token))
-        {
-            // Collect the first event and then coalesce additional inputs
-            // for a short window so the tick sees a snapshot for all players. öö EI
-            while (reader.TryRead(out var first))
-            {
-                GameState.MessageWindow.Write(
-                    $"[green]Added a input: for tick {first.tickNumber} PID: {first.playerId}[/]"
-                );
-                lock (InputStorageLock)
-                {
-                    InputStorage.TryAdd(first.tickNumber, new Dictionary<int, ConsoleKeyInfo>());
-                    InputStorage[first.tickNumber][first.playerId] = first.keyInfo;
-                }
-            }
-        }
-    }
-
     private static async Task<bool> WaitForNextTickInputAsync(
         Dictionary<int, Dictionary<int, ConsoleKeyInfo>> InputStorage,
         CancellationToken token
@@ -273,18 +249,6 @@ public static class Input
                 // Swallow errors until the world/player is initialized.
             }
         }
-    }
-
-    private static void EnqueueInput(
-        int playerId,
-        ConsoleKeyInfo keyInfo,
-        CancellationToken token,
-        int tickNumber
-    )
-    {
-        // Ensure the tick pump is running before writing; write is non-blocking here.
-        EnsureTickPumpStarted(token);
-        InputEvents.Writer.TryWrite((playerId, keyInfo, tickNumber));
     }
 
     public static Task ReceiveInput(string bigMessage)
