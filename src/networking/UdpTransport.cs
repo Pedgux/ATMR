@@ -34,9 +34,22 @@ public static class UdpTransport
         connected = false;
         _udp = new UdpClient(0);
         GameState.MessageWindow.Write($"Local UDP bound: {_udp.Client.LocalEndPoint}");
-        var (ip, port) = await Stun.GetPublicIPAsync();
 
-        GameState.MessageWindow.Write($"[green]Address from STUN: {ip}:{port}[/] ");
+        string ip;
+        ushort port;
+
+        if (GameState.LocalMode)
+        {
+            // Local mode: skip STUN, use localhost with the OS-assigned port
+            ip = "127.0.0.1";
+            port = (ushort)((IPEndPoint)_udp.Client.LocalEndPoint!).Port;
+            GameState.MessageWindow.Write($"[green]Local mode: using {ip}:{port}[/]");
+        }
+        else
+        {
+            (ip, port) = await Stun.GetPublicIPAsync();
+            GameState.MessageWindow.Write($"[green]Address from STUN: {ip}:{port}[/] ");
+        }
 
         await Lobby.Initialize();
 

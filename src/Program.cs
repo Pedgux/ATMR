@@ -19,8 +19,14 @@ public static class Program
         await UdpTransport.Initialize(lobbyCode);
     }
 
-    public static async Task<int> Main()
+    public static async Task<int> Main(string[] args)
     {
+        // Check for --local flag for localhost multiplayer testing
+        if (args.Contains("--local"))
+        {
+            GameState.LocalMode = true;
+        }
+
         string lobbyCode = string.Empty;
 
         var multiplayer = AnsiConsole.Prompt(

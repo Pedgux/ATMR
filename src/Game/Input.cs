@@ -38,6 +38,9 @@ public static class Input
     // Synchronizes access to InputStorage in multiplayer mode to prevent race conditions.
     private static readonly object InputStorageLock = new();
 
+    // Prevents the tick pump and rollback from mutating the world concurrently.
+    private static readonly SemaphoreSlim WorldMutex = new(1, 1);
+
     // Rate-limit singleplayer ticks to smooth out OS keyboard repeat floods.
     private static DateTime LastTickTime = DateTime.MinValue;
     private static DateTime _previousTime = DateTime.UtcNow;
@@ -232,9 +235,17 @@ public static class Input
                 GameState.MessageWindow.Write(
                     $"[yellow]Starting tick {GameState.TickNumber + 1}[/]"
                 );
-                await Tick.CreateAsync(inputs, GameState.Level0, GameState.TickNumber + 1);
-                // Advance the global tick by 1.
-                GameState.TickNumber++;
+                await WorldMutex.WaitAsync(token);
+                try
+                {
+                    await Tick.CreateAsync(inputs, GameState.Level0, GameState.TickNumber + 1);
+                    // Advance the global tick by 1.
+                    GameState.TickNumber++;
+                }
+                finally
+                {
+                    WorldMutex.Release();
+                }
             }
             catch
             {
@@ -368,23 +379,32 @@ public static class Input
 
             if (needsRollback)
             {
-                for (int i = rollbackFrom; i <= rollbackTo; i++)
+                await WorldMutex.WaitAsync();
+                try
                 {
-                    Dictionary<int, ConsoleKeyInfo> rollbackInputs;
-                    lock (InputStorageLock)
+                    GameState.Level0.World = GameState.WorldStorage[rollbackFrom];
+                    for (int i = rollbackFrom; i <= rollbackTo; i++)
                     {
-                        rollbackInputs = new Dictionary<int, ConsoleKeyInfo>(
-                            GameState.InputStorage[i]
-                        );
+                        Dictionary<int, ConsoleKeyInfo> rollbackInputs;
+                        lock (InputStorageLock)
+                        {
+                            rollbackInputs = new Dictionary<int, ConsoleKeyInfo>(
+                                GameState.InputStorage[i]
+                            );
+                        }
+                        if (i == rollbackTo)
+                        {
+                            await Tick.CreateAsync(rollbackInputs, GameState.Level0, i);
+                        }
+                        else
+                        {
+                            await Tick.RollBackCreateAsync(rollbackInputs, GameState.Level0, i);
+                        }
                     }
-                    if (i == rollbackTo)
-                    {
-                        await Tick.CreateAsync(rollbackInputs, GameState.Level0, i);
-                    }
-                    else
-                    {
-                        await Tick.RollBackCreateAsync(rollbackInputs, GameState.Level0, i);
-                    }
+                }
+                finally
+                {
+                    WorldMutex.Release();
                 }
             }
         }

@@ -64,6 +64,7 @@ public static class GameState
     public static Entity Player1 { get; private set; }
     public static Entity Player2 { get; private set; }
     public static string Mode { get; set; } = null!;
+    public static bool LocalMode { get; set; } = false;
 
     public static void InitPlayers()
     {
