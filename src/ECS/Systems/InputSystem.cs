@@ -46,6 +46,6 @@ public static class InputSystem
                 }
             }
         );
-        GameState.MessageWindow.Write($"Processed players: {players}");
+        //GameState.MessageWindow.Write($"Processed players: {players}");
     }
 }
