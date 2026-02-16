@@ -52,6 +52,8 @@ public static class Input
     private static string input1 = ""; // now
     private static string input2 = ""; // yesterday
     private static string input3 = ""; // eldest
+    private static string input4 = "";
+    private static string input5 = "";
 
     // Start the background poller and return the channel reader
     public static ChannelReader<ConsoleKeyInfo> StartPolling(CancellationToken token = default)
@@ -421,13 +423,11 @@ public static class Input
                         // I am Zagos
                         if (i == rollbackTo)
                         {
-                            GameState.MessageWindow.Write($"[red]starting last rollback {i}[/]");
                             await Tick.CreateAsync(rollbackInputs, GameState.Level0, i);
                             GameState.MessageWindow.Write($"[red]last rollback {i}[/]");
                         }
                         else
                         {
-                            GameState.MessageWindow.Write($"[red]starting rollback {i}[/]");
                             await Tick.RollBackCreateAsync(rollbackInputs, GameState.Level0, i);
                             GameState.MessageWindow.Write($"[red]rollback {i}[/]");
                         }
@@ -504,12 +504,14 @@ public static class Input
                         tickNumber = NextLocalTickNumber + 1;
                         NextLocalTickNumber++;
                     }
+                    input5 = input4;
+                    input4 = input3;
                     input3 = input2;
                     input2 = input1;
                     input1 = $"i{playerId}{action}{actionInfo}t{tickNumber}";
 
                     // Mirror local input to peers: "i{playerId}{ConsoleKey}".
-                    var message = $"{input1},{input2},{input3}";
+                    var message = $"{input1},{input2},{input3},{input4},{input5}";
 
                     await UdpTransport.SendMessage(message);
                     //GameState.MessageWindow.Write($"input sent: {DateTime.UtcNow:mm:ss.fff}");
