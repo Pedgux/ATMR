@@ -12,17 +12,16 @@ public static class InputSystem
     public static async Task Run(World world, Dictionary<int, ConsoleKeyInfo> inputs)
     {
         string players = "";
-        var query = new QueryDescription().WithAll<Player>();
+        var query = new QueryDescription().WithAll<Player, Velocity>();
         world.Query(
             in query,
-            (Entity entity, ref Player player) =>
+            (Entity entity, ref Player player, ref Velocity velocity) =>
             {
                 foreach (var kvp in inputs)
                 {
                     if (player.ID == kvp.Key)
                     {
                         players += player.ID + ", ";
-                        ref var velocity = ref world.Get<Velocity>(entity);
 
                         (int dx, int dy) = InputHelper.GetActionInfoWithKey(kvp.Value.Key) switch
                         {
