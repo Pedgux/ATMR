@@ -231,10 +231,12 @@ public static class Input
                         GameState.InputStorage[GameState.TickNumber + 1]
                     );
                 }
+                /*
                 // Advance the game by one tick with the snapshot of inputs.
                 GameState.MessageWindow.Write(
                     $"[yellow]Starting tick {GameState.TickNumber + 1}[/]"
                 );
+                */
                 await WorldMutex.WaitAsync(token);
                 try
                 {
@@ -263,7 +265,7 @@ public static class Input
         //  - "idown" : scroll message window down
         // General format for keystrokes: i{playerId}{action}{actionInfo}t{tickNumber}
         //   e.g., "i2M6t42" means player 2 performed action M with info 6 on tick 42.
-        GameState.MessageWindow.Write($"[blue]Received: {bigMessage}[/]");
+        //GameState.MessageWindow.Write($"[blue]Received: {bigMessage}[/]");
 
         string[] messages = bigMessage.Split(',');
 
@@ -273,17 +275,17 @@ public static class Input
             if (message == "iup")
             {
                 GameState.MessageWindow.OffsetUp();
-                return;
+                continue;
             }
 
             if (message == "idown")
             {
                 GameState.MessageWindow.OffsetDown();
-                return;
+                continue;
             }
 
             if (string.IsNullOrWhiteSpace(message) || message[0] != 'i')
-                return;
+                continue;
 
             // Expect: i{playerId}{action}{actionInfo}t{tickNumber}
             // Parse player ID: extract digits after 'i'
@@ -295,12 +297,12 @@ public static class Input
 
             if (index == 1 || index >= message.Length)
             {
-                return;
+                continue;
             }
 
             if (!int.TryParse(message.AsSpan(1, index - 1), out int playerId))
             {
-                return;
+                continue;
             }
 
             // Parse action: single character after player ID
@@ -316,7 +318,7 @@ public static class Input
 
             if (index == actionInfoStart || index >= message.Length)
             {
-                return;
+                continue;
             }
 
             string actionInfo = message.Substring(actionInfoStart, index - actionInfoStart);
@@ -325,12 +327,12 @@ public static class Input
             // Parse tick number (remaining part)
             if (index >= message.Length)
             {
-                return;
+                continue;
             }
 
             if (!int.TryParse(message.AsSpan(index), out int tickNumber))
             {
-                return;
+                continue;
             }
 
             // For now, map actionInfo to a ConsoleKey for EnqueueInput
@@ -339,7 +341,7 @@ public static class Input
             ConsoleKey mappedKey = InputHelper.ActionInfoToConsoleKey(actionInfo);
             if (mappedKey == ConsoleKey.NoName)
             {
-                return;
+                continue;
             }
 
             var keyInfo = new ConsoleKeyInfo(
@@ -363,9 +365,11 @@ public static class Input
                 {
                     //EnqueueInput(playerId, keyInfo, CancellationToken.None, tickNumber);
                     GameState.InputStorage[tickNumber][playerId] = keyInfo;
+                    /*
                     GameState.MessageWindow.Write(
                         $"[green]Added a input: for tick {tickNumber} PID: {playerId}[/]"
                     );
+                    */
 
                     // do we need to rollback?
                     if (tickNumber <= GameState.TickNumber)
@@ -382,6 +386,9 @@ public static class Input
                 await WorldMutex.WaitAsync();
                 try
                 {
+                    GameState.MessageWindow.Write(
+                        $"[red]rolling back from {rollbackFrom} to {rollbackTo}[/]"
+                    );
                     GameState.Level0.World = GameState.WorldStorage[rollbackFrom];
                     for (int i = rollbackFrom; i <= rollbackTo; i++)
                     {
@@ -401,6 +408,7 @@ public static class Input
                             await Tick.RollBackCreateAsync(rollbackInputs, GameState.Level0, i);
                         }
                     }
+                    GameState.MessageWindow.Write("[red]rolled back[/]");
                 }
                 finally
                 {
