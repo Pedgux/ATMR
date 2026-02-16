@@ -47,13 +47,9 @@ public class Tick
         }
         GameState.WorldStorage[tickNumber] = GameState.Level0.GetSnapshot();
 
-        WorldChecksum.LogTick(level.World, tickNumber, "pre ");
-
         var tick = new Tick(tickNumber);
         await InputSystem.Run(level.World, input);
         await MovementSystem.Run(level.World);
-
-        WorldChecksum.LogTick(level.World, tickNumber, "post");
 
         await RenderSystem.Run(level.World);
 
@@ -72,13 +68,10 @@ public class Tick
         }
         GameState.WorldStorage[tickNumber] = GameState.Level0.GetSnapshot();
 
-        WorldChecksum.LogTick(level.World, tickNumber, "rb-pre ");
-
         var tick = new Tick(tickNumber);
         await InputSystem.Run(level.World, input);
         await MovementSystem.Run(level.World);
 
-        WorldChecksum.LogTick(level.World, tickNumber, "rb-post");
         //await RenderSystem.Run(level.World);
 
         return tick;
