@@ -404,14 +404,17 @@ public static class Input
                                 GameState.InputStorage[i]
                             );
                         }
+                        GameState.MessageWindow.Write("[red]got rollbackInputs[/]");
                         // I am Zagos
                         if (i == rollbackTo)
                         {
                             await Tick.CreateAsync(rollbackInputs, GameState.Level0, i);
+                            GameState.MessageWindow.Write($"[red]rollbacked {i}[/]");
                         }
                         else
                         {
                             await Tick.RollBackCreateAsync(rollbackInputs, GameState.Level0, i);
+                            GameState.MessageWindow.Write($"[red]last rollback {i}[/]");
                         }
                     }
                     GameState.MessageWindow.Write("[red]rolled back[/]");
