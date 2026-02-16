@@ -372,7 +372,7 @@ public static class Input
                     */
 
                     // do we need to rollback?
-                    if (tickNumber <= GameState.TickNumber)
+                    if (tickNumber < GameState.TickNumber)
                     {
                         needsRollback = true;
                         rollbackFrom = tickNumber;
