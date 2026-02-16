@@ -52,8 +52,8 @@ public static class Input
     private static string input1 = ""; // now
     private static string input2 = ""; // yesterday
     private static string input3 = ""; // eldest
-    private static string input4 = "";
-    private static string input5 = "";
+    private static string input4 = ""; // chap
+    private static string input5 = ""; // gran
 
     // Start the background poller and return the channel reader
     public static ChannelReader<ConsoleKeyInfo> StartPolling(CancellationToken token = default)
