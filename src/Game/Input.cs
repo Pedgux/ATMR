@@ -357,7 +357,6 @@ public static class Input
             // only enque inputs that have not been yet done? idk
             bool needsRollback = false;
             int rollbackFrom = 0;
-            int rollbackTo = 0;
 
             lock (InputStorageLock)
             {
@@ -373,11 +372,10 @@ public static class Input
                     */
 
                     // do we need to rollback?
-                    if (tickNumber < GameState.TickNumber)
+                    if (tickNumber <= GameState.TickNumber)
                     {
                         needsRollback = true;
                         rollbackFrom = tickNumber;
-                        rollbackTo = GameState.TickNumber;
                     }
                 }
             }
@@ -387,9 +385,23 @@ public static class Input
                 await WorldMutex.WaitAsync();
                 try
                 {
+                    // Re-read TickNumber under WorldMutex — the tick pump may
+                    // have advanced since we checked outside the lock (Bug 4/5).
+                    int rollbackTo = GameState.TickNumber;
+
                     GameState.MessageWindow.Write(
                         $"[red]rolling back from {rollbackFrom} to {rollbackTo}[/]"
                     );
+
+                    // Guard: snapshot for rollbackFrom must exist.
+                    if (!GameState.WorldStorage.ContainsKey(rollbackFrom))
+                    {
+                        GameState.MessageWindow.Write(
+                            $"[red]No snapshot for tick {rollbackFrom}, skipping rollback[/]"
+                        );
+                        continue;
+                    }
+
                     var oldWorld = GameState.Level0.World;
                     GameState.Level0.World = GameState.WorldStorage[rollbackFrom];
                     World.Destroy(oldWorld);
