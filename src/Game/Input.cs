@@ -3,6 +3,7 @@ namespace ATMR.Input;
 using System;
 using System.Collections.Generic;
 using System.Threading.Channels;
+using Arch.Core;
 using ATMR.Game;
 using ATMR.Helpers;
 using ATMR.Networking;
@@ -389,7 +390,11 @@ public static class Input
                     GameState.MessageWindow.Write(
                         $"[red]rolling back from {rollbackFrom} to {rollbackTo}[/]"
                     );
+                    var oldWorld = GameState.Level0.World;
                     GameState.Level0.World = GameState.WorldStorage[rollbackFrom];
+                    World.Destroy(oldWorld);
+                    // Remove the entry so the replay loop won't destroy the now-live world
+                    GameState.WorldStorage.Remove(rollbackFrom);
                     for (int i = rollbackFrom; i <= rollbackTo; i++)
                     {
                         Dictionary<int, ConsoleKeyInfo> rollbackInputs;

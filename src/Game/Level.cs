@@ -1,6 +1,9 @@
 namespace ATMR.Game;
 
+using Arch;
+using Arch.Buffer;
 using Arch.Core;
+using Arch.LowLevel;
 using ATMR.Components;
 
 /// <summary>
@@ -19,6 +22,6 @@ public class Level
 
     public World GetSnapshot()
     {
-        return World;
+        return World.Copy();
     }
 }

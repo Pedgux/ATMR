@@ -1,5 +1,6 @@
 namespace ATMR.Tick;
 
+using Arch.Core;
 using ATMR.Game;
 using ATMR.Systems;
 
@@ -39,6 +40,10 @@ public class Tick
         int tickNumber
     )
     {
+        if (GameState.WorldStorage.TryGetValue(tickNumber, out var oldSnapshot))
+        {
+            World.Destroy(oldSnapshot);
+        }
         GameState.WorldStorage[tickNumber] = GameState.Level0.GetSnapshot();
 
         var tick = new Tick(tickNumber);
@@ -55,6 +60,10 @@ public class Tick
         int tickNumber
     )
     {
+        if (GameState.WorldStorage.TryGetValue(tickNumber, out var oldSnapshot))
+        {
+            World.Destroy(oldSnapshot);
+        }
         GameState.WorldStorage[tickNumber] = GameState.Level0.GetSnapshot();
 
         var tick = new Tick(tickNumber);
