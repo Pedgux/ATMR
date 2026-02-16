@@ -149,9 +149,22 @@ public static class Lobby
         var json = JsonSerializer.Serialize(payload);
         var content = new StringContent(json, Encoding.UTF8, "application/json");
         GameState.MessageWindow.Write($"[green]Trying to create lobby...[/]");
-        var response = await client.PutAsync(url, content);
-        response.EnsureSuccessStatusCode(); //pls do not explode
-        GameState.MessageWindow.Write($"[green]Lobby created![/]");
+        try
+        {
+            using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
+            var response = await client.PutAsync(url, content, cts.Token);
+            response.EnsureSuccessStatusCode();
+            GameState.MessageWindow.Write($"[green]Lobby created![/]");
+        }
+        catch (TaskCanceledException)
+        {
+            GameState.MessageWindow.Write($"[red]Lobby creation timed out after 10s[/]");
+            GameState.MessageWindow.Write($"[red]URL: {url}[/]");
+        }
+        catch (Exception ex)
+        {
+            GameState.MessageWindow.Write($"[red]Lobby creation failed: {ex.Message}[/]");
+        }
     }
 
     public static async Task<string?> GetOtherPlayerBlob(string lobbyCode, string notThisOne)
