@@ -52,8 +52,14 @@ public static class Input
     private static string input1 = ""; // now
     private static string input2 = ""; // yesterday
     private static string input3 = ""; // eldest
+
     private static string input4 = ""; // chap
     private static string input5 = ""; // gran
+    private static string input6 = "";
+    private static string input7 = "";
+    private static string input8 = "";
+    private static string input9 = "";
+    private static string input10 = "";
 
     // Start the background poller and return the channel reader
     public static ChannelReader<ConsoleKeyInfo> StartPolling(CancellationToken token = default)
@@ -504,6 +510,11 @@ public static class Input
                         tickNumber = NextLocalTickNumber + 1;
                         NextLocalTickNumber++;
                     }
+                    input10 = input9;
+                    input9 = input8;
+                    input8 = input7;
+                    input7 = input6;
+                    input6 = input5;
                     input5 = input4;
                     input4 = input3;
                     input3 = input2;
@@ -511,7 +522,8 @@ public static class Input
                     input1 = $"i{playerId}{action}{actionInfo}t{tickNumber}";
 
                     // Mirror local input to peers: "i{playerId}{ConsoleKey}".
-                    var message = $"{input1},{input2},{input3},{input4},{input5}";
+                    var message =
+                        $"{input1},{input2},{input3},{input4},{input5},{input6},{input7},{input8},{input9},{input10}";
 
                     await UdpTransport.SendMessage(message);
                     //GameState.MessageWindow.Write($"input sent: {DateTime.UtcNow:mm:ss.fff}");
