@@ -405,6 +405,7 @@ public static class Input
                             );
                         }
                         GameState.MessageWindow.Write("[red]got rollbackInputs[/]");
+                        GameState.MessageWindow.Write($"[red]i: {i} rollbackTo: {rollbackTo}[/]");
                         // I am Zagos
                         if (i == rollbackTo)
                         {
