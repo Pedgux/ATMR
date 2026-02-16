@@ -133,24 +133,12 @@ public static class UdpTransport
 
                 if (message == "poke")
                 {
-                    // Update peer endpoint to the actual source address.
-                    // The STUN-reported port in the lobby blob may have expired
-                    // (especially on mobile hotspots with short NAT mapping lifetimes),
-                    // so use the real address the poke arrived from.
-                    if (!result.RemoteEndPoint.Equals(peerEndpoint))
-                    {
-                        GameState.MessageWindow.Write(
-                            $"[yellow]Peer endpoint updated: {peerEndpoint} → {result.RemoteEndPoint}[/]"
-                        );
-                        peerEndpoint = result.RemoteEndPoint;
-                    }
-
                     // check if we get an connection, and start keepalive and ping calculation
                     if (!connected)
                     {
                         GameState.MessageWindow.Write("[green]Got a connection![/]");
                         connected = true;
-                        await KeepAliveLoop(peerEndpoint);
+                        await KeepAliveLoop(peer);
                         await PingLoop();
                     }
                     continue;
