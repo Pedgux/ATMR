@@ -232,23 +232,18 @@ public static class Input
 
             try
             {
-                var inputs = new Dictionary<int, ConsoleKeyInfo>();
-
-                lock (InputStorageLock)
-                {
-                    inputs = new Dictionary<int, ConsoleKeyInfo>(
-                        GameState.InputStorage[GameState.TickNumber + 1]
-                    );
-                }
-                /*
-                // Advance the game by one tick with the snapshot of inputs.
-                GameState.MessageWindow.Write(
-                    $"[yellow]Starting tick {GameState.TickNumber + 1}[/]"
-                );
-                */
                 await WorldMutex.WaitAsync(token);
                 try
                 {
+                    // Read inputs inside WorldMutex so that
+                    // copy-inputs + execute + advance-tick is atomic.
+                    var inputs = new Dictionary<int, ConsoleKeyInfo>();
+                    lock (InputStorageLock)
+                    {
+                        inputs = new Dictionary<int, ConsoleKeyInfo>(
+                            GameState.InputStorage[GameState.TickNumber + 1]
+                        );
+                    }
                     await Tick.CreateAsync(inputs, GameState.Level0, GameState.TickNumber + 1);
                     // Advance the global tick by 1.
                     GameState.TickNumber++;
@@ -529,6 +524,8 @@ public static class Input
                     //GameState.MessageWindow.Write($"input sent: {DateTime.UtcNow:mm:ss.fff}");
                 }
                 // Always feed local input into the authoritative pipeline.
+                bool needsLocalRollback = false;
+                int localRollbackFrom = 0;
                 lock (InputStorageLock)
                 {
                     GameState.InputStorage.TryAdd(
@@ -539,6 +536,63 @@ public static class Input
                     GameState.MessageWindow.Write(
                         $"[green]Added a input: for tick {tickNumber} PID: {playerId}[/]"
                     );
+                    // If the tick pump already executed this tick, we need to rollback.
+                    if (tickNumber <= GameState.TickNumber)
+                    {
+                        needsLocalRollback = true;
+                        localRollbackFrom = tickNumber;
+                    }
+                }
+                if (needsLocalRollback)
+                {
+                    await WorldMutex.WaitAsync();
+                    try
+                    {
+                        int rollbackTo = GameState.TickNumber;
+                        GameState.MessageWindow.Write(
+                            $"[red]Local input rollback from {localRollbackFrom} to {rollbackTo}[/]"
+                        );
+                        if (!GameState.WorldStorage.ContainsKey(localRollbackFrom))
+                        {
+                            GameState.MessageWindow.Write(
+                                $"[red]No snapshot for tick {localRollbackFrom}, skipping rollback[/]"
+                            );
+                        }
+                        else
+                        {
+                            var oldWorld = GameState.Level0.World;
+                            GameState.Level0.World = GameState.WorldStorage[localRollbackFrom];
+                            World.Destroy(oldWorld);
+                            GameState.WorldStorage.Remove(localRollbackFrom);
+                            for (int i = localRollbackFrom; i <= rollbackTo; i++)
+                            {
+                                Dictionary<int, ConsoleKeyInfo> rollbackInputs;
+                                lock (InputStorageLock)
+                                {
+                                    rollbackInputs = new Dictionary<int, ConsoleKeyInfo>(
+                                        GameState.InputStorage[i]
+                                    );
+                                }
+                                if (i == rollbackTo)
+                                {
+                                    await Tick.CreateAsync(rollbackInputs, GameState.Level0, i);
+                                }
+                                else
+                                {
+                                    await Tick.RollBackCreateAsync(
+                                        rollbackInputs,
+                                        GameState.Level0,
+                                        i
+                                    );
+                                }
+                            }
+                            GameState.MessageWindow.Write("[red]local rollback done[/]");
+                        }
+                    }
+                    finally
+                    {
+                        WorldMutex.Release();
+                    }
                 }
             }
             catch
