@@ -208,7 +208,8 @@ public static class Input
                 }
                 if (hasRemote)
                     break;
-                await Task.Delay(1, token);
+                // Thread.Yield gives up the timeslice without the ~15ms floor of Task.Delay(1).
+                Thread.Yield();
             }
 
             try
@@ -243,20 +244,19 @@ public static class Input
 
     public static async Task ReceiveInput(string bigMessage)
     {
-        // receive
         // Handles inputs arriving over the network as small text messages.
-        // Special cases:
-        //  - "iup"   : scroll message window up
-        //  - "idown" : scroll message window down
         // General format for keystrokes: i{playerId}{action}{actionInfo}t{tickNumber}
         //   e.g., "i2M6t42" means player 2 performed action M with info 6 on tick 42.
-        //GameState.MessageWindow.Write($"[blue]Received: {bigMessage}[/]");
 
         string[] messages = bigMessage.Split(',');
 
+        // Phase 1: Store ALL new inputs from this packet, track earliest tick
+        // that needs rollback. This avoids cascading rollbacks for each message.
+        int earliestRollback = int.MaxValue;
+        bool anyNewInput = false;
+
         foreach (var message in messages)
         {
-            // get 1 message out of the 3
             if (message == "iup")
             {
                 GameState.MessageWindow.OffsetUp();
@@ -320,9 +320,7 @@ public static class Input
                 continue;
             }
 
-            // For now, map actionInfo to a ConsoleKey for EnqueueInput
-            // actionInfo contains direction numbers like "6", "4", "8", "2", etc.
-            // Map these back to movement keys or handle appropriately
+            // Map actionInfo back to a ConsoleKey
             ConsoleKey mappedKey = InputHelper.ActionInfoToConsoleKey(actionInfo);
             if (mappedKey == ConsoleKey.NoName)
             {
@@ -337,89 +335,71 @@ public static class Input
                 false
             );
 
-            // mega check here to have em put to like tick storage idk
-            // only enque inputs that have not been yet done? idk
-            bool needsRollback = false;
-            int rollbackFrom = 0;
-
+            // Store the input — track whether it's new and needs rollback.
             lock (InputStorageLock)
             {
                 GameState.InputStorage.TryAdd(tickNumber, new Dictionary<int, ConsoleKeyInfo>());
                 if (!GameState.InputStorage[tickNumber].ContainsKey(playerId))
                 {
-                    //EnqueueInput(playerId, keyInfo, CancellationToken.None, tickNumber);
                     GameState.InputStorage[tickNumber][playerId] = keyInfo;
-                    /*
-                    GameState.MessageWindow.Write(
-                        $"[green]Added a input: for tick {tickNumber} PID: {playerId}[/]"
-                    );
-                    */
+                    anyNewInput = true;
 
-                    // do we need to rollback?
-                    if (tickNumber <= GameState.TickNumber)
+                    if (tickNumber <= GameState.TickNumber && tickNumber < earliestRollback)
                     {
-                        needsRollback = true;
-                        rollbackFrom = tickNumber;
+                        earliestRollback = tickNumber;
                     }
                 }
             }
+        }
 
-            if (needsRollback)
+        // Phase 2: Single rollback from the earliest new past-tick input.
+        if (anyNewInput && earliestRollback != int.MaxValue)
+        {
+            await WorldMutex.WaitAsync();
+            try
             {
-                await WorldMutex.WaitAsync();
-                try
-                {
-                    // Re-read TickNumber under WorldMutex — the tick pump may
-                    // have advanced since we checked outside the lock (Bug 4/5).
-                    int rollbackTo = GameState.TickNumber;
+                int rollbackTo = GameState.TickNumber;
 
+                GameState.MessageWindow.Write(
+                    $"[red]rolling back from {earliestRollback} to {rollbackTo}[/]"
+                );
+
+                if (!GameState.WorldStorage.ContainsKey(earliestRollback))
+                {
                     GameState.MessageWindow.Write(
-                        $"[red]rolling back from {rollbackFrom} to {rollbackTo}[/]"
+                        $"[red]No snapshot for tick {earliestRollback}, skipping rollback[/]"
                     );
-
-                    // Guard: snapshot for rollbackFrom must exist.
-                    if (!GameState.WorldStorage.ContainsKey(rollbackFrom))
-                    {
-                        GameState.MessageWindow.Write(
-                            $"[red]No snapshot for tick {rollbackFrom}, skipping rollback[/]"
-                        );
-                        continue;
-                    }
-
-                    var oldWorld = GameState.Level0.World;
-                    GameState.Level0.World = GameState.WorldStorage[rollbackFrom];
-                    World.Destroy(oldWorld);
-                    // Remove the entry so the replay loop won't destroy the now-live world
-                    GameState.WorldStorage.Remove(rollbackFrom);
-                    for (int i = rollbackFrom; i <= rollbackTo; i++)
-                    {
-                        Dictionary<int, ConsoleKeyInfo> rollbackInputs;
-                        lock (InputStorageLock)
-                        {
-                            rollbackInputs = new Dictionary<int, ConsoleKeyInfo>(
-                                GameState.InputStorage[i]
-                            );
-                        }
-                        GameState.MessageWindow.Write("[red]got rollbackInputs[/]");
-                        GameState.MessageWindow.Write($"[red]i: {i} rollbackTo: {rollbackTo}[/]");
-                        // I am Zagos
-                        if (i == rollbackTo)
-                        {
-                            await Tick.CreateAsync(rollbackInputs, GameState.Level0, i);
-                            GameState.MessageWindow.Write($"[red]last rollback {i}[/]");
-                        }
-                        else
-                        {
-                            await Tick.RollBackCreateAsync(rollbackInputs, GameState.Level0, i);
-                            GameState.MessageWindow.Write($"[red]rollback {i}[/]");
-                        }
-                    }
-                    GameState.MessageWindow.Write("[red]rolled back[/]");
+                    return;
                 }
-                finally
+
+                var oldWorld = GameState.Level0.World;
+                GameState.Level0.World = GameState.WorldStorage[earliestRollback];
+                World.Destroy(oldWorld);
+                GameState.WorldStorage.Remove(earliestRollback);
+
+                for (int i = earliestRollback; i <= rollbackTo; i++)
                 {
-                    WorldMutex.Release();
+                    Dictionary<int, ConsoleKeyInfo> rollbackInputs;
+                    lock (InputStorageLock)
+                    {
+                        rollbackInputs = new Dictionary<int, ConsoleKeyInfo>(
+                            GameState.InputStorage[i]
+                        );
+                    }
+                    if (i == rollbackTo)
+                    {
+                        await Tick.CreateAsync(rollbackInputs, GameState.Level0, i);
+                    }
+                    else
+                    {
+                        await Tick.RollBackCreateAsync(rollbackInputs, GameState.Level0, i);
+                    }
                 }
+                GameState.MessageWindow.Write("[red]rolled back[/]");
+            }
+            finally
+            {
+                WorldMutex.Release();
             }
         }
     }
