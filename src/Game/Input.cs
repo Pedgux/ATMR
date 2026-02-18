@@ -37,7 +37,7 @@ public static class Input
     private static readonly object TickPumpLock = new();
 
     // Synchronizes access to InputStorage in multiplayer mode to prevent race conditions.
-    private static readonly object InputStorageLock = new();
+    private static readonly object InputLock = new();
 
     // Prevents the tick pump and rollback from mutating the world concurrently.
     private static readonly SemaphoreSlim WorldMutex = new(1, 1);
@@ -45,7 +45,7 @@ public static class Input
     // Tracks when local input was first stored for each tick number.
     // The tick pump waits TickDelayMs after this timestamp before executing,
     // giving the remote player's input time to arrive.
-    // Accessed under InputStorageLock.
+    // Accessed under InputLock.
     private static readonly Dictionary<int, DateTime> LocalInputTime = new();
 
     // Rate-limit singleplayer ticks to smooth out OS keyboard repeat floods.
@@ -166,7 +166,7 @@ public static class Input
     {
         while (!token.IsCancellationRequested)
         {
-            lock (InputStorageLock)
+            lock (InputLock)
             {
                 if (InputStorage.ContainsKey(GameState.TickNumber + 1))
                 {
@@ -191,7 +191,7 @@ public static class Input
             // Wait TickDelayMs from when this tick's local input was stored.
             // If only remote input exists (local player idle), execute immediately.
             DateTime deadline;
-            lock (InputStorageLock)
+            lock (InputLock)
             {
                 deadline = LocalInputTime.TryGetValue(nextTick, out var t)
                     ? t.AddMilliseconds(TickDelayMs)
@@ -201,7 +201,7 @@ public static class Input
             while (DateTime.UtcNow < deadline)
             {
                 bool hasRemote;
-                lock (InputStorageLock)
+                lock (InputLock)
                 {
                     var tickInputs = GameState.InputStorage.GetValueOrDefault(nextTick);
                     hasRemote = tickInputs != null && tickInputs.ContainsKey(remotePlayer);
@@ -220,7 +220,7 @@ public static class Input
                     // copy-inputs + execute + advance-tick is atomic.
                     int executingTick = GameState.TickNumber + 1;
                     Dictionary<int, ConsoleKeyInfo> inputs;
-                    lock (InputStorageLock)
+                    lock (InputLock)
                     {
                         inputs = new Dictionary<int, ConsoleKeyInfo>(
                             GameState.InputStorage[executingTick]
@@ -237,7 +237,7 @@ public static class Input
                     // rollback. Re-check now and replay if inputs changed.
                     bool needsReplay;
                     Dictionary<int, ConsoleKeyInfo> updatedInputs;
-                    lock (InputStorageLock)
+                    lock (InputLock)
                     {
                         var current = GameState.InputStorage[executingTick];
                         needsReplay = current.Count > inputs.Count;
@@ -363,7 +363,7 @@ public static class Input
             );
 
             // Store the input — track whether it's new and needs rollback.
-            lock (InputStorageLock)
+            lock (InputLock)
             {
                 GameState.InputStorage.TryAdd(tickNumber, new Dictionary<int, ConsoleKeyInfo>());
                 if (!GameState.InputStorage[tickNumber].ContainsKey(playerId))
@@ -407,7 +407,7 @@ public static class Input
                 for (int i = earliestRollback; i <= rollbackTo; i++)
                 {
                     Dictionary<int, ConsoleKeyInfo> rollbackInputs;
-                    lock (InputStorageLock)
+                    lock (InputLock)
                     {
                         rollbackInputs = new Dictionary<int, ConsoleKeyInfo>(
                             GameState.InputStorage[i]
@@ -514,7 +514,7 @@ public static class Input
                 // Always feed local input into the authoritative pipeline.
                 bool needsLocalRollback = false;
                 int localRollbackFrom = 0;
-                lock (InputStorageLock)
+                lock (InputLock)
                 {
                     GameState.InputStorage.TryAdd(
                         tickNumber,
@@ -558,7 +558,7 @@ public static class Input
                             for (int i = localRollbackFrom; i <= rollbackTo; i++)
                             {
                                 Dictionary<int, ConsoleKeyInfo> rollbackInputs;
-                                lock (InputStorageLock)
+                                lock (InputLock)
                                 {
                                     rollbackInputs = new Dictionary<int, ConsoleKeyInfo>(
                                         GameState.InputStorage[i]
