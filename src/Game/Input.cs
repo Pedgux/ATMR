@@ -13,7 +13,7 @@ public static class Input
 {
     // Batches keystrokes for a short window so multiple players' inputs
     // can be processed together in a single game tick for multiplayer.
-    private const int TickDelayMs = 50;
+    private const int TickDelayMs = 1;
     private static TimeSpan TickWaitWindow = TimeSpan.FromMilliseconds(TickDelayMs);
 
     // Central, thread-safe pipeline of input events coming from local or network sources.
