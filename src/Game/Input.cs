@@ -218,16 +218,44 @@ public static class Input
                 {
                     // Read inputs inside WorldMutex so that
                     // copy-inputs + execute + advance-tick is atomic.
-                    var inputs = new Dictionary<int, ConsoleKeyInfo>();
+                    int executingTick = GameState.TickNumber + 1;
+                    Dictionary<int, ConsoleKeyInfo> inputs;
                     lock (InputStorageLock)
                     {
                         inputs = new Dictionary<int, ConsoleKeyInfo>(
-                            GameState.InputStorage[GameState.TickNumber + 1]
+                            GameState.InputStorage[executingTick]
                         );
                     }
-                    await Tick.CreateAsync(inputs, GameState.Level0, GameState.TickNumber + 1);
-                    // Advance the global tick by 1.
-                    GameState.TickNumber++;
+                    await Tick.CreateAsync(inputs, GameState.Level0, executingTick);
+                    GameState.TickNumber = executingTick;
+
+                    // Guard against inputs that arrived during execution.
+                    // Between reading InputStorage and completing execution,
+                    // ReceiveInput or RunConsumer may have stored new entries
+                    // for this tick. Because TickNumber hadn't been incremented
+                    // yet, those code paths saw it as a future tick and skipped
+                    // rollback. Re-check now and replay if inputs changed.
+                    bool needsReplay;
+                    Dictionary<int, ConsoleKeyInfo> updatedInputs;
+                    lock (InputStorageLock)
+                    {
+                        var current = GameState.InputStorage[executingTick];
+                        needsReplay = current.Count > inputs.Count;
+                        updatedInputs = needsReplay
+                            ? new Dictionary<int, ConsoleKeyInfo>(current)
+                            : inputs;
+                    }
+                    if (needsReplay && GameState.WorldStorage.ContainsKey(executingTick))
+                    {
+                        GameState.MessageWindow.Write(
+                            $"[yellow]Re-exec tick {executingTick} (late input)[/]"
+                        );
+                        var oldWorld = GameState.Level0.World;
+                        GameState.Level0.World = GameState.WorldStorage[executingTick];
+                        World.Destroy(oldWorld);
+                        GameState.WorldStorage.Remove(executingTick);
+                        await Tick.CreateAsync(updatedInputs, GameState.Level0, executingTick);
+                    }
                 }
                 finally
                 {
