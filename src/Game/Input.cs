@@ -42,6 +42,12 @@ public static class Input
     // Prevents the tick pump and rollback from mutating the world concurrently.
     private static readonly SemaphoreSlim WorldMutex = new(1, 1);
 
+    // Tracks when local input was first stored for each tick number.
+    // The tick pump waits TickDelayMs after this timestamp before executing,
+    // giving the remote player's input time to arrive.
+    // Accessed under InputStorageLock.
+    private static readonly Dictionary<int, DateTime> LocalInputTime = new();
+
     // Rate-limit singleplayer ticks to smooth out OS keyboard repeat floods.
     private static DateTime LastTickTime = DateTime.MinValue;
     private static DateTime _previousTime = DateTime.UtcNow;
@@ -177,28 +183,22 @@ public static class Input
 
     private static async Task TickPumpMultiplayer(CancellationToken token)
     {
-        // muisto hyvistä ajoista
-        //_ = Task.Run(() => ReadReaderAsync(reader, token, GameState.InputStorage), token);
-
         while (await WaitForNextTickInputAsync(GameState.InputStorage, token))
         {
-            // Soft wait: give the remote input a brief grace period to arrive,
-            // reducing unnecessary rollbacks. Not lockstep — always proceeds
-            // after the timeout even if the remote input hasn't arrived.
             int nextTick = GameState.TickNumber + 1;
             int remotePlayer = 3 - Lobby.PlayerNumber;
 
-            // Compute grace period: half median RTT, clamped 3–25ms.
-            int graceMs = 10; // default when no ping data
-            if (GameState.PingList.Count > 0)
+            // Wait TickDelayMs from when this tick's local input was stored.
+            // If only remote input exists (local player idle), execute immediately.
+            DateTime deadline;
+            lock (InputStorageLock)
             {
-                var sorted = GameState.PingList.OrderBy(p => p).ToList();
-                long medianRtt = sorted[sorted.Count / 2];
-                graceMs = Math.Clamp((int)(medianRtt / 2), 3, 25);
+                deadline = LocalInputTime.TryGetValue(nextTick, out var t)
+                    ? t.AddMilliseconds(TickDelayMs)
+                    : DateTime.MinValue; // no local input → no delay
             }
 
-            var graceDeadline = DateTime.UtcNow.AddMilliseconds(graceMs);
-            while (DateTime.UtcNow < graceDeadline)
+            while (DateTime.UtcNow < deadline)
             {
                 bool hasRemote;
                 lock (InputStorageLock)
@@ -208,7 +208,6 @@ public static class Input
                 }
                 if (hasRemote)
                     break;
-                // Thread.Yield gives up the timeslice without the ~15ms floor of Task.Delay(1).
                 Thread.Yield();
             }
 
@@ -494,6 +493,9 @@ public static class Input
                         new Dictionary<int, ConsoleKeyInfo>()
                     );
                     GameState.InputStorage[tickNumber][playerId] = keyInfo;
+                    // Record when local input was first stored for this tick.
+                    if (!LocalInputTime.ContainsKey(tickNumber))
+                        LocalInputTime[tickNumber] = DateTime.UtcNow;
                     GameState.MessageWindow.Write(
                         $"[green]Added a input: for tick {tickNumber} PID: {playerId}[/]"
                     );
