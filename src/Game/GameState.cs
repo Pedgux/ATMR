@@ -75,12 +75,12 @@ public static class GameState
         {
             if (Lobby.PlayerNumber != 0 || Mode == "singleplayer")
             {
-                for (int i = 1; i < Lobby.PlayerAmount; i++)
+                for (int i = 0; i < Lobby.PlayerAmount; i++)
                 {
                     Entity player = Level0.World.Create(
                         new Position(4, 8),
                         new Glyph('@', "[white]"),
-                        new Player(i),
+                        new Player(i + 1),
                         new Velocity(0, 0)
                     );
                     Players.Add(player);
