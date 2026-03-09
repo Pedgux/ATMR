@@ -25,9 +25,41 @@ public static class Stun
         await UdpTransport.Udp.SendAsync(request, request.Length, server);
 
         var response = await UdpTransport.Udp.ReceiveAsync();
+        UdpTransport.Udp.Client.ReceiveTimeout = 0;
         var endpoint = Parse(response.Buffer);
 
         return (endpoint.Address.ToString(), (ushort)endpoint.Port);
+    }
+
+    /// <summary>
+    /// Sends periodic STUN requests to keep the NAT mapping alive.
+    /// Call this while waiting in the lobby, cancel when punching starts.
+    /// </summary>
+    public static async Task KeepNatAlive(
+        CancellationToken token,
+        string host = "stun.l.google.com",
+        int port = 19302
+    )
+    {
+        var addrs = await Dns.GetHostAddressesAsync(host);
+        var serverAddress =
+            addrs.FirstOrDefault(a => a.AddressFamily == AddressFamily.InterNetwork) ?? addrs[0];
+        var server = new IPEndPoint(serverAddress, port);
+
+        while (!token.IsCancellationRequested)
+        {
+            try
+            {
+                await Task.Delay(15000, token);
+                byte[] request = BuildRequest();
+                await UdpTransport.Udp.SendAsync(request, request.Length, server);
+            }
+            catch (OperationCanceledException)
+            {
+                break;
+            }
+            catch { }
+        }
     }
 
     private static byte[] BuildRequest()

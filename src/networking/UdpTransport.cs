@@ -53,6 +53,10 @@ public static class UdpTransport
 
         await Lobby.Initialize();
 
+        // Keep NAT mapping alive while waiting in the lobby
+        var natKeepAliveCts = new CancellationTokenSource();
+        _ = Stun.KeepNatAlive(natKeepAliveCts.Token);
+
         string playerId =
             Lobby.Auth?.LocalId
             ?? throw new InvalidOperationException("Lobby.Auth or LocalId is null");
@@ -64,6 +68,9 @@ public static class UdpTransport
             throw new InvalidOperationException(
                 "Lobby.GetOtherPlayerBlob returned null or empty blob for the other player in the lobby"
             );
+
+        // Stop NAT keepalive — punching takes over
+        natKeepAliveCts.Cancel();
 
         (string peerIp, ushort peerPort) = IpPortEncoder.Decode(blob);
         peerEndpoint = new IPEndPoint(IPAddress.Parse(peerIp), peerPort);
