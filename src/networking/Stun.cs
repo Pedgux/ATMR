@@ -3,6 +3,7 @@ namespace ATMR.Networking;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
+using ATMR.Game;
 
 public static class Stun
 {
@@ -10,14 +11,16 @@ public static class Stun
     /// black magic
     /// </summary>
     public static async Task<(string ip, ushort port)> GetPublicIPAsync(
-        string host = "stun.l.google.com",
-        int port = 19302
+        string? host = null,
+        int? port = null
     )
     {
+        host ??= Settings.StunServer;
+        port ??= Settings.StunPort;
         var addrs = await Dns.GetHostAddressesAsync(host);
         var serverAddress =
             addrs.FirstOrDefault(a => a.AddressFamily == AddressFamily.InterNetwork) ?? addrs[0];
-        var server = new IPEndPoint(serverAddress, port);
+        var server = new IPEndPoint(serverAddress, port.Value);
 
         UdpTransport.Udp.Client.ReceiveTimeout = 5000;
 
@@ -37,14 +40,16 @@ public static class Stun
     /// </summary>
     public static async Task KeepNatAlive(
         CancellationToken token,
-        string host = "stun.l.google.com",
-        int port = 19302
+        string? host = null,
+        int? port = null
     )
     {
+        host ??= Settings.StunServer;
+        port ??= Settings.StunPort;
         var addrs = await Dns.GetHostAddressesAsync(host);
         var serverAddress =
             addrs.FirstOrDefault(a => a.AddressFamily == AddressFamily.InterNetwork) ?? addrs[0];
-        var server = new IPEndPoint(serverAddress, port);
+        var server = new IPEndPoint(serverAddress, port.Value);
 
         while (!token.IsCancellationRequested)
         {
