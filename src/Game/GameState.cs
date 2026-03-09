@@ -12,7 +12,7 @@ using ATMR.Networking;
 public static class GameState
 {
     public static int TickNumber = 0;
-    public static string preset = "hjkl";
+    public static string preset => Settings.Preset;
 
     // UI stuff
     public static UI.UI Ui { get; set; } = null!;
@@ -64,7 +64,11 @@ public static class GameState
     public static Entity Player1 { get; private set; }
     public static Entity Player2 { get; private set; }
     public static string Mode { get; set; } = null!;
-    public static bool LocalMode { get; set; } = false;
+    public static bool LocalMode
+    {
+        get => Settings.LocalMode;
+        set => Settings.LocalMode = value;
+    }
 
     public static void InitPlayers()
     {
