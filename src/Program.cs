@@ -19,13 +19,10 @@ public static class Program
         await UdpTransport.Initialize(lobbyCode);
     }
 
-    public static async Task<int> Main(string[] args)
+    public static async Task<int> Main()
     {
-        // Check for --local flag for localhost multiplayer testing
-        if (args.Contains("--local"))
-        {
-            GameState.LocalMode = true;
-        }
+        // I wonder what ths does
+        Settings.Load();
 
         string lobbyCode = string.Empty;
 
