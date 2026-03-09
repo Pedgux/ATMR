@@ -55,16 +55,15 @@ public static class GameState
     public static int RightTop = (int)Math.Floor(ConsoleHeight / 10.0 * 4);
 
     // holds pings. wow.
-    public static List<long> PingList = new List<long>();
+    public static List<long> PingList = new();
 
     // temporary thing to hold level 0 for testing
     public static Level Level0 = new(0);
 
-    // player entity holders
-    public static Entity Player1 { get; private set; }
-    public static Entity Player2 { get; private set; }
     public static string Mode { get; set; } = null!;
     public static bool LocalMode { get; set; } = false;
+
+    public static List<Entity> Players = new();
 
     public static void InitPlayers()
     {
@@ -72,29 +71,15 @@ public static class GameState
         {
             if (Lobby.PlayerNumber != 0 || Mode == "singleplayer")
             {
-                Player1 = Level0.World.Create(
-                    new Position(4, 8),
-                    new Glyph('@', "[white]"),
-                    new Player(Lobby.PlayerNumber),
-                    new Velocity(0, 0)
-                );
-                if (Lobby.PlayerNumber == 1)
+                for (int i = 1; i < Lobby.PlayerAmount; i++)
                 {
-                    Player2 = Level0.World.Create(
+                    Entity player = Level0.World.Create(
                         new Position(4, 8),
-                        new Glyph('@', "[blue]"),
-                        new Player(2),
+                        new Glyph('@', "[white]"),
+                        new Player(i),
                         new Velocity(0, 0)
                     );
-                }
-                else if (Lobby.PlayerNumber == 2)
-                {
-                    Player2 = Level0.World.Create(
-                        new Position(4, 8),
-                        new Glyph('@', "[blue]"),
-                        new Player(1),
-                        new Velocity(0, 0)
-                    );
+                    Players.Add(player);
                 }
                 break;
             }

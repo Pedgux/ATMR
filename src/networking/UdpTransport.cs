@@ -21,7 +21,7 @@ public static class UdpTransport
         get => _udp ?? throw new InvalidOperationException("UdpTransport not initialized");
         private set => _udp = value;
     }
-    private static IPEndPoint? peerEndpoint;
+    private static List<IPEndPoint> peerEndpoints = new();
     public static bool connected;
     public static Stopwatch sw = Stopwatch.StartNew();
 
@@ -63,22 +63,27 @@ public static class UdpTransport
         GameState.MessageWindow.Write($"[yellow]playerId is: {playerId}[/]");
         await Lobby.Join(lobbyId, playerId, ip, port);
 
-        string? blob = await Lobby.GetOtherPlayerBlob(lobbyId, playerId);
-        if (string.IsNullOrWhiteSpace(blob))
+        List<string> blobs = await Lobby.GetOtherPlayerBlobs(lobbyId, playerId);
+        if (blobs.Count == 0)
             throw new InvalidOperationException(
-                "Lobby.GetOtherPlayerBlob returned null or empty blob for the other player in the lobby"
+                "Lobby.GetOtherPlayerBlobs returned no blobs for the other players in the lobby"
             );
 
         // Stop NAT keepalive — punching takes over
         natKeepAliveCts.Cancel();
 
-        (string peerIp, ushort peerPort) = IpPortEncoder.Decode(blob);
-        peerEndpoint = new IPEndPoint(IPAddress.Parse(peerIp), peerPort);
+        // Connect to all peers
+        peerEndpoints.Clear();
+        foreach (string blob in blobs)
+        {
+            (string peerIp, ushort peerPort) = IpPortEncoder.Decode(blob);
+            var ep = new IPEndPoint(IPAddress.Parse(peerIp), peerPort);
+            peerEndpoints.Add(ep);
+            _ = Puncher.Punch(ep);
+        }
 
-        _ = Puncher.Punch(peerEndpoint);
-        // Start punching in the background so the receive loop can run concurrently
-        // start receiving packets & if punching succeeds sending keepalives
-        await ReceiveLoop(peerEndpoint);
+        // Single receive loop handles packets from all peers
+        await ReceiveLoop();
 
         // TODO:
         // after game is over, each user deletes their own node and last user deletes lobby
@@ -86,24 +91,20 @@ public static class UdpTransport
     }
 
     /// <summary>
-    /// Handles all incoming packets
+    /// Handles all incoming packets from any peer
     /// </summary>
-    /// <param name="peer">The peer you're receiving from</param>
-    /// <returns>??</returns>
-    public static async Task ReceiveLoop(IPEndPoint peer)
+    public static async Task ReceiveLoop()
     {
-        // test push
         GameState.MessageWindow.Write("[blue]Starting Receiveloop![/]");
         while (true)
         {
             try
             {
                 var result = await Udp.ReceiveAsync();
-                //GameState.MessageWindow.Write(" öööh ");
+                var sender = result.RemoteEndPoint;
 
-                // decode bytes to string (UTF-8)
                 string message = Encoding.UTF8.GetString(result.Buffer, 0, result.Buffer.Length);
-                //GameState.MessageWindow.Write(message);
+
                 if (message.StartsWith("i"))
                 {
                     await Input.ReceiveInput(message);
@@ -114,7 +115,7 @@ public static class UdpTransport
                 if (message.StartsWith("ping:", StringComparison.Ordinal))
                 {
                     string ts = message.Substring(5).Trim();
-                    await SendMessage($"pong:{ts}");
+                    await SendMessage($"pong:{ts}", sender);
                 }
 
                 if (message.StartsWith("pong:", StringComparison.Ordinal))
@@ -124,12 +125,8 @@ public static class UdpTransport
                     {
                         long rtt = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() - sentTs;
                         GameState.PingList.Add(rtt);
-                        // remove excess
                         while (GameState.PingList.Count > 20)
-                        {
                             GameState.PingList.RemoveAt(0);
-                        }
-                        //GameState.MessageWindow.Write($"{rtt} ms");
                     }
                 }
 
@@ -140,12 +137,11 @@ public static class UdpTransport
 
                 if (message == "poke")
                 {
-                    // check if we get an connection, and start keepalive and ping calculation
                     if (!connected)
                     {
                         GameState.MessageWindow.Write("[green]Got a connection![/]");
                         connected = true;
-                        await KeepAliveLoop(peer);
+                        await KeepAliveLoop();
                         await PingLoop();
                     }
                     continue;
@@ -159,44 +155,53 @@ public static class UdpTransport
     }
 
     /// <summary>
-    /// Sends an encoded string to a pper
+    /// Sends a message to a specific peer
     /// </summary>
-    /// <param name="message">the string woah</param>
-    /// <returns>????</returns>
-    public static async Task SendMessage(string message)
+    public static async Task SendMessage(string message, IPEndPoint target)
     {
-        //GameState.MessageWindow.Write("[green]trying to send message[/]");
         var messageByte = Encoding.UTF8.GetBytes(message);
         try
         {
-            await Udp.SendAsync(messageByte, messageByte.Length, peerEndpoint);
-            //GameState.MessageWindow.Write($"[green]sent {message}[/]");
+            await Udp.SendAsync(messageByte, messageByte.Length, target);
         }
         catch (Exception ex)
         {
-            GameState.MessageWindow.Write($"KeepAlive send error to {peerEndpoint}: {ex.Message}");
+            GameState.MessageWindow.Write($"Send error to {target}: {ex.Message}");
         }
     }
 
-    private static Task KeepAliveLoop(IPEndPoint peer)
+    /// <summary>
+    /// Broadcasts a message to all peers
+    /// </summary>
+    public static async Task SendMessage(string message)
+    {
+        foreach (var peer in peerEndpoints)
+        {
+            await SendMessage(message, peer);
+        }
+    }
+
+    private static Task KeepAliveLoop()
     {
         byte[] poke = { 0x01 };
 
-        // Use a background Task loop instead of a Timer so the work isn't
-        // garbage-collected when this method returns. The Task runs forever
-        // and sends a single-byte keepalive every 30 seconds.
         _ = Task.Run(async () =>
         {
             while (true)
             {
-                try
+                await Task.Delay(30000);
+                foreach (var peer in peerEndpoints)
                 {
-                    await Task.Delay(30000);
-                    await Udp.SendAsync(poke, poke.Length, peer);
-                }
-                catch (Exception ex)
-                {
-                    GameState.MessageWindow.Write($"KeepAlive send error to {peer}: {ex.Message}");
+                    try
+                    {
+                        await Udp.SendAsync(poke, poke.Length, peer);
+                    }
+                    catch (Exception ex)
+                    {
+                        GameState.MessageWindow.Write(
+                            $"KeepAlive send error to {peer}: {ex.Message}"
+                        );
+                    }
                 }
             }
         });
@@ -205,15 +210,10 @@ public static class UdpTransport
     }
 
     /// <summary>
-    /// sends pings.
+    /// Sends pings to all peers
     /// </summary>
     private static Task PingLoop()
     {
-        byte[] poke = { 0x01 };
-
-        // Use a background Task loop instead of a Timer so the work isn't
-        // garbage-collected when this method returns. The Task runs forever
-        // and sends a single-byte keepalive every 30 seconds.
         _ = Task.Run(async () =>
         {
             while (true)

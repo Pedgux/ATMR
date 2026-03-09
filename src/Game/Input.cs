@@ -186,7 +186,6 @@ public static class Input
         while (await WaitForNextTickInputAsync(GameState.InputStorage, token))
         {
             int nextTick = GameState.TickNumber + 1;
-            int remotePlayer = 3 - Lobby.PlayerNumber;
 
             // Wait TickDelayMs from when this tick's local input was stored.
             // If only remote input exists (local player idle), execute immediately.
@@ -204,9 +203,9 @@ public static class Input
                 lock (InputLock)
                 {
                     var tickInputs = GameState.InputStorage.GetValueOrDefault(nextTick);
-                    hasRemote = tickInputs != null && tickInputs.ContainsKey(remotePlayer);
+                    hasRemote = tickInputs != null && tickInputs.ContainsKey(Lobby.PlayerNumber);
                 }
-                if (hasRemote)
+                if (!hasRemote)
                     break;
                 Thread.Yield();
             }
