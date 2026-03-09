@@ -13,8 +13,11 @@ using ATMR.Helpers;
 
 public static class Lobby
 {
+    /// <summary> This player's 1-based index in join order (set after polling the lobby). </summary>
     public static int PlayerNumber;
-    public static int PlayerAmount = 2;
+
+    /// <summary> Total number of players expected in the lobby (set before joining). </summary>
+    public static int PlayerAmount;
 
     // link to database
     private const string BaseUrl =
@@ -56,9 +59,8 @@ public static class Lobby
     }
 
     /// <summary>
-    /// Performs initial anonymous sign-in to Firebase and returns auth tokens.
+    /// Signs in anonymously via Firebase Auth and returns the auth tokens.
     /// </summary>
-    /// <returns>A FirebaseAuthResponse object containing idToken, refreshToken, and other details, or null if an error occurs.</returns>
     public static async Task<FirebaseAuthResponse?> SignInAnonymouslyAsync()
     {
         // The endpoint for initial anonymous sign-up
@@ -110,6 +112,9 @@ public static class Lobby
         }
     }
 
+    /// <summary>
+    /// Authenticates anonymously with Firebase. Must be called before Join or GetOtherPlayerBlobs.
+    /// </summary>
     public static async Task Initialize()
     {
         Auth = await SignInAnonymouslyAsync();
@@ -120,6 +125,10 @@ public static class Lobby
         GameState.MessageWindow.Write($"[yellow]Signed in anonymously.[/]");
     }
 
+    /// <summary>
+    /// Registers this player in the Firebase lobby under the given lobby code.
+    /// Stores an encoded IP:port blob and a server-side timestamp for join ordering.
+    /// </summary>
     public static async Task Join(string lobbyCode, string playerId, string ip, int port)
     {
         if (Auth is null)
@@ -167,11 +176,15 @@ public static class Lobby
         }
     }
 
-    public static async Task<string?> GetOtherPlayerBlob(string lobbyCode, string notThisOne)
+    /// <summary>
+    /// Polls the Firebase lobby every 5 seconds until PlayerAmount players have joined.
+    /// Returns the encoded IP:port blobs of all players except the one matching notThisOne.
+    /// Also sets PlayerNumber based on join order.
+    /// </summary>
+    public static async Task<List<string>> GetOtherPlayerBlobs(string lobbyCode, string notThisOne)
     {
-        bool found = false;
         GameState.MessageWindow.Write("[blue]Waiting for players...[/]");
-        while (found == false)
+        while (true)
         {
             // pause before retrying to save data heheee
             await Task.Delay(TimeSpan.FromSeconds(5));
@@ -191,7 +204,7 @@ public static class Lobby
             response.EnsureSuccessStatusCode();
 
             var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
-            // Prefer structured PlayerEntry objects; fall back to raw string blobs if needed.
+            // Deserialize the lobby as a map of playerId -> PlayerEntry
             Dictionary<string, PlayerEntry>? map = await response.Content.ReadFromJsonAsync<
                 Dictionary<string, PlayerEntry>
             >(options);
@@ -199,11 +212,11 @@ public static class Lobby
             if (map == null || map.Count == 0)
             {
                 GameState.MessageWindow.Write("Lobby empty or response was 'null'.");
-                return null;
+                continue;
             }
 
-            // Compute our index among players by join time (ascending).
-            // If joinedAt is missing, treat those entries as "latest" to avoid mislabeling.
+            // Sort players by join timestamp to assign deterministic player numbers.
+            // Missing timestamps are treated as latest to avoid stealing lower numbers.
             var ordered = new List<(string id, long sortKey, string? blob)>();
             foreach (var (id, entry) in map)
             {
@@ -213,29 +226,32 @@ public static class Lobby
 
             ordered.Sort((a, b) => a.sortKey.CompareTo(b.sortKey));
 
+            // Walk the sorted list to find our own position and collect other players' blobs
             int index = 1;
-            string? otherBlob = null;
+            var otherBlobs = new List<string>();
             foreach (var item in ordered)
             {
                 if (item.id == notThisOne)
                 {
-                    PlayerNumber = index;
+                    PlayerNumber = index; // Our 1-based position in join order
                 }
-                else
+                else if (!string.IsNullOrEmpty(item.blob))
                 {
-                    // cache the first other player's blob (if any)
-                    otherBlob ??= item.blob;
+                    otherBlobs.Add(item.blob);
                 }
                 index++;
             }
 
-            if (otherBlob != null)
+            // All players present — return the other players' connection blobs
+            if (ordered.Count >= PlayerAmount && otherBlobs.Count == PlayerAmount - 1)
             {
-                GameState.MessageWindow.Write($"[blue]Found other player [/]");
-                found = true;
-                return otherBlob;
+                GameState.MessageWindow.Write($"[blue]Found {otherBlobs.Count} other player(s)[/]");
+                return otherBlobs;
             }
+
+            GameState.MessageWindow.Write(
+                $"[blue]Found {ordered.Count} player(s) so far, waiting for {PlayerAmount}...[/]"
+            );
         }
-        return null;
     }
 }

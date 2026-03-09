@@ -36,6 +36,9 @@ public static class Program
         {
             lobbyCode = AnsiConsole.Prompt(new TextPrompt<string>("Type out a lobby code: "));
             GameState.Mode = "multiplayer";
+            Lobby.PlayerAmount = AnsiConsole.Prompt(
+                new TextPrompt<int>("How many players? Amount: ")
+            );
         }
         else
         {
