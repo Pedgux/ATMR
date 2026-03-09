@@ -45,7 +45,7 @@ public static class Program
             GameState.Mode = "singleplayer";
         }
 
-        // Start input polling and consumer
+        // Start input polling and consumer ÖÖÖ SIIS TÄSSÄ ON SE ISO ALKU, ensimmäinen osa
         var cts = new CancellationTokenSource();
         var reader = Input.StartPolling(cts.Token);
         _ = Input.RunConsumer(reader, cts.Token);
@@ -95,7 +95,7 @@ public static class Program
                     }),
             cts.Token
         );
-        // testing grounds, level stuff.
+        // testing grounds, level stuff. ISO ALKU toinen osa
         GameState.InitPlayers();
 
         // keep app alive until cancellation (e.g. ctrl-c or other signal)
