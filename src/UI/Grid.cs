@@ -1,5 +1,7 @@
 namespace ATMR.UI;
 
+using Arch.Core;
+using ATMR.Components;
 using ATMR.Game;
 using Spectre.Console;
 
@@ -58,16 +60,23 @@ public sealed class Grid
         lock (_grid)
         {
             string gridString = string.Empty;
+            var query = new QueryDescription().WithAll<Position, Glyph>();
 
-            for (int i = 0; i < _gridHeight; i++)
-            {
-                for (int j = 0; j < _gridWidth; j++)
+            GameState.Level0.World.Query(
+                in query,
+                (Entity entity, ref Camera camera) =>
                 {
-                    int idx = i * _gridWidth + j;
-                    gridString += _grid[idx];
+                    for (int i = camera.Top; i < camera.Bottom; i++)
+                    {
+                        for (int j = camera.Left; j < camera.Right; j++)
+                        {
+                            int idx = i * _gridWidth + j;
+                            gridString += _grid[idx];
+                        }
+                        gridString += "\n";
+                    }
                 }
-                gridString += "\n";
-            }
+            );
             return gridString;
         }
     }
