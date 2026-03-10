@@ -11,6 +11,7 @@ using ATMR.Networking;
 /// </summary>
 public static class GameState
 {
+    public static Entity Camera;
     public static int TickNumber = 0;
     public static string preset => Settings.Preset;
 
@@ -83,6 +84,15 @@ public static class GameState
                         new Player(i + 1),
                         new Velocity(0, 0)
                     );
+                    // local player
+                    if (i + 1 == Lobby.PlayerNumber)
+                    {
+                        Camera = Level0.World.Create(
+                            new Position(4, 8),
+                            new Camera(4, 8),
+                            new FollowsEntity(player)
+                        );
+                    }
                     Players.Add(player);
                 }
                 break;

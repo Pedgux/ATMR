@@ -50,6 +50,7 @@ public class Tick
         var tick = new Tick(tickNumber);
         await InputSystem.Run(level.World, input);
         await MovementSystem.Run(level.World);
+        FollowSystem.Run(level.World);
 
         await RenderSystem.Run(level.World);
 
@@ -72,6 +73,7 @@ public class Tick
         var tick = new Tick(tickNumber);
         await InputSystem.Run(level.World, input);
         await MovementSystem.Run(level.World);
+        FollowSystem.Run(level.World);
 
         //await RenderSystem.Run(level.World);
 

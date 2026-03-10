@@ -11,7 +11,7 @@ Built with Spectre.Console for console UI and rendering: https://spectreconsole.
 Uses Arch as it's ECS: https://github.com/genaray/Arch 
 
 
-This is a personal project, which I hope to bring to light someday.
+This is a personal project, which I hope to bring to light someday. 
 
 ## Installation
 

@@ -2,6 +2,8 @@ using System.Dynamic;
 
 namespace ATMR.Components;
 
+using Arch.Core;
+
 public record struct Position(int X, int Y);
 
 // MarkupEntry is for styles/colors. Gets added to the symbol as it's formatting.
@@ -16,11 +18,9 @@ public record struct Player(int ID);
 
 public record struct Solid();
 
-// todo reminder thing:
-// Remove position from here, need to make a Camera entity.
-// Which would have the Camera, Teleport and Position component.
-// Then maybe some modes? Or a reference to a X and Y it follows.
-// Support resizing...
+// Marks an entity as following another entity's Position.
+// Each tick, a system copies the target's Position onto this entity.
+public record struct FollowsEntity(Entity Target);
 
 public record struct Camera(int X, int Y)
 {
