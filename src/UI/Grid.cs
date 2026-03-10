@@ -32,7 +32,7 @@ public sealed class Grid
         _grid = new string[_gridWidth * _gridHeight];
         for (int i = 0; i < _grid.Length; i++)
         {
-            _grid[i] = " ";
+            _grid[i] = ".";
         }
         string gridString = GridToString();
 
