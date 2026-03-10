@@ -24,10 +24,10 @@ public record struct FollowsEntity(Entity Target);
 
 public record struct Camera(int X, int Y)
 {
-    public int LeftTop { get; set; }
-    public int LeftBottom { get; set; }
-    public int RightTop { get; set; }
-    public int RightBottom { get; set; }
+    public int Left { get; set; }
+    public int Right { get; set; }
+    public int Top { get; set; }
+    public int Bottom { get; set; }
 
     public Camera(int x, int y, int Width, int Height)
         : this(x, y)
@@ -43,9 +43,9 @@ public record struct Camera(int X, int Y)
         int secondHeightHalf = Height - firstHeightHalf;
 
         // Assign camera corners
-        LeftTop = x - firstWidthHalf;
-        LeftBottom = y - firstHeightHalf;
-        RightTop = x + secondWidthHalf;
-        RightBottom = y + secondHeightHalf;
+        Left = x - firstWidthHalf;
+        Top = y - firstHeightHalf;
+        Right = x + secondWidthHalf;
+        Bottom = y + secondHeightHalf;
     }
 }
