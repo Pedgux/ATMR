@@ -21,6 +21,7 @@ Quick start:
 
 ```bash
 git clone https://github.com/Pedgux/ATMR.git
+git submodule update --init --recursive
 cd ATMR
 dotnet run --project src/ATMR.csproj
 ```
