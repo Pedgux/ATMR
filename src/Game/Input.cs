@@ -186,6 +186,7 @@ public static class Input
         while (await WaitForNextTickInputAsync(GameState.InputStorage, token))
         {
             int nextTick = GameState.TickNumber + 1;
+            int remotePlayer = 3 - Lobby.PlayerNumber;
 
             // Wait TickDelayMs from when this tick's local input was stored.
             // If only remote input exists (local player idle), execute immediately.
@@ -203,9 +204,9 @@ public static class Input
                 lock (InputLock)
                 {
                     var tickInputs = GameState.InputStorage.GetValueOrDefault(nextTick);
-                    hasRemote = tickInputs != null && tickInputs.ContainsKey(Lobby.PlayerNumber);
+                    hasRemote = tickInputs != null && tickInputs.ContainsKey(remotePlayer);
                 }
-                if (!hasRemote)
+                if (hasRemote)
                     break;
                 Thread.Yield();
             }
@@ -346,20 +347,12 @@ public static class Input
                 continue;
             }
 
-            // Map actionInfo back to a ConsoleKey
-            ConsoleKey mappedKey = InputHelper.ActionInfoToConsoleKey(actionInfo);
-            if (mappedKey == ConsoleKey.NoName)
+            // Map actionInfo back to a ConsoleKeyInfo (includes modifier state)
+            var keyInfo = InputHelper.ActionInfoToConsoleKeyInfo(actionInfo);
+            if (keyInfo.Key == ConsoleKey.NoName)
             {
                 continue;
             }
-
-            var keyInfo = new ConsoleKeyInfo(
-                InputHelper.KeyCharFromConsoleKey(mappedKey),
-                mappedKey,
-                false,
-                false,
-                false
-            );
 
             // Store the input — track whether it's new and needs rollback.
             lock (InputLock)
@@ -467,7 +460,7 @@ public static class Input
                 var playerId = Lobby.PlayerNumber;
                 var tickNumber = GameState.TickNumber;
                 var action = "M";
-                var actionInfo = InputHelper.GetActionInfoWithKey(keyInfo.Key);
+                var actionInfo = InputHelper.GetActionInfoWithKey(keyInfo);
                 if (actionInfo == "")
                 {
                     continue;

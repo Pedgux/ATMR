@@ -23,7 +23,7 @@ public static class InputSystem
                     {
                         players += player.ID + ", ";
 
-                        (int dx, int dy) = InputHelper.GetActionInfoWithKey(kvp.Value.Key) switch
+                        (int dx, int dy) = InputHelper.GetActionInfoWithKey(kvp.Value) switch
                         {
                             "4" => (-1, 0),
                             "2" => (0, 1),
