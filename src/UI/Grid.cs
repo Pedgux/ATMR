@@ -23,8 +23,8 @@ public sealed class Grid
 
     public Grid()
     {
-        _gridWidth = GameState.LeftWidth - 2 - 2;
-        _gridHeight = GameState.LeftTop - 2;
+        _gridWidth = 2000;
+        _gridHeight = 2000;
 
         /*
         _gridWidth = 75;
@@ -60,17 +60,17 @@ public sealed class Grid
         lock (_grid)
         {
             string gridString = string.Empty;
-            var query = new QueryDescription().WithAll<Camera>();
+            var query = new QueryDescription().WithAll<Camera, Position>();
 
             GameState.Level0.World.Query(
                 in query,
-                (Entity entity, ref Camera camera) =>
+                (Entity entity, ref Camera camera, ref Position position) =>
                 {
                     for (int i = camera.Top; i < camera.Bottom; i++)
                     {
                         for (int j = camera.Left; j < camera.Right; j++)
                         {
-                            int idx = i * _gridWidth + j;
+                            int idx = i * GameState.CameraWidth + j;
                             gridString += _grid[idx];
                         }
                         gridString += "\n";
