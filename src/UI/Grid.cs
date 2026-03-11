@@ -23,8 +23,8 @@ public sealed class Grid
 
     public Grid()
     {
-        _gridWidth = 2000;
-        _gridHeight = 2000;
+        _gridWidth = 100;
+        _gridHeight = 100;
 
         /*
         _gridWidth = 75;
@@ -66,17 +66,35 @@ public sealed class Grid
                 in query,
                 (Entity entity, ref Camera camera, ref Position position) =>
                 {
-                    // clamp to 0
-                    int top = Math.Max(position.Y - camera.firstHeightHalf, 0);
-                    int bottom = Math.Max(position.Y + camera.secondHeightHalf, 0);
-                    int left = Math.Max(position.X - camera.firstWidthHalf, 0);
-                    int right = Math.Max(position.X + camera.secondWidthHalf, 0);
+                    int top = Math.Clamp(position.Y - camera.firstHeightHalf, 0, _gridHeight);
+                    int bottom = Math.Clamp(position.Y + camera.secondHeightHalf, 0, _gridHeight);
+                    int left = Math.Clamp(position.X - camera.firstWidthHalf, 0, _gridWidth);
+                    int right = Math.Clamp(position.X + camera.secondWidthHalf, 0, _gridWidth);
+
+                    //ööh fix
+                    if (top == 0)
+                    {
+                        bottom += (position.Y - camera.firstHeightHalf) * -1;
+                    }
+                    if (bottom == _gridHeight)
+                    {
+                        top -= position.Y + camera.secondHeightHalf - _gridHeight;
+                    }
+
+                    if (left == 0)
+                    {
+                        right += (position.X - camera.firstWidthHalf) * -1;
+                    }
+                    if (right == _gridWidth)
+                    {
+                        left -= position.X + camera.secondWidthHalf - _gridWidth;
+                    }
 
                     for (int i = top; i < bottom; i++)
                     {
                         for (int j = left; j < right; j++)
                         {
-                            int idx = i * GameState.CameraWidth + j;
+                            int idx = i * _gridWidth + j;
                             gridString += _grid[idx];
                         }
                         gridString += "\n";
