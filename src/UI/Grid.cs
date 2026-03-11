@@ -66,17 +66,13 @@ public sealed class Grid
                 in query,
                 (Entity entity, ref Camera camera, ref Position position) =>
                 {
-                    for (
-                        int i = position.Y - camera.firstHeightHalf;
-                        i < position.Y + camera.secondHeightHalf;
-                        i++
-                    )
+                    int top = position.Y - camera.firstHeightHalf;
+                    int bottom = position.Y + camera.secondHeightHalf;
+                    int left = position.X - camera.firstWidthHalf;
+                    int right = position.X + camera.secondWidthHalf;
+                    for (int i = top; i < bottom; i++)
                     {
-                        for (
-                            int j = position.X - camera.firstWidthHalf;
-                            j < position.X + camera.secondWidthHalf;
-                            j++
-                        )
+                        for (int j = left; j < right; j++)
                         {
                             int idx = i * GameState.CameraWidth + j;
                             gridString += _grid[idx];
