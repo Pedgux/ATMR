@@ -50,7 +50,7 @@ public sealed class Stats
             tempList.Sort();
             var panel = new Panel(
                 new Markup(
-                    $"Median ping: {tempList[10]} ms       Local tick: {GameState.TickNumber}       Player number: {Lobby.PlayerNumber}      Player position{playerPosition}"
+                    $"Median ping: {tempList[10]} ms       Local tick: {GameState.TickNumber}       Player number: {Lobby.PlayerNumber}      Player {playerPosition}"
                 )
             )
             {
