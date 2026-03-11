@@ -1,8 +1,12 @@
 namespace ATMR.UI;
 
 using System.Collections.Generic;
+using Arch.Core;
+using ATMR.Components;
 using ATMR.Game;
 using ATMR.Networking;
+using CommunityToolkit.HighPerformance;
+using Microsoft.VisualBasic;
 using Spectre.Console;
 
 /// <summary>
@@ -39,11 +43,14 @@ public sealed class Stats
     {
         if (GameState.PingList.Count > 10)
         {
+            ref var playerPosition = ref GameState.Level0.World.Get<Position>(
+                GameState.LocalPlayer
+            );
             List<long> tempList = GameState.PingList;
             tempList.Sort();
             var panel = new Panel(
                 new Markup(
-                    $"Median ping: {tempList[10]} ms       Local tick: {GameState.TickNumber}       Player number: {Lobby.PlayerNumber}"
+                    $"Median ping: {tempList[10]} ms       Local tick: {GameState.TickNumber}       Player number: {Lobby.PlayerNumber}      Player position{playerPosition}"
                 )
             )
             {

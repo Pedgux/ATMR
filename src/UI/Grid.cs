@@ -76,7 +76,7 @@ public sealed class Grid
                     {
                         for (int j = left; j < right; j++)
                         {
-                            int idx = i * GameState.CameraWidth + j;
+                            int idx = i * _gridWidth + j;
                             gridString += _grid[idx];
                         }
                         gridString += "\n";

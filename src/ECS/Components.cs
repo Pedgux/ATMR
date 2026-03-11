@@ -50,10 +50,9 @@ public record struct Camera(int X, int Y)
         Right = x + secondWidthHalf;
         Bottom = y + secondHeightHalf;
         */
-        /*
-        GameState.MessageWindow.Write($"Left {Left}, Right {Right}");
-        GameState.MessageWindow.Write($"Top {Top}, Bottom {Bottom}");
+
+        GameState.MessageWindow.Write($"Left {firstWidthHalf}, Right {secondWidthHalf}");
+        GameState.MessageWindow.Write($"Top {firstHeightHalf}, Bottom {secondHeightHalf}");
         GameState.MessageWindow.Write($"Width oikee {Width}, Height oikee {Height}");
-        */
     }
 }
