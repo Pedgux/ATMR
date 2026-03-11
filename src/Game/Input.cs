@@ -183,10 +183,6 @@ public static class Input
 
     private static async Task TickPumpMultiplayer(CancellationToken token)
     {
-        // Wait until the world and players are fully initialized
-        while (!GameState.PlayersInitialized && !token.IsCancellationRequested)
-            await Task.Delay(50, token);
-
         while (await WaitForNextTickInputAsync(GameState.InputStorage, token))
         {
             int nextTick = GameState.TickNumber + 1;
@@ -268,13 +264,9 @@ public static class Input
             }
             catch (Exception ex)
             {
-                GameState.MessageWindow.Write(
-                    $"[red]TickPump error (tick will be retried): {ex.Message}[/]"
-                );
-                GameState.MessageWindow.Write($"[red]{ex.StackTrace}[/]");
-                // Don't advance TickNumber — the tick must be retried to stay in sync.
-                // Add a small delay to avoid a hot retry loop.
-                await Task.Delay(100, token);
+                GameState.MessageWindow.Write($"[red]TickPump error: {ex.Message}[/]");
+                // Advance the tick so we don't retry the same broken tick forever
+                GameState.TickNumber = GameState.TickNumber + 1;
             }
         }
     }
@@ -588,9 +580,9 @@ public static class Input
                     }
                 }
             }
-            catch (Exception ex)
+            catch
             {
-                GameState.MessageWindow.Write($"[red]Input error: {ex.Message}[/]");
+                // Ignore input if error
             }
         }
     }

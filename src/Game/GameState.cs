@@ -68,7 +68,6 @@ public static class GameState
         set => Settings.LocalMode = value;
     }
 
-    public static bool PlayersInitialized = false;
     public static List<Entity> Players = new();
     public static Entity LocalPlayer;
 
@@ -115,7 +114,6 @@ public static class GameState
                 break;
             }
         }
-        PlayersInitialized = true;
     }
 
     public static void RecalculateConsoleSizes()
