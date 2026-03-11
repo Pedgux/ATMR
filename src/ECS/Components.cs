@@ -25,10 +25,10 @@ public record struct FollowsEntity(Entity Target);
 
 public record struct Camera(int X, int Y)
 {
-    public int Left { get; set; }
-    public int Right { get; set; }
-    public int Top { get; set; }
-    public int Bottom { get; set; }
+    public int firstWidthHalf { get; set; }
+    public int secondWidthHalf { get; set; }
+    public int firstHeightHalf { get; set; }
+    public int secondHeightHalf { get; set; }
 
     public Camera(int x, int y, int Width, int Height)
         : this(x, y)
@@ -37,19 +37,23 @@ public record struct Camera(int X, int Y)
         Y = y;
 
         // calculate halfs
-        int firstWidthHalf = (int)Math.Floor(Width / 2.0);
-        int secondWidthHalf = Width - firstWidthHalf;
+        firstWidthHalf = (int)Math.Floor(Width / 2.0);
+        secondWidthHalf = Width - firstWidthHalf;
 
-        int firstHeightHalf = (int)Math.Floor(Height / 2.0);
-        int secondHeightHalf = Height - firstHeightHalf;
+        firstHeightHalf = (int)Math.Floor(Height / 2.0);
+        secondHeightHalf = Height - firstHeightHalf;
 
+        /*
         // Assign camera corners
-        Left = (x - firstWidthHalf) * -1;
-        Top = (y - firstHeightHalf) * -1;
+        Left = x - firstWidthHalf;
+        Top = y - firstHeightHalf;
         Right = x + secondWidthHalf;
         Bottom = y + secondHeightHalf;
+        */
+        /*
         GameState.MessageWindow.Write($"Left {Left}, Right {Right}");
         GameState.MessageWindow.Write($"Top {Top}, Bottom {Bottom}");
         GameState.MessageWindow.Write($"Width oikee {Width}, Height oikee {Height}");
+        */
     }
 }
