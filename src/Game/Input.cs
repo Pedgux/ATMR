@@ -208,7 +208,7 @@ public static class Input
                 }
                 if (hasRemote)
                     break;
-                Thread.Yield();
+                await Task.Delay(1, token);
             }
 
             try
