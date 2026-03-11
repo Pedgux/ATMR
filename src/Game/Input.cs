@@ -262,9 +262,11 @@ public static class Input
                     WorldMutex.Release();
                 }
             }
-            catch
+            catch (Exception ex)
             {
-                // Swallow errors until the world/player is initialized.
+                GameState.MessageWindow.Write($"[red]TickPump error: {ex.Message}[/]");
+                // Advance the tick so we don't retry the same broken tick forever
+                GameState.TickNumber = GameState.TickNumber + 1;
             }
         }
     }
@@ -578,9 +580,9 @@ public static class Input
                     }
                 }
             }
-            catch
+            catch (Exception ex)
             {
-                // Ignore input if error
+                GameState.MessageWindow.Write($"[red]Input error: {ex.Message}[/]");
             }
         }
     }
