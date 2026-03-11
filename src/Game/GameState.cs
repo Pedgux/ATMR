@@ -69,6 +69,7 @@ public static class GameState
     }
 
     public static List<Entity> Players = new();
+    public static Entity LocalPlayer;
 
     public static int CameraWidth = LeftWidth - 2 - 2;
     public static int CameraHeight = LeftTop - 2;
@@ -81,22 +82,34 @@ public static class GameState
             {
                 for (int i = 0; i < Lobby.PlayerAmount; i++)
                 {
-                    Entity player = Level0.World.Create(
-                        new Position(4, 8),
-                        new Glyph('@', "[white]"),
-                        new Player(i + 1),
-                        new Velocity(0, 0)
-                    );
-                    // local player
                     if (i + 1 == Lobby.PlayerNumber)
                     {
+                        // Create the local player here so Lobby.PlayerNumber is correct
+                        LocalPlayer = Level0.World.Create(
+                            new Position(4, 8),
+                            new Glyph('@', "[white]"),
+                            new Player(Lobby.PlayerNumber),
+                            new Velocity(0, 0)
+                        );
+                        Players.Add(LocalPlayer);
+
                         Camera = Level0.World.Create(
                             new Position(4, 8),
                             new Camera(4, 8, CameraWidth, CameraHeight),
-                            new FollowsEntity(player)
+                            new FollowsEntity(LocalPlayer)
                         );
                     }
-                    Players.Add(player);
+                    else
+                    {
+                        Entity player = Level0.World.Create(
+                            new Position(4, 8),
+                            new Glyph('@', "[white]"),
+                            new Player(i + 1),
+                            new Velocity(0, 0)
+                        );
+
+                        Players.Add(player);
+                    }
                 }
                 break;
             }
