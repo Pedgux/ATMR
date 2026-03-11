@@ -92,8 +92,10 @@ public sealed class Grid
 
                     for (int i = top; i < bottom; i++)
                     {
+                        GameState.MessageWindow.Write($"{top} ja sit bottom {bottom}");
                         for (int j = left; j < right; j++)
                         {
+                            GameState.MessageWindow.Write($"{left} ja sit right {right}");
                             int idx = i * _gridWidth + j;
                             gridString += _grid[idx];
                         }

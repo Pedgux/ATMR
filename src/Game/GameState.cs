@@ -89,7 +89,7 @@ public static class GameState
                             new Position(4, 8),
                             new Glyph('@', "[white]"),
                             new Player(Lobby.PlayerNumber),
-                            new Velocity(0, 0)
+                            new Velocity(0, 0)asd
                         );
                         Players.Add(LocalPlayer);
 
