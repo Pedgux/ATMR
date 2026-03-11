@@ -89,13 +89,13 @@ public static class GameState
                             new Position(4, 8),
                             new Glyph('@', "[white]"),
                             new Player(Lobby.PlayerNumber),
-                            new Velocity(0, 0)asd
+                            new Velocity(0, 0)
                         );
                         Players.Add(LocalPlayer);
 
                         Camera = Level0.World.Create(
                             new Position(4, 8),
-                            new Camera(4, 8, CameraWidth, CameraHeight),
+                            new Camera(CameraWidth, CameraHeight),
                             new FollowsEntity(LocalPlayer)
                         );
                     }
