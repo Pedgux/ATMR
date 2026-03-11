@@ -60,7 +60,7 @@ public sealed class Grid
         lock (_grid)
         {
             string gridString = string.Empty;
-            var query = new QueryDescription().WithAll<Position, Glyph>();
+            var query = new QueryDescription().WithAll<Camera>();
 
             GameState.Level0.World.Query(
                 in query,
@@ -77,6 +77,7 @@ public sealed class Grid
                     }
                 }
             );
+
             return gridString;
         }
     }

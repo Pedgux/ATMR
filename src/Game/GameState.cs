@@ -28,8 +28,6 @@ public static class GameState
     // Console stuff
     public static int ConsoleWidth = Console.WindowWidth;
     public static int ConsoleHeight = Console.WindowHeight;
-    public static int CameraWidth = LeftWidth - 2 - 2;
-    public static int CameraHeight = LeftTop - 2;
 
     // 6/10 of the console width
     public static int LeftWidth = (int)Math.Floor(ConsoleWidth / 10.0 * 5);
@@ -71,6 +69,9 @@ public static class GameState
     }
 
     public static List<Entity> Players = new();
+
+    public static int CameraWidth = LeftWidth - 2 - 2;
+    public static int CameraHeight = LeftTop - 2;
 
     public static void InitPlayers()
     {

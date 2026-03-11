@@ -3,6 +3,7 @@ using System.Dynamic;
 namespace ATMR.Components;
 
 using Arch.Core;
+using ATMR.Game;
 
 public record struct Position(int X, int Y);
 
@@ -43,9 +44,12 @@ public record struct Camera(int X, int Y)
         int secondHeightHalf = Height - firstHeightHalf;
 
         // Assign camera corners
-        Left = x - firstWidthHalf;
-        Top = y - firstHeightHalf;
+        Left = (x - firstWidthHalf) * -1;
+        Top = (y - firstHeightHalf) * -1;
         Right = x + secondWidthHalf;
         Bottom = y + secondHeightHalf;
+        GameState.MessageWindow.Write($"Left {Left}, Right {Right}");
+        GameState.MessageWindow.Write($"Top {Top}, Bottom {Bottom}");
+        GameState.MessageWindow.Write($"Width oikee {Width}, Height oikee {Height}");
     }
 }
