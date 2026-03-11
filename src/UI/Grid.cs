@@ -66,10 +66,12 @@ public sealed class Grid
                 in query,
                 (Entity entity, ref Camera camera, ref Position position) =>
                 {
-                    int top = position.Y - camera.firstHeightHalf;
-                    int bottom = position.Y + camera.secondHeightHalf;
-                    int left = position.X - camera.firstWidthHalf;
-                    int right = position.X + camera.secondWidthHalf;
+                    // clamp to 0
+                    int top = Math.Max(position.Y - camera.firstHeightHalf, 0);
+                    int bottom = Math.Max(position.Y + camera.secondHeightHalf, 0);
+                    int left = Math.Max(position.X - camera.firstWidthHalf, 0);
+                    int right = Math.Max(position.X + camera.secondWidthHalf, 0);
+
                     for (int i = top; i < bottom; i++)
                     {
                         for (int j = left; j < right; j++)
