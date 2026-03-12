@@ -46,7 +46,7 @@ public static class MovementSystem
                     return;
 
                 // replace the last cell the entity was in, so no duplicates appear
-                GameState.GridWindow.SetGridCell(pos.X, pos.Y, " ");
+                GameState.GridWindow.SetGridCell(pos.X, pos.Y, ".");
 
                 // todo:
                 // check if there is an obstacle in the way, then do something
