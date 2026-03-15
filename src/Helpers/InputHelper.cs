@@ -10,6 +10,11 @@ public static class InputHelper
         var key = keyInfo.Key;
         bool shift = (keyInfo.Modifiers & ConsoleModifiers.Shift) != 0;
 
+        if (key == ConsoleKey.T)
+        {
+            return "T";
+        }
+
         return GameState.preset switch
         {
             "hjkl" => key switch
@@ -61,6 +66,11 @@ public static class InputHelper
     public static ConsoleKeyInfo ActionInfoToConsoleKeyInfo(string actionInfo)
     {
         // Map action info (direction numbers) back to ConsoleKeyInfo based on preset
+        if (actionInfo == "T")
+        {
+            return new ConsoleKeyInfo('t', ConsoleKey.T, false, false, false);
+        }
+
         ConsoleKey key;
         bool shift = false;
 

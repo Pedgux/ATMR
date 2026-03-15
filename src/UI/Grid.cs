@@ -14,10 +14,10 @@ public sealed class Grid
     private readonly Layout _gridWindow;
 
     // The width of the window, -2 for borders
-    private int _gridWidth;
+    public int GridWidth;
 
     // how tf do I calculate this
-    private int _gridHeight;
+    public int GridHeight;
 
     // Contains the original generated terrain so moving entities can restore tiles.
     private string[] _baseGrid;
@@ -25,16 +25,16 @@ public sealed class Grid
 
     public Grid()
     {
-        _gridWidth = 100;
-        _gridHeight = 100;
+        GridWidth = 100;
+        GridHeight = 100;
 
         /*
-        _gridWidth = 75;
-        _gridHeight = 31;
+        GridWidth = 75;
+        GridHeight = 31;
         */
 
-        _baseGrid = new string[_gridWidth * _gridHeight];
-        _grid = new string[_gridWidth * _gridHeight];
+        _baseGrid = new string[GridWidth * GridHeight];
+        _grid = new string[GridWidth * GridHeight];
         for (int i = 0; i < _grid.Length; i++)
         {
             var rng = new DeterministicRng(Hasher.Hash(GameState.runseed + (uint)i));
@@ -86,28 +86,28 @@ public sealed class Grid
                 in query,
                 (Entity entity, ref Camera camera, ref Position position) =>
                 {
-                    int top = Math.Clamp(position.Y - camera.firstHeightHalf, 0, _gridHeight);
-                    int bottom = Math.Clamp(position.Y + camera.secondHeightHalf, 0, _gridHeight);
-                    int left = Math.Clamp(position.X - camera.firstWidthHalf, 0, _gridWidth);
-                    int right = Math.Clamp(position.X + camera.secondWidthHalf, 0, _gridWidth);
+                    int top = Math.Clamp(position.Y - camera.firstHeightHalf, 0, GridHeight);
+                    int bottom = Math.Clamp(position.Y + camera.secondHeightHalf, 0, GridHeight);
+                    int left = Math.Clamp(position.X - camera.firstWidthHalf, 0, GridWidth);
+                    int right = Math.Clamp(position.X + camera.secondWidthHalf, 0, GridWidth);
 
                     //ööh fix
                     if (top == 0)
                     {
                         bottom += (position.Y - camera.firstHeightHalf) * -1;
                     }
-                    if (bottom == _gridHeight)
+                    if (bottom == GridHeight)
                     {
-                        top -= position.Y + camera.secondHeightHalf - _gridHeight;
+                        top -= position.Y + camera.secondHeightHalf - GridHeight;
                     }
 
                     if (left == 0)
                     {
                         right += (position.X - camera.firstWidthHalf) * -1;
                     }
-                    if (right == _gridWidth)
+                    if (right == GridWidth)
                     {
-                        left -= position.X + camera.secondWidthHalf - _gridWidth;
+                        left -= position.X + camera.secondWidthHalf - GridWidth;
                     }
 
                     for (int i = top; i < bottom; i++)
@@ -116,7 +116,7 @@ public sealed class Grid
                         for (int j = left; j < right; j++)
                         {
                             //GameState.MessageWindow.Write($"{left} ja sit right {right}");
-                            int idx = i * _gridWidth + j;
+                            int idx = i * GridWidth + j;
                             gridString += _grid[idx];
                         }
                         gridString += "\n";
@@ -130,23 +130,23 @@ public sealed class Grid
 
     public void SetGridCell(int x, int y, string thing)
     {
-        if (x < 0 || x >= _gridWidth || y < 0 || y >= _gridHeight)
+        if (x < 0 || x >= GridWidth || y < 0 || y >= GridHeight)
         {
             return;
         }
 
-        int idx = y * _gridWidth + x;
+        int idx = y * GridWidth + x;
         _grid[idx] = thing;
     }
 
     public void RestoreBaseTile(int x, int y)
     {
-        if (x < 0 || x >= _gridWidth || y < 0 || y >= _gridHeight)
+        if (x < 0 || x >= GridWidth || y < 0 || y >= GridHeight)
         {
             return;
         }
 
-        int idx = y * _gridWidth + x;
+        int idx = y * GridWidth + x;
         _grid[idx] = _baseGrid[idx];
     }
 }

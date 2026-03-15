@@ -90,7 +90,8 @@ public static class GameState
                             new Position(4, 8),
                             new Glyph('@', "[white]"),
                             new Player(Lobby.PlayerNumber),
-                            new Velocity(0, 0)
+                            new Velocity(0, 0),
+                            new Teleport(0, 0)
                         );
                         Players.Add(LocalPlayer);
 
@@ -106,7 +107,8 @@ public static class GameState
                             new Position(4, 8),
                             new Glyph('@', "[blue]"),
                             new Player(i + 1),
-                            new Velocity(0, 0)
+                            new Velocity(0, 0),
+                            new Teleport(0, 0)
                         );
 
                         Players.Add(player);

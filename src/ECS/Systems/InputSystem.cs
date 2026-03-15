@@ -12,16 +12,32 @@ public static class InputSystem
     public static async Task Run(World world, Dictionary<int, ConsoleKeyInfo> inputs)
     {
         string players = "";
-        var query = new QueryDescription().WithAll<Player, Velocity>();
+        var query = new QueryDescription().WithAll<Player, Velocity, Teleport, Position>();
         world.Query(
             in query,
-            (Entity entity, ref Player player, ref Velocity velocity) =>
+            (
+                Entity entity,
+                ref Player player,
+                ref Position position,
+                ref Velocity velocity,
+                ref Teleport teleport
+            ) =>
             {
                 foreach (var kvp in inputs)
                 {
                     if (player.ID == kvp.Key)
                     {
                         players += player.ID + ", ";
+
+                        if (kvp.Value.Key == ConsoleKey.T)
+                        {
+                            var rng = new DeterministicRng(
+                                Hasher.Hash((uint)(position.X + position.Y))
+                            );
+                            teleport.X = rng.Range(1, GameState.GridWindow.GridWidth);
+                            teleport.Y = rng.Range(1, GameState.GridWindow.GridHeight);
+                            continue;
+                        }
 
                         (int dx, int dy) = InputHelper.GetActionInfoWithKey(kvp.Value) switch
                         {

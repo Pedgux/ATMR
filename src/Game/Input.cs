@@ -298,6 +298,11 @@ public static class Input
                 continue;
             }
 
+            if (message == "rngtele")
+            {
+                // jee
+            }
+
             if (string.IsNullOrWhiteSpace(message) || message[0] != 'i')
                 continue;
 
