@@ -141,7 +141,8 @@ public static class Input
                 await Tick.CreateAsync(
                     inputs,
                     GameState.Level0,
-                    0 /*change the 0 later to the actual tick number, when tick storage exists*/
+                    0, /*change the 0 later to the actual tick number, when tick storage exists*/
+                    false
                 );
 
                 // Rate-limit ticks to smooth out OS keyboard repeat floods.
@@ -226,7 +227,7 @@ public static class Input
                             GameState.InputStorage[executingTick]
                         );
                     }
-                    await Tick.CreateAsync(inputs, GameState.Level0, executingTick);
+                    await Tick.CreateAsync(inputs, GameState.Level0, executingTick, false);
                     GameState.TickNumber = executingTick;
 
                     // Guard against inputs that arrived during execution.
@@ -254,7 +255,12 @@ public static class Input
                         GameState.Level0.World = GameState.WorldStorage[executingTick];
                         World.Destroy(oldWorld);
                         GameState.WorldStorage.Remove(executingTick);
-                        await Tick.CreateAsync(updatedInputs, GameState.Level0, executingTick);
+                        await Tick.CreateAsync(
+                            updatedInputs,
+                            GameState.Level0,
+                            executingTick,
+                            false
+                        );
                     }
                 }
                 finally
@@ -414,11 +420,11 @@ public static class Input
                     }
                     if (i == rollbackTo)
                     {
-                        await Tick.CreateAsync(rollbackInputs, GameState.Level0, i);
+                        await Tick.CreateAsync(rollbackInputs, GameState.Level0, i, false);
                     }
                     else
                     {
-                        await Tick.RollBackCreateAsync(rollbackInputs, GameState.Level0, i);
+                        await Tick.CreateAsync(rollbackInputs, GameState.Level0, i, true);
                     }
                 }
                 GameState.MessageWindow.Write("[red]rolled back[/]");
@@ -565,14 +571,20 @@ public static class Input
                                 }
                                 if (i == rollbackTo)
                                 {
-                                    await Tick.CreateAsync(rollbackInputs, GameState.Level0, i);
+                                    await Tick.CreateAsync(
+                                        rollbackInputs,
+                                        GameState.Level0,
+                                        i,
+                                        false
+                                    );
                                 }
                                 else
                                 {
-                                    await Tick.RollBackCreateAsync(
+                                    await Tick.CreateAsync(
                                         rollbackInputs,
                                         GameState.Level0,
-                                        i
+                                        i,
+                                        true
                                     );
                                 }
                             }

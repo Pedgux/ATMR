@@ -38,7 +38,8 @@ public class Tick
     public static async Task<Tick> CreateAsync(
         Dictionary<int, ConsoleKeyInfo> input,
         Level level,
-        int tickNumber
+        int tickNumber,
+        bool rb
     )
     {
         if (GameState.WorldStorage.TryGetValue(tickNumber, out var oldSnapshot))
@@ -51,32 +52,12 @@ public class Tick
         await InputSystem.Run(level.World, input);
         await MovementSystem.Run(level.World);
         FollowSystem.Run(level.World);
-
-        await RenderSystem.Run(level.World);
+        if (!rb)
+        {
+            await RenderSystem.Run(level.World);
+        }
 
         return tick;
         // miau miau miu mau
-    }
-
-    public static async Task<Tick> RollBackCreateAsync(
-        Dictionary<int, ConsoleKeyInfo> input,
-        Level level,
-        int tickNumber
-    )
-    {
-        if (GameState.WorldStorage.TryGetValue(tickNumber, out var oldSnapshot))
-        {
-            World.Destroy(oldSnapshot);
-        }
-        GameState.WorldStorage[tickNumber] = GameState.Level0.GetSnapshot();
-
-        var tick = new Tick(tickNumber);
-        await InputSystem.Run(level.World, input);
-        await MovementSystem.Run(level.World);
-        FollowSystem.Run(level.World);
-
-        //await RenderSystem.Run(level.World);
-
-        return tick;
     }
 }
