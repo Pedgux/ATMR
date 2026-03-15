@@ -19,6 +19,8 @@ public sealed class Grid
     // how tf do I calculate this
     private int _gridHeight;
 
+    // Contains the original generated terrain so moving entities can restore tiles.
+    private string[] _baseGrid;
     private string[] _grid;
 
     public Grid()
@@ -31,10 +33,28 @@ public sealed class Grid
         _gridHeight = 31;
         */
 
+        _baseGrid = new string[_gridWidth * _gridHeight];
         _grid = new string[_gridWidth * _gridHeight];
         for (int i = 0; i < _grid.Length; i++)
         {
-            _grid[i] = ".";
+            var rng = new DeterministicRng(Hasher.Hash(GameState.runseed + (uint)i));
+            if (rng.Range(1, 100) < 40)
+            {
+                if (rng.Range(1, 3) == 1)
+                {
+                    _baseGrid[i] = "[green]#[/]";
+                }
+                else
+                {
+                    _baseGrid[i] = "#";
+                }
+            }
+            else
+            {
+                _baseGrid[i] = ".";
+            }
+
+            _grid[i] = _baseGrid[i];
         }
         string gridString = GridToString();
 
@@ -117,5 +137,16 @@ public sealed class Grid
 
         int idx = y * _gridWidth + x;
         _grid[idx] = thing;
+    }
+
+    public void RestoreBaseTile(int x, int y)
+    {
+        if (x < 0 || x >= _gridWidth || y < 0 || y >= _gridHeight)
+        {
+            return;
+        }
+
+        int idx = y * _gridWidth + x;
+        _grid[idx] = _baseGrid[idx];
     }
 }
