@@ -8,6 +8,10 @@ namespace ATMR.Systems;
 
 public static class InputSystem
 {
+    private static DeterministicRng rng = new DeterministicRng(
+        Hasher.Hash(GameState.runseed + 234)
+    );
+
     // eli siis itse inputtien toiminnot.
     public static async Task Run(World world, Dictionary<int, ConsoleKeyInfo> inputs)
     {
@@ -31,9 +35,6 @@ public static class InputSystem
 
                         if (kvp.Value.Key == ConsoleKey.T)
                         {
-                            var rng = new DeterministicRng(
-                                Hasher.Hash((uint)(position.X + position.Y))
-                            );
                             teleport.X = rng.Range(1, GameState.GridWindow.GridWidth);
                             teleport.Y = rng.Range(1, GameState.GridWindow.GridHeight);
                             continue;

@@ -40,7 +40,7 @@ public sealed class Grid
             var rng = new DeterministicRng(Hasher.Hash(GameState.runseed + (uint)i));
             if (rng.Range(1, 100) < 40)
             {
-                if (rng.Range(1, 3) == 1)
+                if (rng.Range(1, 4) == 1)
                 {
                     _baseGrid[i] = "[green]#[/]";
                 }

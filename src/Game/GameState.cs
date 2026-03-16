@@ -11,7 +11,7 @@ using ATMR.Networking;
 /// </summary>
 public static class GameState
 {
-    public static uint runseed;
+    public static uint runseed = 019283;
     public static Entity Camera;
     public static int TickNumber = 0;
     public static string preset => Settings.Preset;
