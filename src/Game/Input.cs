@@ -14,7 +14,6 @@ public static class Input
     // Batches keystrokes for a short window so multiple players' inputs
     // can be processed together in a single game tick for multiplayer.
     private const int TickDelayMs = 1;
-    private static TimeSpan TickWaitWindow = TimeSpan.FromMilliseconds(TickDelayMs);
 
     // Central, thread-safe pipeline of input events coming from local or network sources.
     // Tuple payload: (playerId, key pressed). Single reader (the tick pump) with many writers.
@@ -30,8 +29,6 @@ public static class Input
 
     // Background task that drains the InputEvents channel and emits game ticks.
     private static Task? _tickPump;
-
-    //private static List<> _inputBuffer;
 
     // Ensures only one background pump is started across threads.
     private static readonly object TickPumpLock = new();
@@ -50,11 +47,10 @@ public static class Input
 
     // Rate-limit singleplayer ticks to smooth out OS keyboard repeat floods.
     private static DateTime LastTickTime = DateTime.MinValue;
-    private static DateTime _previousTime = DateTime.UtcNow;
+
+    // MIKS TÄÄÄ ON MIINUS KYMMENEN okei ymmärrän (en)
     private static int NextLocalTickNumber = -10;
     private static readonly object NextLocalTickLock = new();
-
-    // 1 is newest, 3 oldest. Used to send older inputs too.
     private static string input1 = ""; // now
     private static string input2 = ""; // yesterday
     private static string input3 = ""; // eldest
@@ -83,13 +79,11 @@ public static class Input
                     // Poll the console without blocking so we can honor cancellation.
                     if (Console.KeyAvailable)
                     {
-                        //GameState.MessageWindow.Write($"input pressed: {DateTime.UtcNow:mm:ss.fff}");
                         var key = Console.ReadKey(intercept: true);
                         await chan.Writer.WriteAsync(key, token);
                     }
                     else
                     {
-                        // Back off a bit so we don't burn 100% of the thread.
                         await Task.Delay(1, token);
                     }
                 }
@@ -171,14 +165,12 @@ public static class Input
             {
                 if (InputStorage.ContainsKey(GameState.TickNumber + 1))
                 {
-                    //GameState.MessageWindow.Write("[green]true[/]");
                     return true;
                 }
             }
             // Yield to let other tasks run, but wake up instantly if data arrives
             await Task.Yield();
         }
-        //GameState.MessageWindow.Write("[green]false[/])");
         return false;
     }
 
@@ -271,8 +263,6 @@ public static class Input
             catch (Exception ex)
             {
                 GameState.MessageWindow.Write($"[red]TickPump error: {ex.Message}[/]");
-                // Advance the tick so we don't retry the same broken tick forever
-                GameState.TickNumber = GameState.TickNumber + 1;
             }
         }
     }
@@ -304,16 +294,11 @@ public static class Input
                 continue;
             }
 
-            if (message == "rngtele")
-            {
-                // jee
-            }
-
+            //------ surkea viesti detectaus alkaa ------
             if (string.IsNullOrWhiteSpace(message) || message[0] != 'i')
                 continue;
 
             // Expect: i{playerId}{action}{actionInfo}t{tickNumber}
-            // Parse player ID: extract digits after 'i'
             int index = 1;
             while (index < message.Length && char.IsDigit(message[index]))
             {
@@ -329,6 +314,7 @@ public static class Input
             {
                 continue;
             }
+            //------ surkea viesti detectaus loppuu ------
 
             // Parse action: single character after player ID
             char action = message[index];
@@ -514,7 +500,6 @@ public static class Input
                         $"{input1},{input2},{input3},{input4},{input5},{input6},{input7},{input8},{input9},{input10}";
 
                     await UdpTransport.SendMessage(message);
-                    //GameState.MessageWindow.Write($"input sent: {DateTime.UtcNow:mm:ss.fff}");
                 }
                 // Always feed local input into the authoritative pipeline.
                 bool needsLocalRollback = false;
