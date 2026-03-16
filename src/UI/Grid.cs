@@ -47,7 +47,11 @@ public sealed class Grid
                 }
                 else
                 {
-                    _baseGrid[i] = "#";
+                    GameState.Level0.World.Create(
+                        new Position(i % GridWidth, i / GridWidth),
+                        new Glyph('#', "[red]"),
+                        new Solid()
+                    );
                 }
             }
             else
