@@ -30,7 +30,6 @@ public sealed class Grid
 
     public Grid()
     {
-        Log.Write($"grid rng: {Program.runSeed + 1111}");
         GridWidth = 100;
         GridHeight = 100;
 
