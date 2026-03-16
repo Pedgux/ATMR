@@ -2,7 +2,6 @@ using Arch.Core;
 using ATMR.Components;
 using ATMR.Game;
 using ATMR.Helpers;
-using Spectre.Console;
 
 namespace ATMR.Systems;
 

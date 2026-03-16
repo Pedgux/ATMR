@@ -2,7 +2,6 @@ namespace ATMR.Tick;
 
 using Arch.Core;
 using ATMR.Game;
-using ATMR.Helpers;
 using ATMR.Systems;
 
 /// <summary>

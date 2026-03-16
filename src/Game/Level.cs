@@ -1,10 +1,6 @@
 namespace ATMR.Game;
 
-using Arch;
-using Arch.Buffer;
 using Arch.Core;
-using Arch.LowLevel;
-using ATMR.Components;
 
 /// <summary>
 /// Holds a world with it's entities and a level identifier
