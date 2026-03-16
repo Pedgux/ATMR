@@ -6,7 +6,7 @@ namespace ATMR.Systems;
 
 public static class RenderSystem
 {
-    public static async Task Run(World world)
+    public static void Run(World world)
     {
         var nonPlayerQuery = new QueryDescription().WithAll<Position, Glyph>().WithNone<Player>();
         var playerQuery = new QueryDescription().WithAll<Position, Glyph, Player>();
