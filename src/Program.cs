@@ -160,8 +160,8 @@ public static class Program
 
         // Instantiate all UI parts
         GameState.Ui = new UI();
-        GameState.MessageWindow = new Messages();
-        Log.Initialize(GameState.MessageWindow.Write);
+        var messageWindow = new Messages();
+        Log.Initialize(messageWindow);
         GameState.StatsWindow = new Stats();
         GameState.GridWindow = new ATMR.UI.Grid();
 
@@ -186,14 +186,14 @@ public static class Program
                     .StartAsync(async ctx =>
                     {
                         // initial draw
-                        GameState.MessageWindow.RefreshPanel();
+                        Log.RefreshPanel();
                         GameState.StatsWindow.RefreshPanel();
                         ctx.Refresh();
 
                         while (!cts.Token.IsCancellationRequested)
                         {
                             //GameState.Ui.Fit();
-                            GameState.MessageWindow.RefreshPanel();
+                            Log.RefreshPanel();
                             GameState.StatsWindow.RefreshPanel();
                             ctx.Refresh();
                             await Task.Delay(60);

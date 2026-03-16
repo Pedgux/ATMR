@@ -282,13 +282,13 @@ public static class Input
         {
             if (message == "iup")
             {
-                GameState.MessageWindow.OffsetUp();
+                Log.OffsetUp();
                 continue;
             }
 
             if (message == "idown")
             {
-                GameState.MessageWindow.OffsetDown();
+                Log.OffsetDown();
                 continue;
             }
 
@@ -432,7 +432,7 @@ public static class Input
             {
                 try
                 {
-                    GameState.MessageWindow.OffsetUp();
+                    Log.OffsetUp();
                 }
                 catch { }
 
@@ -443,7 +443,7 @@ public static class Input
             {
                 try
                 {
-                    GameState.MessageWindow.OffsetDown();
+                    Log.OffsetDown();
                 }
                 catch { }
 

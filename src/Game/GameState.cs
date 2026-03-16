@@ -17,7 +17,6 @@ public static class GameState
 
     // UI stuff
     public static UI.UI Ui { get; set; } = null!;
-    public static UI.Messages MessageWindow { get; set; } = null!;
     public static UI.Stats StatsWindow { get; set; } = null!;
     public static UI.Grid GridWindow { get; set; } = null!;
     public static SolidOccupancyIndex SolidOccupancy { get; } = new();
