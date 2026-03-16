@@ -23,10 +23,13 @@ public sealed class Grid
     private string[] _baseGrid;
     private string[] _grid;
 
-    static DeterministicRng rng = new DeterministicRng(Hasher.Hash(GameState.runseed + 1111));
+    public static DeterministicRng GridRng = new DeterministicRng(
+        Hasher.Hash(Program.runSeed + 1111)
+    );
 
     public Grid()
     {
+        GameState.MessageWindow.Write($"grid rng: {Program.runSeed + 1111}");
         GridWidth = 100;
         GridHeight = 100;
 
@@ -39,9 +42,9 @@ public sealed class Grid
         _grid = new string[GridWidth * GridHeight];
         for (int i = 0; i < _grid.Length; i++)
         {
-            if (rng.Range(1, 100) < 40)
+            if (GridRng.Range(1, 100) < 40)
             {
-                if (rng.Range(1, 4) == 1)
+                if (GridRng.Range(1, 4) == 1)
                 {
                     _baseGrid[i] = "[green]#[/]";
                 }

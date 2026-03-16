@@ -11,7 +11,6 @@ using ATMR.Networking;
 /// </summary>
 public static class GameState
 {
-    public static uint runseed = 019283;
     public static Entity Camera;
     public static int TickNumber = 0;
     public static string preset => Settings.Preset;
@@ -92,7 +91,8 @@ public static class GameState
                             new Glyph('@', "[white]"),
                             new Player(Lobby.PlayerNumber),
                             new Velocity(0, 0),
-                            new Teleport(0, 0)
+                            new Teleport(0, 0),
+                            new Solid()
                         );
                         Players.Add(LocalPlayer);
 
@@ -109,7 +109,8 @@ public static class GameState
                             new Glyph('@', "[blue]"),
                             new Player(i + 1),
                             new Velocity(0, 0),
-                            new Teleport(0, 0)
+                            new Teleport(0, 0),
+                            new Solid()
                         );
 
                         Players.Add(player);

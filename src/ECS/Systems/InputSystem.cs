@@ -7,13 +7,14 @@ namespace ATMR.Systems;
 
 public static class InputSystem
 {
-    private static DeterministicRng rng = new DeterministicRng(
-        Hasher.Hash(GameState.runseed + 234)
+    private static DeterministicRng MoveRng = new DeterministicRng(
+        Hasher.Hash(Program.runSeed + 234)
     );
 
     // eli siis itse inputtien toiminnot.
     public static void Run(World world, Dictionary<int, ConsoleKeyInfo> inputs)
     {
+        GameState.MessageWindow.Write($"grid rng: {Program.runSeed + 234}");
         string players = "";
         var query = new QueryDescription().WithAll<Player, Velocity, Teleport, Position>();
         world.Query(
@@ -34,8 +35,8 @@ public static class InputSystem
 
                         if (kvp.Value.Key == ConsoleKey.T)
                         {
-                            teleport.X = rng.Range(1, GameState.GridWindow.GridWidth);
-                            teleport.Y = rng.Range(1, GameState.GridWindow.GridHeight);
+                            teleport.X = MoveRng.Range(1, GameState.GridWindow.GridWidth);
+                            teleport.Y = MoveRng.Range(1, GameState.GridWindow.GridHeight);
                             continue;
                         }
 

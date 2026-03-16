@@ -12,6 +12,7 @@ using Spectre.Console;
 
 public static class Program
 {
+    public static uint runSeed;
     private static readonly string[] GameModeChoices =
     {
         "Multiplayer",
@@ -138,6 +139,9 @@ public static class Program
             lobbyCode = AnsiConsole.Prompt(
                 new TextPrompt<string>("Type out a lobby code:").PromptStyle("green")
             );
+            // TÄSSÄ RUNSEEDI
+            runSeed = Hasher.StringHash(lobbyCode);
+
             Lobby.PlayerAmount = AnsiConsole.Prompt(
                 new TextPrompt<int>("How many players? Amount:").PromptStyle("green")
             );
