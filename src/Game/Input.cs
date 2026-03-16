@@ -514,9 +514,9 @@ public static class Input
                     // Record when local input was first stored for this tick.
                     if (!LocalInputTime.ContainsKey(tickNumber))
                         LocalInputTime[tickNumber] = DateTime.UtcNow;
-                    GameState.MessageWindow.Write(
+                    /*GameState.MessageWindow.Write(
                         $"[green]Added a input: for tick {tickNumber} PID: {playerId}[/]"
-                    );
+                    );*/
                     // If the tick pump already executed this tick, we need to rollback.
                     if (tickNumber <= GameState.TickNumber)
                     {
