@@ -9,7 +9,7 @@ namespace ATMR.Systems;
 /// </summary>
 public static class MovementSystem
 {
-    public static async Task Run(World world)
+    public static void Run(World world)
     {
         var movables = new QueryDescription().WithAll<Position, Velocity>();
         var teleportables = new QueryDescription().WithAll<Position, Teleport>();

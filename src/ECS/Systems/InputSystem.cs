@@ -12,7 +12,7 @@ public static class InputSystem
     );
 
     // eli siis itse inputtien toiminnot.
-    public static async Task Run(World world, Dictionary<int, ConsoleKeyInfo> inputs)
+    public static void Run(World world, Dictionary<int, ConsoleKeyInfo> inputs)
     {
         string players = "";
         var query = new QueryDescription().WithAll<Player, Velocity, Teleport, Position>();
