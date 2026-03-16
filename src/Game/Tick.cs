@@ -49,10 +49,22 @@ public class Tick
 
         var tick = new Tick(tickNumber);
         InputSystem.Run(level.World, input);
-        MovementSystem.Run(level.World);
+        var movementResult = MovementSystem.Run(level.World);
+
+        bool isHalfTick = movementResult.AllActionableMovesBlocked;
+        if (!isHalfTick)
+        {
+            // tähän oikeen tickin kamat
+            GameState.MessageWindow.Write("ei blokattu");
+        }
+
         FollowSystem.Run(level.World);
         if (!rb)
         {
+            if (isHalfTick)
+            {
+                GameState.MessageWindow.Write($"[red]Half-tick {tickNumber}: blokattu[/]");
+            }
             RenderSystem.Run(level.World);
         }
 

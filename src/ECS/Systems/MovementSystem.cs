@@ -9,8 +9,11 @@ namespace ATMR.Systems;
 /// </summary>
 public static class MovementSystem
 {
-    public static void Run(World world)
+    public static MovementOutcome Run(World world)
     {
+        int moves = 0;
+        int blockedMoves = 0;
+
         var movables = new QueryDescription().WithAll<Position, Velocity>();
         var teleportables = new QueryDescription().WithAll<Position, Teleport>();
         GameState.SolidOccupancy.EnsureInitialized(world, GameState.GridWindow.GridWidth);
@@ -22,6 +25,8 @@ public static class MovementSystem
                 if (vel.X == 0 && vel.Y == 0)
                     return;
 
+                moves++;
+
                 int nextX = pos.X + vel.X;
                 int nextY = pos.Y + vel.Y;
 
@@ -32,6 +37,7 @@ public static class MovementSystem
 
                 if (!canMove)
                 {
+                    blockedMoves++;
                     vel.X = 0;
                     vel.Y = 0;
                     return;
@@ -56,6 +62,8 @@ public static class MovementSystem
                 if (tp.X == 0 && tp.Y == 0)
                     return;
 
+                moves++;
+
                 bool isSolid = world.Has<Position, Solid>(entity);
                 bool canTeleport = isSolid
                     ? GameState.SolidOccupancy.TryMoveSolid(entity, pos.X, pos.Y, tp.X, tp.Y)
@@ -63,6 +71,7 @@ public static class MovementSystem
 
                 if (!canTeleport)
                 {
+                    blockedMoves++;
                     tp.X = 0;
                     tp.Y = 0;
                     return;
@@ -79,5 +88,14 @@ public static class MovementSystem
                 tp.Y = 0;
             }
         );
+
+        return new MovementOutcome(moves, blockedMoves);
     }
+}
+
+public readonly record struct MovementOutcome(int Moves, int BlockedMoves)
+{
+    public bool HasActionableMoves => Moves > 0;
+
+    public bool AllActionableMovesBlocked => HasActionableMoves && BlockedMoves == Moves;
 }
