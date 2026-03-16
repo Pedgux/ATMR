@@ -13,7 +13,7 @@ public static class MovementSystem
     {
         var movables = new QueryDescription().WithAll<Position, Velocity>();
         var teleportables = new QueryDescription().WithAll<Position, Teleport>();
-        //var obstacles = new QueryDescription().WithAll<Position, Solid>();
+        GameState.SolidOccupancy.EnsureInitialized(world, GameState.GridWindow.GridWidth);
 
         world.Query(
             in movables,
@@ -22,15 +22,27 @@ public static class MovementSystem
                 if (vel.X == 0 && vel.Y == 0)
                     return;
 
+                int nextX = pos.X + vel.X;
+                int nextY = pos.Y + vel.Y;
+
+                bool isSolid = world.Has<Position, Solid>(entity);
+                bool canMove = isSolid
+                    ? GameState.SolidOccupancy.TryMoveSolid(entity, pos.X, pos.Y, nextX, nextY)
+                    : !GameState.SolidOccupancy.IsOccupied(nextX, nextY);
+
+                if (!canMove)
+                {
+                    vel.X = 0;
+                    vel.Y = 0;
+                    return;
+                }
+
                 // replace the last cell the entity was in, so no duplicates appear
                 GameState.GridWindow.RestoreBaseTile(pos.X, pos.Y);
 
-                // todo:
-                // check if there is an obstacle in the way, then do something
-
                 // move the entity with velocity
-                pos.X += vel.X;
-                pos.Y += vel.Y;
+                pos.X = nextX;
+                pos.Y = nextY;
                 // reset velocity
                 vel.X = 0;
                 vel.Y = 0;
@@ -44,11 +56,20 @@ public static class MovementSystem
                 if (tp.X == 0 && tp.Y == 0)
                     return;
 
+                bool isSolid = world.Has<Position, Solid>(entity);
+                bool canTeleport = isSolid
+                    ? GameState.SolidOccupancy.TryMoveSolid(entity, pos.X, pos.Y, tp.X, tp.Y)
+                    : !GameState.SolidOccupancy.IsOccupied(tp.X, tp.Y);
+
+                if (!canTeleport)
+                {
+                    tp.X = 0;
+                    tp.Y = 0;
+                    return;
+                }
+
                 // replace the last cell the entity was in, so no duplicates appear
                 GameState.GridWindow.RestoreBaseTile(pos.X, pos.Y);
-
-                // todo:
-                // check if there is an obstacle in the way, then do something
 
                 // teleport em
                 pos.X = tp.X;

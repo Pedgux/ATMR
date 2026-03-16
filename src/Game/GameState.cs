@@ -21,6 +21,7 @@ public static class GameState
     public static UI.Messages MessageWindow { get; set; } = null!;
     public static UI.Stats StatsWindow { get; set; } = null!;
     public static UI.Grid GridWindow { get; set; } = null!;
+    public static SolidOccupancyIndex SolidOccupancy { get; } = new();
 
     // storage
     public static Dictionary<int, World> WorldStorage = new();
@@ -114,6 +115,9 @@ public static class GameState
                         Players.Add(player);
                     }
                 }
+
+                // Example blocker so solid collision can be verified in-game.
+                Level0.World.Create(new Position(8, 8), new Glyph('#', "[red]"), new Solid());
                 break;
             }
         }
