@@ -240,9 +240,7 @@ public static class Input
                     }
                     if (needsReplay && GameState.WorldStorage.ContainsKey(executingTick))
                     {
-                        Log.Write(
-                            $"[yellow]Re-exec tick {executingTick} (late input)[/]"
-                        );
+                        Log.Write($"[yellow]Re-exec tick {executingTick} (late input)[/]");
                         var oldWorld = GameState.Level0.World;
                         GameState.Level0.World = GameState.WorldStorage[executingTick];
                         World.Destroy(oldWorld);
@@ -378,9 +376,7 @@ public static class Input
             {
                 int rollbackTo = GameState.TickNumber;
 
-                Log.Write(
-                    $"[red]rolling back from {earliestRollback} to {rollbackTo}[/]"
-                );
+                Log.Write($"[red]rolling back from {earliestRollback} to {rollbackTo}[/]");
 
                 if (!GameState.WorldStorage.ContainsKey(earliestRollback))
                 {
