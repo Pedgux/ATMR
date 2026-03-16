@@ -23,6 +23,8 @@ public sealed class Grid
     private string[] _baseGrid;
     private string[] _grid;
 
+    static DeterministicRng rng = new DeterministicRng(Hasher.Hash(GameState.runseed + 1111));
+
     public Grid()
     {
         GridWidth = 100;
@@ -37,7 +39,6 @@ public sealed class Grid
         _grid = new string[GridWidth * GridHeight];
         for (int i = 0; i < _grid.Length; i++)
         {
-            var rng = new DeterministicRng(Hasher.Hash(GameState.runseed + (uint)i));
             if (rng.Range(1, 100) < 40)
             {
                 if (rng.Range(1, 4) == 1)
