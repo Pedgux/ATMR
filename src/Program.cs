@@ -14,6 +14,90 @@ using Spectre.Console;
 
 public static class Program
 {
+    private static readonly string[] GameModeChoices =
+    {
+        "Multiplayer",
+        "Singleplayer",
+        "Settings",
+        "Exit",
+    };
+
+    private static readonly string[] SettingsChoices = { "ControlPreset", "LocalMode", "Back" };
+    private static readonly string[] ControlPresetChoices = { "hjkl", "numpad", "arrows" };
+
+    private static (string Choice, int Index) PromptGameMode(int selectedIndex)
+    {
+        return ChoicePanel.PromptNumberedChoice(
+            "[yellow]What you do?[/]",
+            GameModeChoices,
+            selectedIndex
+        );
+    }
+
+    private static string GetSettingsChoiceLabel(string choice)
+    {
+        return choice switch
+        {
+            "ControlPreset" => $"Control preset: {Settings.Preset}",
+            "LocalMode" => $"Local mode: {(Settings.LocalMode ? "On" : "Off")}",
+            _ => "Back",
+        };
+    }
+
+    private static void ShowSettingsMenu()
+    {
+        int selectedIndex = 0;
+
+        while (true)
+        {
+            AnsiConsole.Clear();
+
+            var result = ChoicePanel.PromptNumberedChoice(
+                "[yellow]Settings[/]",
+                SettingsChoices,
+                selectedIndex,
+                GetSettingsChoiceLabel
+            );
+            string settingsChoice = result.Choice;
+            selectedIndex = result.Index;
+
+            switch (settingsChoice)
+            {
+                case "ControlPreset":
+                    PromptControlPreset();
+                    continue;
+
+                case "LocalMode":
+                    Settings.LocalMode = !Settings.LocalMode;
+                    Settings.Save();
+                    continue;
+
+                default:
+                    return;
+            }
+        }
+    }
+
+    private static void PromptControlPreset()
+    {
+        AnsiConsole.Clear();
+
+        int selectedIndex = Array.IndexOf(ControlPresetChoices, Settings.Preset);
+        if (selectedIndex < 0)
+        {
+            selectedIndex = 0;
+        }
+
+        var presetChoice = ChoicePanel.PromptNumberedChoice(
+            "[yellow]Pick control preset[/]",
+            ControlPresetChoices,
+            selectedIndex
+        );
+
+        Settings.Preset = presetChoice.Choice;
+        Settings.Save();
+    }
+
     public static async Task InitializeNetworking(string lobbyCode)
     {
         await UdpTransport.Initialize(lobbyCode);
@@ -23,26 +107,44 @@ public static class Program
     {
         // I wonder what ths does
         Settings.Load();
+        AnsiConsole.Clear();
 
         string lobbyCode = string.Empty;
+        int modeSelectedIndex = 0;
 
-        var multiplayer = AnsiConsole.Prompt(
-            new TextPrompt<string>("Would you like to play multiplayer? (y/n): ")
-        );
-
-        // prompt the user for lobby code, later merge this into the other one below, when prompting works.
-        // Input reader is affecting this way of prompting in some weird way, hence it's below. Fix later.
-        if (multiplayer == "y")
+        while (true)
         {
-            lobbyCode = AnsiConsole.Prompt(new TextPrompt<string>("Type out a lobby code: "));
-            GameState.Mode = "multiplayer";
-            Lobby.PlayerAmount = AnsiConsole.Prompt(
-                new TextPrompt<int>("How many players? Amount: ")
+            AnsiConsole.Clear();
+
+            var modeSelection = PromptGameMode(modeSelectedIndex);
+            string modeChoice = modeSelection.Choice;
+            modeSelectedIndex = modeSelection.Index;
+
+            if (modeChoice == "Settings")
+            {
+                ShowSettingsMenu();
+                continue;
+            }
+
+            if (modeChoice == "Exit")
+            {
+                return 0;
+            }
+
+            if (modeChoice == "Singleplayer")
+            {
+                GameState.Mode = "singleplayer";
+                break;
+            }
+
+            lobbyCode = AnsiConsole.Prompt(
+                new TextPrompt<string>("Type out a lobby code:").PromptStyle("green")
             );
-        }
-        else
-        {
-            GameState.Mode = "singleplayer";
+            Lobby.PlayerAmount = AnsiConsole.Prompt(
+                new TextPrompt<int>("How many players? Amount:").PromptStyle("green")
+            );
+            GameState.Mode = "multiplayer";
+            break;
         }
 
         // Start input polling and consumer ÖÖÖ SIIS TÄSSÄ ON SE ISO ALKU, ensimmäinen osa
@@ -60,7 +162,7 @@ public static class Program
         GameState.GridWindow = new ATMR.UI.Grid();
 
         // optional multiplayer
-        if (multiplayer == "y")
+        if (GameState.Mode == "multiplayer")
         {
             // Start networking initialization in background, important to be after UI initialization
             // because how tf do I prompt in messagewindow? Network init needs UI,
