@@ -48,12 +48,12 @@ public class Tick
         GameState.WorldStorage[tickNumber] = GameState.Level0.GetSnapshot();
 
         var tick = new Tick(tickNumber);
-        await InputSystem.Run(level.World, input);
-        await MovementSystem.Run(level.World);
+        InputSystem.Run(level.World, input);
+        MovementSystem.Run(level.World);
         FollowSystem.Run(level.World);
         if (!rb)
         {
-            await RenderSystem.Run(level.World);
+            RenderSystem.Run(level.World);
         }
 
         return tick;
