@@ -11,4 +11,17 @@ public static class Hasher
         x ^= x >> 16;
         return x;
     }
+
+    public static uint StringHash(string code)
+    {
+        uint hash = 2166136261;
+
+        foreach (char c in code)
+        {
+            hash ^= c;
+            hash *= 16777619;
+        }
+
+        return hash;
+    }
 }
