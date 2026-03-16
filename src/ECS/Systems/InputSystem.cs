@@ -14,7 +14,7 @@ public static class InputSystem
     // eli siis itse inputtien toiminnot.
     public static void Run(World world, Dictionary<int, ConsoleKeyInfo> inputs)
     {
-        GameState.MessageWindow.Write($"grid rng: {Program.runSeed + 234}");
+        Log.Write($"grid rng: {Program.runSeed + 234}");
         string players = "";
         var query = new QueryDescription().WithAll<Player, Velocity, Teleport, Position>();
         world.Query(
@@ -62,6 +62,6 @@ public static class InputSystem
                 }
             }
         );
-        //GameState.MessageWindow.Write($"Processed players: {players}");
+        //Log.Write($"Processed players: {players}");
     }
 }

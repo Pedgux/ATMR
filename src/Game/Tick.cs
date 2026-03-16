@@ -2,6 +2,7 @@ namespace ATMR.Tick;
 
 using Arch.Core;
 using ATMR.Game;
+using ATMR.Helpers;
 using ATMR.Systems;
 
 /// <summary>
@@ -55,7 +56,7 @@ public class Tick
         if (!isHalfTick)
         {
             // tähän oikeen tickin kamat
-            GameState.MessageWindow.Write("ei blokattu");
+            Log.Write("ei blokattu");
         }
 
         FollowSystem.Run(level.World);
@@ -63,7 +64,7 @@ public class Tick
         {
             if (isHalfTick)
             {
-                GameState.MessageWindow.Write($"[red]Half-tick {tickNumber}: blokattu[/]");
+                Log.Write($"[red]Half-tick {tickNumber}: blokattu[/]");
             }
             RenderSystem.Run(level.World);
         }

@@ -3,6 +3,7 @@ namespace ATMR.UI;
 using Arch.Core;
 using ATMR.Components;
 using ATMR.Game;
+using ATMR.Helpers;
 using Spectre.Console;
 
 /// <summary>
@@ -29,7 +30,7 @@ public sealed class Grid
 
     public Grid()
     {
-        GameState.MessageWindow.Write($"grid rng: {Program.runSeed + 1111}");
+        Log.Write($"grid rng: {Program.runSeed + 1111}");
         GridWidth = 100;
         GridHeight = 100;
 
@@ -70,11 +71,9 @@ public sealed class Grid
         _gridWindow = GameState.Ui.RootLayout["Grid"];
         _gridWindow.Update(_gridPanel);
 
-        GameState.MessageWindow.Write($"window size {_gridWindow.Size}");
-        GameState.MessageWindow.Write($"grid length {_grid.Length}");
-        GameState.MessageWindow.Write(
-            $"grid width {GameState.LeftWidth - 2} grid height{GameState.LeftTop - 2}"
-        );
+        Log.Write($"window size {_gridWindow.Size}");
+        Log.Write($"grid length {_grid.Length}");
+        Log.Write($"grid width {GameState.LeftWidth - 2} grid height{GameState.LeftTop - 2}");
     }
 
     public void RefreshPanel()
@@ -120,10 +119,10 @@ public sealed class Grid
 
                     for (int i = top; i < bottom; i++)
                     {
-                        //GameState.MessageWindow.Write($"{top} ja sit bottom {bottom}");
+                        //Log.Write($"{top} ja sit bottom {bottom}");
                         for (int j = left; j < right; j++)
                         {
-                            //GameState.MessageWindow.Write($"{left} ja sit right {right}");
+                            //Log.Write($"{left} ja sit right {right}");
                             int idx = i * GridWidth + j;
                             gridString += _grid[idx];
                         }

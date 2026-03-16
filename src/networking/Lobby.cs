@@ -93,21 +93,21 @@ public static class Lobby
             {
                 // Log or handle the error
                 string errorContent = await response.Content.ReadAsStringAsync();
-                GameState.MessageWindow.Write(
+                Log.Write(
                     $"[red]Error signing in anonymously: {response.StatusCode}[/]"
                 );
-                GameState.MessageWindow.Write($"[red]Error details: {errorContent}[/]");
+                Log.Write($"[red]Error details: {errorContent}[/]");
                 return null;
             }
         }
         catch (HttpRequestException ex)
         {
-            GameState.MessageWindow.Write($"Network error during anonymous sign-in: {ex.Message}");
+            Log.Write($"Network error during anonymous sign-in: {ex.Message}");
             return null;
         }
         catch (JsonException ex)
         {
-            GameState.MessageWindow.Write($"JSON deserialization error: {ex.Message}");
+            Log.Write($"JSON deserialization error: {ex.Message}");
             return null;
         }
     }
@@ -122,7 +122,7 @@ public static class Lobby
         if (Auth == null)
             throw new Exception("Anonymous auth failed. Check console output for details.");
 
-        GameState.MessageWindow.Write($"[yellow]Signed in anonymously.[/]");
+        Log.Write($"[yellow]Signed in anonymously.[/]");
     }
 
     /// <summary>
@@ -144,10 +144,10 @@ public static class Lobby
 
         //need to PUT this into existence (pun intended)
         string url = $"{BaseUrl}lobbies/{lobbyCode}/{playerId}.json?auth={idToken}";
-        GameState.MessageWindow.Write($"[purple]Using: {ip}:{port} in blob[/]");
+        Log.Write($"[purple]Using: {ip}:{port} in blob[/]");
         string blob = IpPortEncoder.Encode(ip, (ushort)port);
-        GameState.MessageWindow.Write($"[purple]Encoded blob: {blob}[/]");
-        GameState.MessageWindow.Write($"[purple]Decoded blob: {IpPortEncoder.Decode(blob)}[/]");
+        Log.Write($"[purple]Encoded blob: {blob}[/]");
+        Log.Write($"[purple]Decoded blob: {IpPortEncoder.Decode(blob)}[/]");
         // Store an object with the encoded blob and a server-side join timestamp.
         // This allows deterministic ordering of players later.
         var payload = new
@@ -157,22 +157,22 @@ public static class Lobby
         };
         var json = JsonSerializer.Serialize(payload);
         var content = new StringContent(json, Encoding.UTF8, "application/json");
-        GameState.MessageWindow.Write($"[green]Trying to create lobby...[/]");
+        Log.Write($"[green]Trying to create lobby...[/]");
         try
         {
             using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
             var response = await client.PutAsync(url, content, cts.Token);
             response.EnsureSuccessStatusCode();
-            GameState.MessageWindow.Write($"[green]Lobby created![/]");
+            Log.Write($"[green]Lobby created![/]");
         }
         catch (TaskCanceledException)
         {
-            GameState.MessageWindow.Write($"[red]Lobby creation timed out after 10s[/]");
-            GameState.MessageWindow.Write($"[red]URL: {url}[/]");
+            Log.Write($"[red]Lobby creation timed out after 10s[/]");
+            Log.Write($"[red]URL: {url}[/]");
         }
         catch (Exception ex)
         {
-            GameState.MessageWindow.Write($"[red]Lobby creation failed: {ex.Message}[/]");
+            Log.Write($"[red]Lobby creation failed: {ex.Message}[/]");
         }
     }
 
@@ -183,7 +183,7 @@ public static class Lobby
     /// </summary>
     public static async Task<List<string>> GetOtherPlayerBlobs(string lobbyCode, string notThisOne)
     {
-        GameState.MessageWindow.Write("[blue]Waiting for players...[/]");
+        Log.Write("[blue]Waiting for players...[/]");
         while (true)
         {
             // pause before retrying to save data heheee
@@ -211,7 +211,7 @@ public static class Lobby
 
             if (map == null || map.Count == 0)
             {
-                GameState.MessageWindow.Write("Lobby empty or response was 'null'.");
+                Log.Write("Lobby empty or response was 'null'.");
                 continue;
             }
 
@@ -245,11 +245,11 @@ public static class Lobby
             // All players present — return the other players' connection blobs
             if (ordered.Count >= PlayerAmount && otherBlobs.Count == PlayerAmount - 1)
             {
-                GameState.MessageWindow.Write($"[blue]Found {otherBlobs.Count} other player(s)[/]");
+                Log.Write($"[blue]Found {otherBlobs.Count} other player(s)[/]");
                 return otherBlobs;
             }
 
-            GameState.MessageWindow.Write(
+            Log.Write(
                 $"[blue]Found {ordered.Count} player(s) so far, waiting for {PlayerAmount}...[/]"
             );
         }

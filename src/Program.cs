@@ -5,6 +5,7 @@ Built with Spectre.Console for console UI: https://spectreconsole.net/
 */
 
 using ATMR.Game;
+using ATMR.Helpers;
 using ATMR.Input;
 using ATMR.Networking;
 using ATMR.UI;
@@ -160,6 +161,7 @@ public static class Program
         // Instantiate all UI parts
         GameState.Ui = new UI();
         GameState.MessageWindow = new Messages();
+        Log.Initialize(GameState.MessageWindow.Write);
         GameState.StatsWindow = new Stats();
         GameState.GridWindow = new ATMR.UI.Grid();
 

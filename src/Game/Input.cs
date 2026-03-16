@@ -240,7 +240,7 @@ public static class Input
                     }
                     if (needsReplay && GameState.WorldStorage.ContainsKey(executingTick))
                     {
-                        GameState.MessageWindow.Write(
+                        Log.Write(
                             $"[yellow]Re-exec tick {executingTick} (late input)[/]"
                         );
                         var oldWorld = GameState.Level0.World;
@@ -262,7 +262,7 @@ public static class Input
             }
             catch (Exception ex)
             {
-                GameState.MessageWindow.Write($"[red]TickPump error: {ex.Message}[/]");
+                Log.Write($"[red]TickPump error: {ex.Message}[/]");
             }
         }
     }
@@ -378,13 +378,13 @@ public static class Input
             {
                 int rollbackTo = GameState.TickNumber;
 
-                GameState.MessageWindow.Write(
+                Log.Write(
                     $"[red]rolling back from {earliestRollback} to {rollbackTo}[/]"
                 );
 
                 if (!GameState.WorldStorage.ContainsKey(earliestRollback))
                 {
-                    GameState.MessageWindow.Write(
+                    Log.Write(
                         $"[red]No snapshot for tick {earliestRollback}, skipping rollback[/]"
                     );
                     return;
@@ -413,7 +413,7 @@ public static class Input
                         await Tick.CreateAsync(rollbackInputs, GameState.Level0, i, true);
                     }
                 }
-                GameState.MessageWindow.Write("[red]rolled back[/]");
+                Log.Write("[red]rolled back[/]");
             }
             finally
             {
@@ -466,7 +466,7 @@ public static class Input
                 }
                 if (UdpTransport.connected)
                 {
-                    //GameState.MessageWindow.Write($"{playerId}");
+                    //Log.Write($"{playerId}");
 
                     lock (NextLocalTickLock)
                     {
@@ -514,7 +514,7 @@ public static class Input
                     // Record when local input was first stored for this tick.
                     if (!LocalInputTime.ContainsKey(tickNumber))
                         LocalInputTime[tickNumber] = DateTime.UtcNow;
-                    /*GameState.MessageWindow.Write(
+                    /*Log.Write(
                         $"[green]Added a input: for tick {tickNumber} PID: {playerId}[/]"
                     );*/
                     // If the tick pump already executed this tick, we need to rollback.
@@ -530,12 +530,12 @@ public static class Input
                     try
                     {
                         int rollbackTo = GameState.TickNumber;
-                        GameState.MessageWindow.Write(
+                        Log.Write(
                             $"[red]Local input rollback from {localRollbackFrom} to {rollbackTo}[/]"
                         );
                         if (!GameState.WorldStorage.ContainsKey(localRollbackFrom))
                         {
-                            GameState.MessageWindow.Write(
+                            Log.Write(
                                 $"[red]No snapshot for tick {localRollbackFrom}, skipping rollback[/]"
                             );
                         }
@@ -573,7 +573,7 @@ public static class Input
                                     );
                                 }
                             }
-                            GameState.MessageWindow.Write("[red]local rollback done[/]");
+                            Log.Write("[red]local rollback done[/]");
                         }
                     }
                     finally

@@ -33,7 +33,7 @@ public static class UdpTransport
     {
         connected = false;
         _udp = new UdpClient(0);
-        GameState.MessageWindow.Write($"Local UDP bound: {_udp.Client.LocalEndPoint}");
+        Log.Write($"Local UDP bound: {_udp.Client.LocalEndPoint}");
 
         string ip;
         ushort port;
@@ -43,12 +43,12 @@ public static class UdpTransport
             // Local mode: skip STUN, use localhost with the OS-assigned port
             ip = "127.0.0.1";
             port = (ushort)((IPEndPoint)_udp.Client.LocalEndPoint!).Port;
-            GameState.MessageWindow.Write($"[green]Local mode: using {ip}:{port}[/]");
+            Log.Write($"[green]Local mode: using {ip}:{port}[/]");
         }
         else
         {
             (ip, port) = await Stun.GetPublicIPAsync();
-            GameState.MessageWindow.Write($"[green]Address from STUN: {ip}:{port}[/] ");
+            Log.Write($"[green]Address from STUN: {ip}:{port}[/] ");
         }
 
         await Lobby.Initialize();
@@ -60,7 +60,7 @@ public static class UdpTransport
         string playerId =
             Lobby.Auth?.LocalId
             ?? throw new InvalidOperationException("Lobby.Auth or LocalId is null");
-        GameState.MessageWindow.Write($"[yellow]playerId is: {playerId}[/]");
+        Log.Write($"[yellow]playerId is: {playerId}[/]");
         await Lobby.Join(lobbyId, playerId, ip, port);
 
         List<string> blobs = await Lobby.GetOtherPlayerBlobs(lobbyId, playerId);
@@ -95,7 +95,7 @@ public static class UdpTransport
     /// </summary>
     public static async Task ReceiveLoop()
     {
-        GameState.MessageWindow.Write("[blue]Starting Receiveloop![/]");
+        Log.Write("[blue]Starting Receiveloop![/]");
         while (true)
         {
             try
@@ -132,14 +132,14 @@ public static class UdpTransport
 
                 if (result.Buffer.Length == 1 && result.Buffer[0] == 0x01)
                 {
-                    GameState.MessageWindow.Write("[blue]alive[/]");
+                    Log.Write("[blue]alive[/]");
                 }
 
                 if (message == "poke")
                 {
                     if (!connected)
                     {
-                        GameState.MessageWindow.Write("[green]Got a connection![/]");
+                        Log.Write("[green]Got a connection![/]");
                         connected = true;
                         await KeepAliveLoop();
                         await PingLoop();
@@ -149,7 +149,7 @@ public static class UdpTransport
             }
             catch (Exception ex)
             {
-                GameState.MessageWindow.Write($"[red]Receive error: {ex}[/]");
+                Log.Write($"[red]Receive error: {ex}[/]");
             }
         }
     }
@@ -166,7 +166,7 @@ public static class UdpTransport
         }
         catch (Exception ex)
         {
-            GameState.MessageWindow.Write($"Send error to {target}: {ex.Message}");
+            Log.Write($"Send error to {target}: {ex.Message}");
         }
     }
 
@@ -198,7 +198,7 @@ public static class UdpTransport
                     }
                     catch (Exception ex)
                     {
-                        GameState.MessageWindow.Write(
+                        Log.Write(
                             $"KeepAlive send error to {peer}: {ex.Message}"
                         );
                     }

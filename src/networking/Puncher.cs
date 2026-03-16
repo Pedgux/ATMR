@@ -2,7 +2,7 @@ namespace ATMR.Networking;
 
 using System.Net;
 using System.Threading.Tasks;
-using ATMR.Game;
+using ATMR.Helpers;
 
 /// <summary>
 /// Handles nat punching & gets address from STUN to establish a P2P connection.
@@ -11,7 +11,7 @@ public static class Puncher
 {
     public static async Task Punch(IPEndPoint peer)
     {
-        GameState.MessageWindow.Write($"[red]Punching: {peer}[/]");
+        Log.Write($"[red]Punching: {peer}[/]");
 
         // tries for 30s
         for (int i = 0; i < 600; i++)
@@ -22,7 +22,7 @@ public static class Puncher
 
         if (!UdpTransport.connected)
         {
-            GameState.MessageWindow.Write("[red] Puncher timed out[/]");
+            Log.Write("[red] Puncher timed out[/]");
         }
     }
 }

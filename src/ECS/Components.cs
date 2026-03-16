@@ -2,6 +2,7 @@ namespace ATMR.Components;
 
 using Arch.Core;
 using ATMR.Game;
+using ATMR.Helpers;
 
 public record struct Position(int X, int Y);
 
@@ -38,8 +39,8 @@ public record struct Camera()
         firstHeightHalf = (int)Math.Floor(Height / 2.0);
         secondHeightHalf = Height - firstHeightHalf;
 
-        GameState.MessageWindow.Write($"Left {firstWidthHalf}, Right {secondWidthHalf}");
-        GameState.MessageWindow.Write($"Top {firstHeightHalf}, Bottom {secondHeightHalf}");
-        GameState.MessageWindow.Write($"Width oikee {Width}, Height oikee {Height}");
+        Log.Write($"Left {firstWidthHalf}, Right {secondWidthHalf}");
+        Log.Write($"Top {firstHeightHalf}, Bottom {secondHeightHalf}");
+        Log.Write($"Width oikee {Width}, Height oikee {Height}");
     }
 }
