@@ -15,6 +15,10 @@ public static class GameState
     public static int TickNumber = 0;
     public static string preset => Settings.Preset;
 
+    // If set, local input is in a 2-step directional action flow (e.g. dig):
+    // first key picks action, next key picks direction.
+    public static string? PendingDirectionalAction { get; set; }
+
     // UI stuff
     public static UI.UI Ui { get; set; } = null!;
     public static UI.Stats StatsWindow { get; set; } = null!;

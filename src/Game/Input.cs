@@ -4,6 +4,8 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Channels;
 using Arch.Core;
+using Arch.Core.Extensions;
+using ATMR.Components;
 using ATMR.Game;
 using ATMR.Helpers;
 using ATMR.Networking;
@@ -62,6 +64,9 @@ public static class Input
     private static string input8 = "";
     private static string input9 = "";
     private static string input10 = "";
+
+    // Prompt shown when entering the 2-step dig flow.
+    private const string DigPromptMessage = "[yellow]Which way do you want to dig?[/]";
 
     // Start the background poller and return the channel reader
     public static ChannelReader<ConsoleKeyInfo> StartPolling(CancellationToken token = default)
@@ -265,6 +270,33 @@ public static class Input
         }
     }
 
+    private static bool ShouldAcceptLocalInput(char action, string actionInfo)
+    {
+        // Only movement intents are filtered before send/store.
+        if (action != 'M')
+        {
+            return true;
+        }
+
+        if (!InputHelper.TryGetDirectionOffset(actionInfo, out int dx, out int dy))
+        {
+            return true;
+        }
+
+        var world = GameState.Level0.World;
+        if (!GameState.LocalPlayer.IsAlive() || !world.Has<Position>(GameState.LocalPlayer))
+        {
+            return true;
+        }
+
+        ref var localPos = ref world.Get<Position>(GameState.LocalPlayer);
+        int targetX = localPos.X + dx;
+        int targetY = localPos.Y + dy;
+
+        GameState.SolidOccupancy.EnsureInitialized(world, GameState.GridWindow.GridWidth);
+        return !GameState.SolidOccupancy.IsOccupied(targetX, targetY);
+    }
+
     public static async Task ReceiveInput(string bigMessage)
     {
         // Handles inputs arriving over the network as small text messages.
@@ -344,11 +376,28 @@ public static class Input
                 continue;
             }
 
-            // Map actionInfo back to a ConsoleKeyInfo (includes modifier state)
-            var keyInfo = InputHelper.ActionInfoToConsoleKeyInfo(actionInfo);
-            if (keyInfo.Key == ConsoleKey.NoName)
+            ConsoleKeyInfo keyInfo;
+            switch (action)
             {
-                continue;
+                case 'M':
+                    keyInfo = InputHelper.ActionInfoToConsoleKeyInfo(actionInfo);
+                    if (keyInfo.Key == ConsoleKey.NoName)
+                    {
+                        continue;
+                    }
+                    break;
+                case 'D':
+                    // 'D' means a directional dig action already resolved by the sender
+                    // (F was pressed first, then a direction key).
+                    if (!InputHelper.IsDirectionalActionInfo(actionInfo))
+                    {
+                        continue;
+                    }
+
+                    keyInfo = InputHelper.CreateDirectionalActionKey(action, actionInfo);
+                    break;
+                default:
+                    continue;
             }
 
             // Store the input — track whether it's new and needs rollback.
@@ -451,15 +500,50 @@ public static class Input
             }
             try
             {
-                var level = GameState.Level0;
                 var playerId = Lobby.PlayerNumber;
                 var tickNumber = GameState.TickNumber;
-                var action = "M";
-                var actionInfo = InputHelper.GetActionInfoWithKey(keyInfo);
-                if (actionInfo == "")
+                var action = 'M';
+                ConsoleKeyInfo storedKeyInfo = keyInfo;
+                string actionInfo;
+                var pendingAction = GameState.PendingDirectionalAction;
+
+                if (!string.IsNullOrEmpty(pendingAction))
                 {
+                    // We are waiting for direction after a prior action key (currently dig).
+                    if (!InputHelper.TryGetDirectionActionInfo(keyInfo, out actionInfo))
+                    {
+                        // Ignore non-direction keys until the user gives a direction.
+                        continue;
+                    }
+
+                    action = pendingAction[0];
+                    storedKeyInfo = InputHelper.CreateDirectionalActionKey(action, actionInfo);
+                    GameState.PendingDirectionalAction = null;
+                }
+                else
+                {
+                    if (keyInfo.Key == ConsoleKey.F && keyInfo.Modifiers == 0)
+                    {
+                        // Plain F starts dig targeting mode locally.
+                        // Important: we do NOT send/store this press yet.
+                        GameState.PendingDirectionalAction = "D";
+                        Log.Write(DigPromptMessage);
+                        continue;
+                    }
+
+                    actionInfo = InputHelper.GetActionInfoWithKey(keyInfo);
+                    if (actionInfo == "")
+                    {
+                        continue;
+                    }
+                }
+
+                if (!ShouldAcceptLocalInput(action, actionInfo))
+                {
+                    Log.Write("[grey]Blocked locally; input dropped[/]");
                     continue;
                 }
+
                 if (UdpTransport.connected)
                 {
                     //Log.Write($"{playerId}");
@@ -506,7 +590,7 @@ public static class Input
                         tickNumber,
                         new Dictionary<int, ConsoleKeyInfo>()
                     );
-                    GameState.InputStorage[tickNumber][playerId] = keyInfo;
+                    GameState.InputStorage[tickNumber][playerId] = storedKeyInfo;
                     // Record when local input was first stored for this tick.
                     if (!LocalInputTime.ContainsKey(tickNumber))
                         LocalInputTime[tickNumber] = DateTime.UtcNow;
