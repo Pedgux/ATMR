@@ -42,7 +42,7 @@ public sealed class Grid
         _grid = new string[GridWidth * GridHeight];
         for (int i = 0; i < _grid.Length; i++)
         {
-            if (GridRng.Range(1, 100) < 40)
+            if (GridRng.Range(1, 100) < 60)
             {
                 if (GridRng.Range(1, 4) == 1)
                 {
@@ -50,6 +50,9 @@ public sealed class Grid
                 }
                 else
                 {
+                    // Even when a wall entity is spawned here, the terrain under it is floor.
+                    // This ensures destroy/move restore can always fall back to '.' cleanly.
+                    _baseGrid[i] = ".";
                     GameState.Level0.World.Create(
                         new Position(i % GridWidth, i / GridWidth),
                         new Glyph('#', "[red]"),
@@ -153,6 +156,7 @@ public sealed class Grid
         }
 
         int idx = y * GridWidth + x;
-        _grid[idx] = _baseGrid[idx];
+        // Fallback protects against accidental null base tiles, preventing broken render cells.
+        _grid[idx] = _baseGrid[idx] ?? ".";
     }
 }

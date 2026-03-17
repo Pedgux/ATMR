@@ -15,6 +15,9 @@ public static class InputSystem
     public static void Run(World world, Dictionary<int, ConsoleKeyInfo> inputs)
     {
         string players = "";
+        // Collect dig operations first, then execute after query iteration.
+        // This avoids structural world changes (destroy) while iterating entities.
+        var digRequests = new List<DigRequest>();
         var query = new QueryDescription().WithAll<Player, Velocity, Teleport, Position>();
         world.Query(
             in query,
@@ -31,6 +34,30 @@ public static class InputSystem
                     if (player.ID == kvp.Key)
                     {
                         players += player.ID + ", ";
+
+                        if (
+                            InputHelper.TryParseDirectionalAction(
+                                kvp.Value,
+                                out var action,
+                                out var directionActionInfo
+                            )
+                            && action == 'D'
+                        )
+                        {
+                            // Directional dig input reached ECS as a resolved action.
+                            if (
+                                TryCreateDigRequest(
+                                    entity,
+                                    position,
+                                    directionActionInfo,
+                                    out var request
+                                )
+                            )
+                            {
+                                digRequests.Add(request);
+                            }
+                            continue;
+                        }
 
                         if (kvp.Value.Key == ConsoleKey.T)
                         {
@@ -61,6 +88,82 @@ public static class InputSystem
                 }
             }
         );
+
+        foreach (var request in digRequests)
+        {
+            // Apply queued dig requests after all input parsing is done.
+            ExecuteDig(world, request.Digger, request.TargetX, request.TargetY);
+        }
+
         //Log.Write($"Processed players: {players}");
     }
+
+    private static bool TryCreateDigRequest(
+        Entity digger,
+        Position diggerPosition,
+        string directionInfo,
+        out DigRequest request
+    )
+    {
+        request = default;
+
+        if (!InputHelper.TryGetDirectionOffset(directionInfo, out int dx, out int dy))
+        {
+            return false;
+        }
+
+        // Convert direction into one adjacent target tile.
+        int targetX = diggerPosition.X + dx;
+        int targetY = diggerPosition.Y + dy;
+
+        request = new DigRequest(digger, targetX, targetY);
+        return true;
+    }
+
+    private static void ExecuteDig(World world, Entity digger, int targetX, int targetY)
+    {
+        bool foundTarget = false;
+        Position targetPosition = default;
+        Entity targetEntity = default;
+
+        var targets = new QueryDescription().WithAll<Position>();
+        world.Query(
+            in targets,
+            (Entity candidate, ref Position candidatePosition) =>
+            {
+                if (foundTarget || candidate == digger)
+                {
+                    return;
+                }
+
+                if (candidatePosition.X != targetX || candidatePosition.Y != targetY)
+                {
+                    return;
+                }
+
+                // For now: first matching entity in the tile is the dig target.
+                foundTarget = true;
+                targetEntity = candidate;
+                targetPosition = candidatePosition;
+            }
+        );
+
+        if (!foundTarget)
+        {
+            return;
+        }
+
+        if (world.Has<Position, Solid>(targetEntity))
+        {
+            // Keep occupancy index in sync before destroying a solid entity.
+            GameState.SolidOccupancy.UnregisterSolid(targetEntity);
+        }
+
+        // Reveal underlying terrain tile and then remove the entity.
+        GameState.GridWindow.RestoreBaseTile(targetPosition.X, targetPosition.Y);
+        world.Destroy(targetEntity);
+    }
+
+    // Lightweight queued dig command for deferred execution.
+    private readonly record struct DigRequest(Entity Digger, int TargetX, int TargetY);
 }

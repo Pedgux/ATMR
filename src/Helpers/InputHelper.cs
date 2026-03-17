@@ -150,4 +150,87 @@ public static class InputHelper
 
         return '\0';
     }
+
+    public static bool TryGetDirectionActionInfo(ConsoleKeyInfo keyInfo, out string actionInfo)
+    {
+        // Reuse the normal movement mapping so directional actions follow the active preset.
+        actionInfo = GetActionInfoWithKey(keyInfo);
+        return IsDirectionalActionInfo(actionInfo);
+    }
+
+    public static bool IsDirectionalActionInfo(string actionInfo)
+    {
+        // Directional actions only accept actual movement directions (no "5" wait).
+        return actionInfo is "1" or "2" or "3" or "4" or "6" or "7" or "8" or "9";
+    }
+
+    public static bool TryGetDirectionOffset(string actionInfo, out int dx, out int dy)
+    {
+        // Converts numpad-like direction codes into world offsets.
+        (dx, dy) = actionInfo switch
+        {
+            "4" => (-1, 0),
+            "2" => (0, 1),
+            "8" => (0, -1),
+            "6" => (1, 0),
+            "7" => (-1, -1),
+            "9" => (1, -1),
+            "1" => (-1, 1),
+            "3" => (1, 1),
+            _ => (0, 0),
+        };
+
+        return !(dx == 0 && dy == 0);
+    }
+
+    public static ConsoleKeyInfo CreateDirectionalActionKey(char action, string directionActionInfo)
+    {
+        if (!IsDirectionalActionInfo(directionActionInfo))
+        {
+            throw new ArgumentException("Direction input must be one of 1,2,3,4,6,7,8,9");
+        }
+
+        // Encode resolved directional actions as synthetic ConsoleKeyInfo values so they can
+        // travel through the same input/tick pipeline as normal movement inputs.
+        // We use Key=F plus Alt=true as an internal marker for directional action packets.
+        return new ConsoleKeyInfo(
+            directionActionInfo[0],
+            ConsoleKey.F,
+            false,
+            action == 'D',
+            false
+        );
+    }
+
+    public static bool TryParseDirectionalAction(
+        ConsoleKeyInfo keyInfo,
+        out char action,
+        out string directionActionInfo
+    )
+    {
+        directionActionInfo = string.Empty;
+        action = '\0';
+
+        // Only synthetic directional actions should match this parser.
+        // Real keyboard F presses are handled earlier in Input.RunConsumer.
+        if (keyInfo.Key != ConsoleKey.F)
+        {
+            return false;
+        }
+
+        if (keyInfo.KeyChar is < '1' or > '9')
+        {
+            return false;
+        }
+
+        directionActionInfo = keyInfo.KeyChar.ToString();
+        if (!IsDirectionalActionInfo(directionActionInfo))
+        {
+            return false;
+        }
+
+        // Alt=true marks the synthetic "resolved dig action" payload.
+        action = (keyInfo.Modifiers & ConsoleModifiers.Alt) != 0 ? 'D' : '\0';
+        return action != '\0';
+    }
 }
