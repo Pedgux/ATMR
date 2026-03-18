@@ -10,6 +10,8 @@ Inspired by Nathan Daniels' paper: [Roguelike Theory of Relativity (RTOR) ](docs
 Built with Spectre.Console for console UI and rendering: https://spectreconsole.net/  
 Uses Arch as it's ECS: https://github.com/genaray/Arch 
 
+Trello page (roadmap / what is being worked on): https://trello.com/b/mGoWnU28/atmr 
+
 
 This is a personal project, which I hope to bring to light someday. 
 
