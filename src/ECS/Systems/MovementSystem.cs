@@ -27,7 +27,7 @@ public static class MovementSystem
                 bool isSolid = world.Has<Position, Solid>(entity);
                 bool canMove = CollisionSystem.IsBlocked(nextX, nextY);
 
-                if (!canMove)
+                if (canMove)
                 {
                     vel.X = 0;
                     vel.Y = 0;

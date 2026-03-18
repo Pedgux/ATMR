@@ -4,6 +4,7 @@ using Arch.Core;
 using ATMR.Components;
 using ATMR.Game;
 using ATMR.Helpers;
+using ATMR.Systems;
 using Spectre.Console;
 
 /// <summary>
@@ -40,6 +41,7 @@ public sealed class Grid
 
         _baseGrid = new string[GridWidth * GridHeight];
         _grid = new string[GridWidth * GridHeight];
+        CollisionSystem.Initialize(GridWidth, GridHeight);
         for (int i = 0; i < _grid.Length; i++)
         {
             if (GridRng.Range(1, 100) < 60)

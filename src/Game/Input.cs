@@ -296,7 +296,7 @@ public static class Input
 
         bool isBlocked = CollisionSystem.IsBlocked(targetX, targetY);
 
-        return isBlocked;
+        return !isBlocked;
     }
 
     public static async Task ReceiveInput(string bigMessage)

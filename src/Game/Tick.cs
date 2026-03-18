@@ -49,6 +49,7 @@ public class Tick
 
         var tick = new Tick(tickNumber);
         InputSystem.Run(level.World, input);
+        CollisionSystem.Run(level.World);
         MovementSystem.Run(level.World);
         FollowSystem.Run(level.World);
         if (!rb)
