@@ -25,9 +25,13 @@ public static class MovementSystem
                 int nextY = pos.Y + vel.Y;
 
                 bool isSolid = world.Has<Position, Solid>(entity);
-                bool canMove = CollisionSystem.IsBlocked(nextX, nextY);
+                bool canMove;
+                if (isSolid)
+                    canMove = CollisionSystem.TryMoveSolid(entity, pos.X, pos.Y, nextX, nextY);
+                else
+                    canMove = !CollisionSystem.IsBlocked(nextX, nextY);
 
-                if (canMove)
+                if (!canMove)
                 {
                     vel.X = 0;
                     vel.Y = 0;
@@ -54,7 +58,9 @@ public static class MovementSystem
                     return;
 
                 bool isSolid = world.Has<Position, Solid>(entity);
-                bool canTeleport = !CollisionSystem.IsBlocked(tp.X, tp.Y);
+                bool canTeleport = isSolid
+                    ? CollisionSystem.TryMoveSolid(entity, pos.X, pos.Y, tp.X, tp.Y)
+                    : !CollisionSystem.IsBlocked(tp.X, tp.Y);
 
                 if (!canTeleport)
                 {

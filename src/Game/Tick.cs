@@ -52,7 +52,6 @@ public class Tick
         CollisionSystem.Run(level.World);
         MovementSystem.Run(level.World);
         FollowSystem.Run(level.World);
-        CollisionSystem.Run(level.World);
         if (!rb)
         {
             RenderSystem.Run(level.World);

@@ -42,6 +42,41 @@ public static class CollisionSystem
         return _occupancy[ToIndex(x, y)] != default;
     }
 
+    public static bool TryMoveSolid(Entity entity, int fromX, int fromY, int toX, int toY)
+    {
+        // jos ei ole tehty tai ouf of bounds niin false tietysti
+        if (!IsInitialized || !InBounds(fromX, fromY) || !InBounds(toX, toY))
+        {
+            return false;
+        }
+
+        // tästä tuonne indexit
+        int fromIndex = ToIndex(fromX, fromY);
+        int toIndex = ToIndex(toX, toY);
+
+        // jos liikkuu samaan kohtaan jossa on jo, niin saa. (key 5 wait toimii myös)
+        if (fromIndex == toIndex)
+        {
+            return true;
+        }
+
+        // tänne pyritään (CollisionSystem arrayssa)
+        var destination = _occupancy[toIndex];
+        // jos siihen yrittää päästä joku muu, ei itse pääse
+        if (destination != default && destination != entity)
+        {
+            return false;
+        }
+        // korjaa edellisen ruudun tyhjäksi
+        if (_occupancy[fromIndex] == entity)
+        {
+            _occupancy[fromIndex] = default;
+        }
+        // ASETTAA sen
+        _occupancy[toIndex] = entity;
+        return true;
+    }
+
     private static bool InBounds(int x, int y)
     {
         return x >= 0 && y >= 0 && x < _width && y < _height;
