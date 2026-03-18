@@ -18,8 +18,13 @@ public record struct Player(int Id);
 
 public record struct Health(int Amount, int MaxAmount);
 
-public record struct Solid(); //tag
+//tag
+public record struct Solid();
 
+//tag on things that need to bedestroyed properly
+public record struct Destroy();
+
+//makes an entity follow another assuming both have position
 public record struct FollowsEntity(Entity Target);
 
 public record struct Camera()
@@ -32,7 +37,7 @@ public record struct Camera()
     public Camera(int width, int height)
         : this()
     {
-        // calculate halfs
+        // calculate halfs. First is rounded half, other is the rest
         FirstWidthHalf = (int)Math.Floor(width / 2.0);
         SecondWidthHalf = width - FirstWidthHalf;
 
