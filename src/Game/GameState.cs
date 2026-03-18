@@ -23,7 +23,6 @@ public static class GameState
     public static UI.UI Ui { get; set; } = null!;
     public static UI.Stats StatsWindow { get; set; } = null!;
     public static UI.Grid GridWindow { get; set; } = null!;
-    public static SolidOccupancyIndex SolidOccupancy { get; } = new();
 
     // storage
     public static Dictionary<int, World> WorldStorage = new();

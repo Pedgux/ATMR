@@ -156,7 +156,7 @@ public static class InputSystem
         if (world.Has<Position, Solid>(targetEntity))
         {
             // Keep occupancy index in sync before destroying a solid entity.
-            GameState.SolidOccupancy.UnregisterSolid(targetEntity);
+            //GameState.SolidOccupancy.UnregisterSolid(targetEntity);
         }
 
         // Reveal underlying terrain tile and then remove the entity.

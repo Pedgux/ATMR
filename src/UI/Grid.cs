@@ -109,7 +109,6 @@ public sealed class Grid
                     {
                         top -= position.Y + camera.secondHeightHalf - GridHeight;
                     }
-
                     if (left == 0)
                     {
                         right += (position.X - camera.firstWidthHalf) * -1;
