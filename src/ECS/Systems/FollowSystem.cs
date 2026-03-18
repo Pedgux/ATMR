@@ -1,6 +1,5 @@
 using Arch.Core;
 using ATMR.Components;
-using ATMR.Game;
 
 namespace ATMR.Systems;
 
