@@ -9,6 +9,7 @@ using ATMR.Components;
 using ATMR.Game;
 using ATMR.Helpers;
 using ATMR.Networking;
+using ATMR.Systems;
 using ATMR.Tick;
 
 public static class Input
@@ -293,8 +294,9 @@ public static class Input
         int targetX = localPos.X + dx;
         int targetY = localPos.Y + dy;
 
-        GameState.SolidOccupancy.EnsureInitialized(world, GameState.GridWindow.GridWidth);
-        return !GameState.SolidOccupancy.IsOccupied(targetX, targetY);
+        bool isBlocked = CollisionSystem.IsBlocked(targetX, targetY);
+
+        return isBlocked;
     }
 
     public static async Task ReceiveInput(string bigMessage)

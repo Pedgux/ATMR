@@ -13,7 +13,6 @@ public static class MovementSystem
     {
         var movables = new QueryDescription().WithAll<Position, Velocity>();
         var teleportables = new QueryDescription().WithAll<Position, Teleport>();
-        GameState.SolidOccupancy.EnsureInitialized(world, GameState.GridWindow.GridWidth);
 
         world.Query(
             in movables,
@@ -26,9 +25,7 @@ public static class MovementSystem
                 int nextY = pos.Y + vel.Y;
 
                 bool isSolid = world.Has<Position, Solid>(entity);
-                bool canMove = isSolid
-                    ? GameState.SolidOccupancy.TryMoveSolid(entity, pos.X, pos.Y, nextX, nextY)
-                    : !GameState.SolidOccupancy.IsOccupied(nextX, nextY);
+                bool canMove = CollisionSystem.IsBlocked(nextX, nextY);
 
                 if (!canMove)
                 {
@@ -57,9 +54,7 @@ public static class MovementSystem
                     return;
 
                 bool isSolid = world.Has<Position, Solid>(entity);
-                bool canTeleport = isSolid
-                    ? GameState.SolidOccupancy.TryMoveSolid(entity, pos.X, pos.Y, tp.X, tp.Y)
-                    : !GameState.SolidOccupancy.IsOccupied(tp.X, tp.Y);
+                bool canTeleport = !CollisionSystem.IsBlocked(tp.X, tp.Y);
 
                 if (!canTeleport)
                 {

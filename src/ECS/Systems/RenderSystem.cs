@@ -21,8 +21,6 @@ public static class RenderSystem
                 GameState.GridWindow.SetGridCell(position.X, position.Y, renderable);
             }
         );
-
-        // piirrä pelaajat lopuksi
         world.Query(
             in playerQuery,
             (Entity entity, ref Position position, ref Glyph glyph, ref Player player) =>
