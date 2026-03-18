@@ -198,9 +198,7 @@ public static class UdpTransport
                     }
                     catch (Exception ex)
                     {
-                        Log.Write(
-                            $"KeepAlive send error to {peer}: {ex.Message}"
-                        );
+                        Log.Write($"KeepAlive send error to {peer}: {ex.Message}");
                     }
                 }
             }
