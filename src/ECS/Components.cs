@@ -14,33 +14,33 @@ public record struct Velocity(int X, int Y);
 
 public record struct Teleport(int X, int Y);
 
-public record struct Player(int ID);
+public record struct Player(int Id);
 
-public record struct Solid();
+public record struct Health(int Amount, int MaxAmount);
 
-// Marks an entity as following another entity's Position.
-// Each tick, a system copies the target's Position onto this entity.
+public record struct Solid(); //tag
+
 public record struct FollowsEntity(Entity Target);
 
 public record struct Camera()
 {
-    public int firstWidthHalf { get; set; }
-    public int secondWidthHalf { get; set; }
-    public int firstHeightHalf { get; set; }
-    public int secondHeightHalf { get; set; }
+    public int FirstWidthHalf { get; set; }
+    public int SecondWidthHalf { get; set; }
+    public int FirstHeightHalf { get; set; }
+    public int SecondHeightHalf { get; set; }
 
-    public Camera(int Width, int Height)
+    public Camera(int width, int height)
         : this()
     {
         // calculate halfs
-        firstWidthHalf = (int)Math.Floor(Width / 2.0);
-        secondWidthHalf = Width - firstWidthHalf;
+        FirstWidthHalf = (int)Math.Floor(width / 2.0);
+        SecondWidthHalf = width - FirstWidthHalf;
 
-        firstHeightHalf = (int)Math.Floor(Height / 2.0);
-        secondHeightHalf = Height - firstHeightHalf;
+        FirstHeightHalf = (int)Math.Floor(height / 2.0);
+        SecondHeightHalf = height - FirstHeightHalf;
 
-        Log.Write($"Left {firstWidthHalf}, Right {secondWidthHalf}");
-        Log.Write($"Top {firstHeightHalf}, Bottom {secondHeightHalf}");
-        Log.Write($"Width oikee {Width}, Height oikee {Height}");
+        Log.Write($"Left {FirstWidthHalf}, Right {SecondWidthHalf}");
+        Log.Write($"Top {FirstHeightHalf}, Bottom {SecondHeightHalf}");
+        Log.Write($"Width oikee {width}, Height oikee {height}");
     }
 }
