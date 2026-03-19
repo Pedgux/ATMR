@@ -17,7 +17,6 @@ public static class HealthSystem
             {
                 if (health.Amount <= 0)
                 {
-                    Log.Write(" heltti meni alle, o ou");
                     entity.Add(new Destroy());
                 }
             }

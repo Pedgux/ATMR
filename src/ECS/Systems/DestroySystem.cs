@@ -11,7 +11,6 @@ public static class DestroySystem
     public static void Run(World world)
     {
         var deletables = new QueryDescription().WithAll<Destroy, Position>();
-        Log.Write($" NO NYT AINAKIN KUOLEE {deletables}");
         world.Query(
             in deletables,
             (Entity entity, ref Position pos) =>

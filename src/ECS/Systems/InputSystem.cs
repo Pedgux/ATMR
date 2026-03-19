@@ -121,8 +121,6 @@ public static class InputSystem
             {
                 if (position.X == targetX && position.Y == targetY)
                 {
-                    Log.Write($"{position}  x: {targetX}  y: {targetY}");
-                    Log.Write("AAAAAAAAAAAAAAAAAAAAA");
                     health.Amount -= 2;
                 }
             }
