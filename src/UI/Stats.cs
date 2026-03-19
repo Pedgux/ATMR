@@ -6,6 +6,7 @@ using ATMR.Components;
 using ATMR.Game;
 using ATMR.Networking;
 using Spectre.Console;
+using Spectre.Console.Cli.Help;
 
 /// <summary>
 /// I wonder what.
@@ -48,12 +49,20 @@ public sealed class Stats
             {
                 playerPositionText = world.Get<Position>(GameState.LocalPlayer).ToString();
             }
-
+            var health = world.Get<Health>(GameState.LocalPlayer);
+            var hp = new BreakdownChart()
+                .ShowTags(false)
+                .AddItem("HP", Math.Max(0, health.Amount), Color.Green)
+                .AddItem(string.Empty, Math.Max(0, health.MaxAmount - health.Amount), Color.Grey);
             List<long> tempList = GameState.PingList;
             tempList.Sort();
             var panel = new Panel(
-                new Markup(
-                    $"Median ping: {tempList[10]} ms       Local tick: {GameState.TickNumber}       Player number: {Lobby.PlayerNumber}      Player {playerPositionText}"
+                new Rows(
+                    new Markup($"[green]HP: {health.Amount}[/]"),
+                    hp,
+                    new Markup(
+                        $"Median ping: {tempList[10]} ms       Local tick: {GameState.TickNumber}       Player number: {Lobby.PlayerNumber}      Player {playerPositionText}"
+                    )
                 )
             )
             {
