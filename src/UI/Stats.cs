@@ -1,6 +1,7 @@
 namespace ATMR.UI;
 
 using System.Collections.Generic;
+using Arch.Core.Extensions;
 using ATMR.Components;
 using ATMR.Game;
 using ATMR.Networking;
@@ -40,14 +41,19 @@ public sealed class Stats
     {
         if (GameState.PingList.Count > 10)
         {
-            ref var playerPosition = ref GameState.Level0.World.Get<Position>(
-                GameState.LocalPlayer
-            );
+            var world = GameState.Level0.World;
+            string playerPositionText = "dead";
+
+            if (GameState.LocalPlayer.IsAlive() && world.Has<Position>(GameState.LocalPlayer))
+            {
+                playerPositionText = world.Get<Position>(GameState.LocalPlayer).ToString();
+            }
+
             List<long> tempList = GameState.PingList;
             tempList.Sort();
             var panel = new Panel(
                 new Markup(
-                    $"Median ping: {tempList[10]} ms       Local tick: {GameState.TickNumber}       Player number: {Lobby.PlayerNumber}      Player {playerPosition}"
+                    $"Median ping: {tempList[10]} ms       Local tick: {GameState.TickNumber}       Player number: {Lobby.PlayerNumber}      Player {playerPositionText}"
                 )
             )
             {
