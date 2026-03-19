@@ -45,14 +45,7 @@ public static class InputSystem
                         )
                         {
                             // Directional dig input reached ECS as a resolved action.
-                            if (
-                                TryCreateDigRequest(
-                                    entity,
-                                    position,
-                                    directionActionInfo,
-                                    out var request
-                                )
-                            )
+                            if (TryCreateDigRequest(position, directionActionInfo, out var request))
                             {
                                 digRequests.Add(request);
                             }
@@ -92,14 +85,13 @@ public static class InputSystem
         foreach (var request in digRequests)
         {
             // Apply queued dig requests after all input parsing is done.
-            ExecuteDig(world, request.Digger, request.TargetX, request.TargetY);
+            ExecuteDig(world, request.TargetX, request.TargetY);
         }
 
         //Log.Write($"Processed players: {players}");
     }
 
     private static bool TryCreateDigRequest(
-        Entity digger,
         Position diggerPosition,
         string directionInfo,
         out DigRequest request
@@ -116,34 +108,27 @@ public static class InputSystem
         int targetX = diggerPosition.X + dx;
         int targetY = diggerPosition.Y + dy;
 
-        request = new DigRequest(digger, targetX, targetY);
+        request = new DigRequest(targetX, targetY);
         return true;
     }
 
-    private static void ExecuteDig(World world, Entity digger, int targetX, int targetY)
+    private static void ExecuteDig(World world, int targetX, int targetY)
     {
-        bool foundTarget = false;
-        Position targetPosition = default;
-        Entity targetEntity = default;
-
-        var targets = new QueryDescription().WithAll<Position>();
-        world.Query(in targets, (Entity entity, ref Position position) => { });
-
-        if (!foundTarget)
-        {
-            return;
-        }
-
-        if (world.Has<Position, Solid>(targetEntity))
-        {
-            // Keep occupancy index in sync before destroying a solid entity.
-            //GameState.SolidOccupancy.UnregisterSolid(targetEntity);
-        }
-
-        // Reveal underlying terrain tile and then remove the entity.
-        GameState.GridWindow.RestoreBaseTile(targetPosition.X, targetPosition.Y);
+        var targets = new QueryDescription().WithAll<Position, Health>();
+        world.Query(
+            in targets,
+            (Entity entity, ref Position position, ref Health health) =>
+            {
+                if (position.X == targetX && position.Y == targetY)
+                {
+                    Log.Write($"{position}  x: {targetX}  y: {targetY}");
+                    Log.Write("AAAAAAAAAAAAAAAAAAAAA");
+                    health.Amount -= 2;
+                }
+            }
+        );
     }
 
     // Lightweight queued dig command for deferred execution.
-    private readonly record struct DigRequest(Entity Digger, int TargetX, int TargetY);
+    private readonly record struct DigRequest(int TargetX, int TargetY);
 }
