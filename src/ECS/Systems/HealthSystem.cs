@@ -1,6 +1,7 @@
 using Arch.Core;
 using Arch.Core.Extensions;
 using ATMR.Components;
+using ATMR.Helpers;
 
 namespace ATMR.Systems;
 
@@ -14,8 +15,9 @@ public static class HealthSystem
             in query,
             (Entity entity, ref Health health) =>
             {
-                if (health.Amount < 0)
+                if (health.Amount <= 0)
                 {
+                    Log.Write(" heltti meni alle, o ou");
                     entity.Add(new Destroy());
                 }
             }
