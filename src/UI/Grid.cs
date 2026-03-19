@@ -97,27 +97,27 @@ public sealed class Grid
                 in query,
                 (Entity entity, ref Camera camera, ref Position position) =>
                 {
-                    int top = Math.Clamp(position.Y - camera.firstHeightHalf, 0, GridHeight);
-                    int bottom = Math.Clamp(position.Y + camera.secondHeightHalf, 0, GridHeight);
-                    int left = Math.Clamp(position.X - camera.firstWidthHalf, 0, GridWidth);
-                    int right = Math.Clamp(position.X + camera.secondWidthHalf, 0, GridWidth);
+                    int top = Math.Clamp(position.Y - camera.FirstHeightHalf, 0, GridHeight);
+                    int bottom = Math.Clamp(position.Y + camera.SecondHeightHalf, 0, GridHeight);
+                    int left = Math.Clamp(position.X - camera.FirstWidthHalf, 0, GridWidth);
+                    int right = Math.Clamp(position.X + camera.SecondWidthHalf, 0, GridWidth);
 
                     //ööh fix
                     if (top == 0)
                     {
-                        bottom += (position.Y - camera.firstHeightHalf) * -1;
+                        bottom += (position.Y - camera.FirstHeightHalf) * -1;
                     }
                     if (bottom == GridHeight)
                     {
-                        top -= position.Y + camera.secondHeightHalf - GridHeight;
+                        top -= position.Y + camera.SecondHeightHalf - GridHeight;
                     }
                     if (left == 0)
                     {
-                        right += (position.X - camera.firstWidthHalf) * -1;
+                        right += (position.X - camera.FirstWidthHalf) * -1;
                     }
                     if (right == GridWidth)
                     {
-                        left -= position.X + camera.secondWidthHalf - GridWidth;
+                        left -= position.X + camera.SecondWidthHalf - GridWidth;
                     }
 
                     for (int i = top; i < bottom; i++)

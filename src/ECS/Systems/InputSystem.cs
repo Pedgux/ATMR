@@ -31,9 +31,9 @@ public static class InputSystem
             {
                 foreach (var kvp in inputs)
                 {
-                    if (player.ID == kvp.Key)
+                    if (player.Id == kvp.Key)
                     {
-                        players += player.ID + ", ";
+                        players += player.Id + ", ";
 
                         if (
                             InputHelper.TryParseDirectionalAction(
