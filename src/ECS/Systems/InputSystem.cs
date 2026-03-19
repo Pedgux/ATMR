@@ -127,26 +127,7 @@ public static class InputSystem
         Entity targetEntity = default;
 
         var targets = new QueryDescription().WithAll<Position>();
-        world.Query(
-            in targets,
-            (Entity candidate, ref Position candidatePosition) =>
-            {
-                if (foundTarget || candidate == digger)
-                {
-                    return;
-                }
-
-                if (candidatePosition.X != targetX || candidatePosition.Y != targetY)
-                {
-                    return;
-                }
-
-                // For now: first matching entity in the tile is the dig target.
-                foundTarget = true;
-                targetEntity = candidate;
-                targetPosition = candidatePosition;
-            }
-        );
+        world.Query(in targets, (Entity entity, ref Position position) => { });
 
         if (!foundTarget)
         {
@@ -161,7 +142,6 @@ public static class InputSystem
 
         // Reveal underlying terrain tile and then remove the entity.
         GameState.GridWindow.RestoreBaseTile(targetPosition.X, targetPosition.Y);
-        world.Destroy(targetEntity);
     }
 
     // Lightweight queued dig command for deferred execution.
