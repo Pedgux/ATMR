@@ -38,7 +38,7 @@ public class Tick
         Dictionary<int, ConsoleKeyInfo> input,
         Level level,
         int tickNumber,
-        bool rb
+        bool rollBack
     )
     {
         if (GameState.WorldStorage.TryGetValue(tickNumber, out var oldSnapshot))
@@ -51,8 +51,10 @@ public class Tick
         InputSystem.Run(level.World, input);
         CollisionSystem.Run(level.World);
         MovementSystem.Run(level.World);
+        HealthSystem.Run(level.World);
         FollowSystem.Run(level.World);
-        if (!rb)
+        DestroySystem.Run(level.World);
+        if (!rollBack)
         {
             RenderSystem.Run(level.World);
         }
