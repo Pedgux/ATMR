@@ -2,6 +2,7 @@ using System;
 using Arch.Core;
 using ATMR.Components;
 using ATMR.Game;
+using ATMR.Helpers;
 
 namespace ATMR.Systems;
 
@@ -85,6 +86,17 @@ public static class CollisionSystem
     private static int ToIndex(int x, int y)
     {
         return y * _width + x;
+    }
+
+    public static void RemoveOccupancy(int x, int y)
+    {
+        Log.Write("thotaan tuhotaan tuhotaan tuhotaan");
+        if (!IsInitialized || !InBounds(x, y))
+        {
+            return;
+        }
+
+        _occupancy[ToIndex(x, y)] = default;
     }
 
     public static void Run(World world)
