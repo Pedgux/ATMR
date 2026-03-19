@@ -21,7 +21,7 @@ public record struct Health(int Amount, int MaxAmount);
 //tag
 public record struct Solid();
 
-//tag on things that need to bedestroyed properly
+//tag on things that need to be destroyed properly
 public record struct Destroy();
 
 //makes an entity follow another assuming both have position
