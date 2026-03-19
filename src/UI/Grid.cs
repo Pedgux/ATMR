@@ -58,7 +58,8 @@ public sealed class Grid
                     GameState.Level0.World.Create(
                         new Position(i % GridWidth, i / GridWidth),
                         new Glyph('#', "[red]"),
-                        new Solid()
+                        new Solid(),
+                        new Health(3, 3)
                     );
                 }
             }
