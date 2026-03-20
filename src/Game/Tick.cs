@@ -46,13 +46,15 @@ public class Tick
             World.Destroy(oldSnapshot);
         }
         GameState.WorldStorage[tickNumber] = GameState.Level0.GetSnapshot();
-
+        // ööö wth is this
         var tick = new Tick(tickNumber);
+        // NÄÄSILÄLTÄ MORO
         InputSystem.Run(level.World, input);
+
         CollisionSystem.Run(level.World);
         MovementSystem.Run(level.World);
-        HealthSystem.Run(level.World);
         FollowSystem.Run(level.World);
+        HealthSystem.Run(level.World);
         DestroySystem.Run(level.World);
         if (!rollBack)
         {
