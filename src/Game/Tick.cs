@@ -48,7 +48,7 @@ public class Tick
         GameState.WorldStorage[tickNumber] = GameState.Level0.GetSnapshot();
         // ööö wth is this
         var tick = new Tick(tickNumber);
-        // NÄÄSILÄLTÄ MORO
+
         InputSystem.Run(level.World, input);
 
         CollisionSystem.Run(level.World);
@@ -65,3 +65,4 @@ public class Tick
         // miau miau miu mau
     }
 }
+// NÄÄSILÄLTÄ MORO
