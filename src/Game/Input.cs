@@ -137,13 +137,9 @@ public static class Input
 
             try
             {
+                GameState.TickNumber++;
                 // Advance the game by one tick with the snapshot of inputs.
-                await Tick.CreateAsync(
-                    inputs,
-                    GameState.Level0,
-                    0, /*change the 0 later to the actual tick number, when tick storage exists*/
-                    false
-                );
+                await Tick.CreateAsync(inputs, GameState.Level0, GameState.TickNumber, false);
 
                 // Rate-limit ticks to smooth out OS keyboard repeat floods.
                 var elapsed = DateTime.UtcNow - LastTickTime;
@@ -502,7 +498,13 @@ public static class Input
             }
             try
             {
-                var playerId = Lobby.PlayerNumber;
+                var playerId = string.Equals(
+                    GameState.Mode,
+                    "singleplayer",
+                    StringComparison.OrdinalIgnoreCase
+                )
+                    ? 1
+                    : Lobby.PlayerNumber;
                 var tickNumber = GameState.TickNumber;
                 var action = 'M';
                 ConsoleKeyInfo storedKeyInfo = keyInfo;
@@ -583,6 +585,21 @@ public static class Input
 
                     await UdpTransport.SendMessage(message);
                 }
+                else if (
+                    string.Equals(
+                        GameState.Mode,
+                        "singleplayer",
+                        StringComparison.OrdinalIgnoreCase
+                    )
+                )
+                {
+                    await InputEvents.Writer.WriteAsync(
+                        (playerId, storedKeyInfo, tickNumber),
+                        token
+                    );
+                    continue; // Skip the multiplayer rollback logic below since singleplayer pump handles its own execution
+                }
+
                 // Always feed local input into the authoritative pipeline.
                 bool needsLocalRollback = false;
                 int localRollbackFrom = 0;

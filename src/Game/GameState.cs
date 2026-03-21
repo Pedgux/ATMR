@@ -83,15 +83,18 @@ public static class GameState
         {
             if (Lobby.PlayerNumber != 0 || Mode == "singleplayer")
             {
-                for (int i = 0; i < Lobby.PlayerAmount; i++)
+                int playerCount = Mode == "singleplayer" ? 1 : Lobby.PlayerAmount;
+                int playerNum = Mode == "singleplayer" ? 1 : Lobby.PlayerNumber;
+
+                for (int i = 0; i < playerCount; i++)
                 {
-                    if (i + 1 == Lobby.PlayerNumber)
+                    if (i + 1 == playerNum)
                     {
                         // Create the local player here so Lobby.PlayerNumber is correct
                         LocalPlayer = Level0.World.Create(
                             new Position(4, 8),
                             new Glyph('@', "[white]"),
-                            new Player(Lobby.PlayerNumber),
+                            new Player(playerNum),
                             new Velocity(0, 0),
                             new Teleport(0, 0),
                             new Health(10, 10),

@@ -203,6 +203,9 @@ public static class Program
         );
         // testing grounds, level stuff. ISO ALKU toinen osa
         GameState.InitPlayers();
+        // Update the camera to follow the local player and render the initial state
+        ATMR.Systems.FollowSystem.Run(GameState.Level0.World);
+        ATMR.Systems.RenderSystem.Run(GameState.Level0.World);
 
         // keep app alive until cancellation (e.g. ctrl-c or other signal)
         await Task.Delay(Timeout.Infinite, cts.Token);
