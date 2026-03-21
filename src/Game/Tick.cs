@@ -50,12 +50,13 @@ public class Tick
         var tick = new Tick(tickNumber);
 
         InputSystem.Run(level.World, input);
-
+        // joskus se incrementtijuttu (et voi interruptaa)
         CollisionSystem.Run(level.World);
         MovementSystem.Run(level.World);
         FollowSystem.Run(level.World);
         HealthSystem.Run(level.World);
         DestroySystem.Run(level.World);
+
         if (!rollBack)
         {
             RenderSystem.Run(level.World);
