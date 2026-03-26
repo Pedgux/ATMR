@@ -125,6 +125,9 @@ public static class GameState
                     }
                 }
 
+                // tekee wordliin rngn, joka sit rollbackataan (world.copy)
+                Level0.World.Create(new RngState((uint)Hasher.Hash(Program.runSeed + 234)));
+
                 // Example blocker so solid collision can be verified in-game.
                 Level0.World.Create(new Position(8, 8), new Glyph('#', "[red]"), new Solid());
                 break;

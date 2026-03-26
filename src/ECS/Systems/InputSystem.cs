@@ -7,13 +7,15 @@ namespace ATMR.Systems;
 
 public static class InputSystem
 {
-    private static DeterministicRng MoveRng = new DeterministicRng(
-        Hasher.Hash(Program.runSeed + 234)
-    );
-
     // eli siis itse inputtien toiminnot.
     public static void Run(World world, Dictionary<int, ConsoleKeyInfo> inputs)
     {
+        // ota levelin deterministinen rngstate
+        var rngQuery = new QueryDescription().WithAll<RngState>();
+        uint currentRngState = 0;
+        world.Query(in rngQuery, (ref RngState state) => currentRngState = state.State);
+        var moveRng = new DeterministicRng(currentRngState);
+
         string players = "";
         // Collect dig operations first, then execute after query iteration.
         // This avoids structural world changes (destroy) while iterating entities.
@@ -55,8 +57,8 @@ public static class InputSystem
 
                         if (kvp.Value.Key == ConsoleKey.T)
                         {
-                            teleport.X = MoveRng.Range(1, GameState.GridWindow.GridWidth);
-                            teleport.Y = MoveRng.Range(1, GameState.GridWindow.GridHeight);
+                            teleport.X = moveRng.Range(1, GameState.GridWindow.GridWidth);
+                            teleport.Y = moveRng.Range(1, GameState.GridWindow.GridHeight);
                             GameState.TimeCounter += 3;
                             continue;
                         }
@@ -90,6 +92,9 @@ public static class InputSystem
             // Apply queued dig requests after all input parsing is done.
             ExecuteDig(world, request.TargetX, request.TargetY);
         }
+
+        // päivitä levelin rng
+        world.Query(in rngQuery, (ref RngState state) => state.State = moveRng.State);
 
         //Log.Write($"Processed players: {players}");
     }

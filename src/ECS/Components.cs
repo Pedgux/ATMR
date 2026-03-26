@@ -14,6 +14,9 @@ public record struct Velocity(int X, int Y);
 
 public record struct Teleport(int X, int Y);
 
+// stores the RNG state for deterministic multiplayer rollbacks
+public record struct RngState(uint State);
+
 public record struct Player(int Id);
 
 public record struct Health(int Amount, int MaxAmount);
