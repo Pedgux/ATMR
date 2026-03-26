@@ -13,6 +13,7 @@ public static class GameState
 {
     public static Entity Camera;
     public static int TickNumber = 0;
+    public static int TimeCounter = 0;
     public static string preset => Settings.Preset;
 
     // If set, local input is in a 2-step directional action flow (e.g. dig):

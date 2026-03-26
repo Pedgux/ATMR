@@ -49,6 +49,7 @@ public static class InputSystem
                             {
                                 digRequests.Add(request);
                             }
+                            GameState.TimeCounter += 20;
                             continue;
                         }
 
@@ -56,6 +57,7 @@ public static class InputSystem
                         {
                             teleport.X = MoveRng.Range(1, GameState.GridWindow.GridWidth);
                             teleport.Y = MoveRng.Range(1, GameState.GridWindow.GridHeight);
+                            GameState.TimeCounter += 3;
                             continue;
                         }
 
@@ -77,6 +79,7 @@ public static class InputSystem
                         };
                         velocity.X += dx;
                         velocity.Y += dy;
+                        GameState.TimeCounter += 10;
                     }
                 }
             }

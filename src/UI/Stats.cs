@@ -40,35 +40,38 @@ public sealed class Stats
     // update the panel, plz work
     public void RefreshPanel()
     {
-        if (GameState.PingList.Count > 10)
-        {
-            var world = GameState.Level0.World;
-            string playerPositionText = "dead";
+        var world = GameState.Level0.World;
+        string playerPositionText = "dead";
 
-            if (GameState.LocalPlayer.IsAlive() && world.Has<Position>(GameState.LocalPlayer))
-            {
-                playerPositionText = world.Get<Position>(GameState.LocalPlayer).ToString();
-            }
-            var health = world.Get<Health>(GameState.LocalPlayer);
-            var hp = new BreakdownChart()
-                .ShowTags(false)
-                .AddItem("HP", Math.Max(0, health.Amount), Color.Green)
-                .AddItem(string.Empty, Math.Max(0, health.MaxAmount - health.Amount), Color.Grey);
-            List<long> tempList = GameState.PingList;
+        if (GameState.LocalPlayer.IsAlive() && world.Has<Position>(GameState.LocalPlayer))
+        {
+            playerPositionText = world.Get<Position>(GameState.LocalPlayer).ToString();
+        }
+        var health = world.Get<Health>(GameState.LocalPlayer);
+        var hp = new BreakdownChart()
+            .ShowTags(false)
+            .AddItem("HP", Math.Max(0, health.Amount), Color.Green)
+            .AddItem(string.Empty, Math.Max(0, health.MaxAmount - health.Amount), Color.Grey);
+        long medianPing = 0;
+        if (GameState.PingList.Count > 0)
+        {
+            var tempList = new List<long>(GameState.PingList);
             tempList.Sort();
-            var panel = new Panel(
-                new Rows(
-                    new Markup($"[green]HP: {health.Amount}[/]"),
-                    hp,
-                    new Markup(
-                        $"Median ping: {tempList[10]} ms       Local tick: {GameState.TickNumber}       Player number: {Lobby.PlayerNumber}      Player {playerPositionText}"
-                    )
+            medianPing = tempList[tempList.Count / 2];
+        }
+
+        var panel = new Panel(
+            new Rows(
+                new Markup($"[green]HP: {health.Amount}[/]"),
+                hp,
+                new Markup(
+                    $"Median ping: {medianPing} ms       Local tick: {GameState.TickNumber}       Player number: {Lobby.PlayerNumber}      Player {playerPositionText}     Time:{GameState.TimeCounter}"
                 )
             )
-            {
-                Expand = true,
-            };
-            _statsWindow.Update(panel);
-        }
+        )
+        {
+            Expand = true,
+        };
+        _statsWindow.Update(panel);
     }
 }
