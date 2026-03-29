@@ -52,3 +52,11 @@ public record struct Camera()
         Log.Write($"Width oikee {width}, Height oikee {height}");
     }
 }
+
+// --- item ja inv ---
+public record struct Item(string Name, string Description);
+
+public record struct Stackable(int Count);
+
+// inv = list of entities
+public record struct Inventory(List<Entity> Items, int Capacity);
