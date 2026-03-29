@@ -40,18 +40,38 @@ public sealed class Stats
     // update the panel, plz work
     public void RefreshPanel()
     {
+        try
+        {
+            RefreshPanelInternal();
+        }
+        catch { }
+    }
+
+    private void RefreshPanelInternal()
+    {
         var world = GameState.Level0.World;
         string playerPositionText = "dead";
+
+        // Provide defaults in case the player is dead or transitioning
+        int currentHp = 0;
+        int maxHp = 10;
 
         if (GameState.LocalPlayer.IsAlive() && world.Has<Position>(GameState.LocalPlayer))
         {
             playerPositionText = world.Get<Position>(GameState.LocalPlayer).ToString();
         }
-        var health = world.Get<Health>(GameState.LocalPlayer);
+
+        if (GameState.LocalPlayer.IsAlive() && world.Has<Health>(GameState.LocalPlayer))
+        {
+            var health = world.Get<Health>(GameState.LocalPlayer);
+            currentHp = health.Amount;
+            maxHp = health.MaxAmount;
+        }
+
         var hp = new BreakdownChart()
             .ShowTags(false)
-            .AddItem("HP", Math.Max(0, health.Amount), Color.Green)
-            .AddItem(string.Empty, Math.Max(0, health.MaxAmount - health.Amount), Color.Grey);
+            .AddItem("HP", Math.Max(0, currentHp), Color.Green)
+            .AddItem(string.Empty, Math.Max(0, maxHp - currentHp), Color.Grey);
         long medianPing = 0;
         if (GameState.PingList.Count > 0)
         {
@@ -62,7 +82,7 @@ public sealed class Stats
 
         var panel = new Panel(
             new Rows(
-                new Markup($"[green]HP: {health.Amount}[/]"),
+                new Markup($"[green]HP: {currentHp}[/]"),
                 hp,
                 new Markup(
                     $"Median ping: {medianPing} ms       Local tick: {GameState.TickNumber}       Player number: {Lobby.PlayerNumber}      Player {playerPositionText}     Time:{GameState.TimeCounter}"
