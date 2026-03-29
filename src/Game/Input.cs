@@ -19,14 +19,16 @@ public static class Input
     private const int TickDelayMs = 1;
 
     // Central, thread-safe pipeline of input events coming from local or network sources.
-    // Tuple payload: (playerId, key pressed). Single reader (the tick pump) with many writers.
+    // Tuple payload: (playerId, action, actionInfo). Single reader (the tick pump) with many writers.
     private static readonly Channel<(
         int playerId,
-        ConsoleKeyInfo keyInfo,
+        char action,
+        string actionInfo,
         int tickNumber
     )> InputEvents = Channel.CreateUnbounded<(
         int playerId,
-        ConsoleKeyInfo keyInfo,
+        char action,
+        string actionInfo,
         int tickNumber
     )>(new UnboundedChannelOptions { SingleReader = true, SingleWriter = false });
 
@@ -126,13 +128,16 @@ public static class Input
         {
             reader.TryRead(out var first);
 
-            var inputs = new Dictionary<int, ConsoleKeyInfo> { [first.playerId] = first.keyInfo };
+            var inputs = new Dictionary<int, (char action, string actionInfo)>
+            {
+                [first.playerId] = (first.action, first.actionInfo),
+            };
 
             // Drain all pending inputs in the queue, keeping only the latest per player.
             // This prevents OS keyboard repeat buffer from causing movement overshoot.
             while (reader.TryRead(out var next))
             {
-                inputs[next.playerId] = next.keyInfo;
+                inputs[next.playerId] = (next.action, next.actionInfo);
             }
 
             try
@@ -157,7 +162,7 @@ public static class Input
     }
 
     private static async Task<bool> WaitForNextTickInputAsync(
-        Dictionary<int, Dictionary<int, ConsoleKeyInfo>> InputStorage,
+        Dictionary<int, Dictionary<int, (char action, string actionInfo)>> InputStorage,
         CancellationToken token
     )
     {
@@ -214,10 +219,10 @@ public static class Input
                     // Read inputs inside WorldMutex so that
                     // copy-inputs + execute + advance-tick is atomic.
                     int executingTick = GameState.TickNumber + 1;
-                    Dictionary<int, ConsoleKeyInfo> inputs;
+                    Dictionary<int, (char action, string actionInfo)> inputs;
                     lock (InputLock)
                     {
-                        inputs = new Dictionary<int, ConsoleKeyInfo>(
+                        inputs = new Dictionary<int, (char action, string actionInfo)>(
                             GameState.InputStorage[executingTick]
                         );
                     }
@@ -231,13 +236,13 @@ public static class Input
                     // yet, those code paths saw it as a future tick and skipped
                     // rollback. Re-check now and replay if inputs changed.
                     bool needsReplay;
-                    Dictionary<int, ConsoleKeyInfo> updatedInputs;
+                    Dictionary<int, (char action, string actionInfo)> updatedInputs;
                     lock (InputLock)
                     {
                         var current = GameState.InputStorage[executingTick];
                         needsReplay = current.Count > inputs.Count;
                         updatedInputs = needsReplay
-                            ? new Dictionary<int, ConsoleKeyInfo>(current)
+                            ? new Dictionary<int, (char action, string actionInfo)>(current)
                             : inputs;
                     }
                     if (needsReplay && GameState.WorldStorage.ContainsKey(executingTick))
@@ -348,51 +353,48 @@ public static class Input
             char action = message[index];
             index++;
 
-            // Parse actionInfo: digits/characters until 't'
+            // Parse actionInfo: substring bounded by the start and the last 't'
             int actionInfoStart = index;
-            while (index < message.Length && message[index] != 't')
-            {
-                index++;
-            }
+            int lastTIndex = message.LastIndexOf('t');
 
-            if (index == actionInfoStart || index >= message.Length)
+            if (lastTIndex <= actionInfoStart)
             {
                 continue;
             }
 
-            string actionInfo = message.Substring(actionInfoStart, index - actionInfoStart);
-            index++; // skip the 't'
+            string actionInfo = message.Substring(actionInfoStart, lastTIndex - actionInfoStart);
 
-            // Parse tick number (remaining part)
-            if (index >= message.Length)
+            // Parse tick number (remaining part after the last 't')
+            if (lastTIndex + 1 >= message.Length)
             {
                 continue;
             }
 
-            if (!int.TryParse(message.AsSpan(index), out int tickNumber))
+            if (!int.TryParse(message.AsSpan(lastTIndex + 1), out int tickNumber))
             {
                 continue;
             }
 
-            ConsoleKeyInfo keyInfo;
             switch (action)
             {
                 case 'M':
-                    keyInfo = InputHelper.ActionInfoToConsoleKeyInfo(actionInfo);
-                    if (keyInfo.Key == ConsoleKey.NoName)
+                    if (string.IsNullOrEmpty(actionInfo))
+                    {
+                        continue;
+                    }
+                    break;
+                case 'P':
+                    if (string.IsNullOrEmpty(actionInfo))
                     {
                         continue;
                     }
                     break;
                 case 'D':
                     // 'D' means a directional dig action already resolved by the sender
-                    // (F was pressed first, then a direction key).
                     if (!InputHelper.IsDirectionalActionInfo(actionInfo))
                     {
                         continue;
                     }
-
-                    keyInfo = InputHelper.CreateDirectionalActionKey(action, actionInfo);
                     break;
                 default:
                     continue;
@@ -401,10 +403,13 @@ public static class Input
             // Store the input — track whether it's new and needs rollback.
             lock (InputLock)
             {
-                GameState.InputStorage.TryAdd(tickNumber, new Dictionary<int, ConsoleKeyInfo>());
+                GameState.InputStorage.TryAdd(
+                    tickNumber,
+                    new Dictionary<int, (char action, string actionInfo)>()
+                );
                 if (!GameState.InputStorage[tickNumber].ContainsKey(playerId))
                 {
-                    GameState.InputStorage[tickNumber][playerId] = keyInfo;
+                    GameState.InputStorage[tickNumber][playerId] = (action, actionInfo);
                     anyNewInput = true;
 
                     if (tickNumber <= GameState.TickNumber && tickNumber < earliestRollback)
@@ -440,10 +445,10 @@ public static class Input
 
                 for (int i = earliestRollback; i <= rollbackTo; i++)
                 {
-                    Dictionary<int, ConsoleKeyInfo> rollbackInputs;
+                    Dictionary<int, (char action, string actionInfo)> rollbackInputs;
                     lock (InputLock)
                     {
-                        rollbackInputs = new Dictionary<int, ConsoleKeyInfo>(
+                        rollbackInputs = new Dictionary<int, (char action, string actionInfo)>(
                             GameState.InputStorage[i]
                         );
                     }
@@ -507,11 +512,100 @@ public static class Input
                     : Lobby.PlayerNumber;
                 var tickNumber = GameState.TickNumber;
                 var action = 'M';
-                ConsoleKeyInfo storedKeyInfo = keyInfo;
-                string actionInfo;
+                string actionInfo = "";
                 var pendingAction = GameState.PendingDirectionalAction;
+                var isMenuOpen = GameState.CurrentMenu;
 
-                if (!string.IsNullOrEmpty(pendingAction))
+                // ISO PÖTKÖ
+                if (isMenuOpen == MenuType.Pickup)
+                {
+                    if (keyInfo.Key == ConsoleKey.Escape)
+                    {
+                        GameState.CurrentMenu = MenuType.None;
+                        GameState.MenuAmountBuffer = "";
+                        GameState.MenuList.Clear();
+                        Log.Write("Pickup cancelled.");
+                        continue;
+                    }
+                    else if (char.IsDigit(keyInfo.KeyChar))
+                    {
+                        GameState.MenuAmountBuffer += keyInfo.KeyChar;
+                        Log.Write($"Amount: {GameState.MenuAmountBuffer}");
+                        continue;
+                    }
+                    else if (keyInfo.KeyChar >= 'a' && keyInfo.KeyChar <= 'z')
+                    {
+                        int itemIndex = keyInfo.KeyChar - 'a';
+                        int amount = -1;
+                        if (
+                            !string.IsNullOrEmpty(GameState.MenuAmountBuffer)
+                            && int.TryParse(GameState.MenuAmountBuffer, out int parsed)
+                            && parsed > 0
+                        )
+                        {
+                            amount = parsed;
+                        }
+
+                        GameState.MenuList[itemIndex] = amount;
+                        Log.Write(
+                            $"[green]Added to cart: item {(char)('a' + itemIndex)} (x{(amount == -1 ? "all" : amount)})[/]"
+                        );
+
+                        GameState.MenuAmountBuffer = "";
+                        continue;
+                    }
+                    else if (keyInfo.KeyChar == ',')
+                    {
+                        var itemsAtPos = new List<Entity>();
+                        var world = GameState.Level0.World;
+                        if (
+                            GameState.LocalPlayer != Entity.Null
+                            && GameState.LocalPlayer.IsAlive()
+                            && world.Has<Position>(GameState.LocalPlayer)
+                        )
+                        {
+                            var playerPos = world.Get<Position>(GameState.LocalPlayer);
+                            itemsAtPos = ItemSystem.GetItemsAt(world, playerPos);
+                        }
+
+                        for (int i = 0; i < itemsAtPos.Count; i++)
+                        {
+                            GameState.MenuList[i] = -1;
+                        }
+
+                        Log.Write($"[green]Added all {itemsAtPos.Count} items to cart[/]");
+                        GameState.MenuAmountBuffer = "";
+                        continue;
+                    }
+                    else if (keyInfo.Key == ConsoleKey.Spacebar)
+                    {
+                        if (GameState.MenuList.Count == 0)
+                        {
+                            Log.Write("Cart is empty. Select items first.");
+                            continue;
+                        }
+
+                        var cartParts = new List<string>();
+                        foreach (var kvp in GameState.MenuList.OrderBy(x => x.Key))
+                        {
+                            cartParts.Add($"{kvp.Key}:{kvp.Value}");
+                        }
+                        actionInfo = "PickupList_" + string.Join("_", cartParts);
+                        action = 'P'; // Use 'P' so server filters it easily
+
+                        GameState.CurrentMenu = MenuType.None;
+                        GameState.MenuAmountBuffer = "";
+                        GameState.MenuList.Clear();
+                    }
+                    else
+                    {
+                        Log.Write(
+                            "Type an amount and an item letter (e.g. '5a'), Space to confirm"
+                        );
+                        continue; // ignore keys until valid pick or escape
+                    }
+                }
+                else if (!string.IsNullOrEmpty(pendingAction))
                 {
                     // We are waiting for direction after a prior action key (currently dig).
                     if (!InputHelper.TryGetDirectionActionInfo(keyInfo, out actionInfo))
@@ -521,7 +615,6 @@ public static class Input
                     }
 
                     action = pendingAction[0];
-                    storedKeyInfo = InputHelper.CreateDirectionalActionKey(action, actionInfo);
                     GameState.PendingDirectionalAction = null;
                 }
                 else
@@ -535,10 +628,64 @@ public static class Input
                         continue;
                     }
 
-                    actionInfo = InputHelper.GetActionInfoWithKey(keyInfo);
-                    if (actionInfo == "")
+                    if (keyInfo.KeyChar == ',' || keyInfo.KeyChar == 'g')
                     {
-                        continue;
+                        var itemsAtPos = new List<Entity>();
+                        var world = GameState.Level0.World;
+                        if (
+                            GameState.LocalPlayer != Entity.Null
+                            && GameState.LocalPlayer.IsAlive()
+                            && world.Has<Position>(GameState.LocalPlayer)
+                        )
+                        {
+                            var playerPos = world.Get<Position>(GameState.LocalPlayer);
+                            itemsAtPos = ItemSystem.GetItemsAt(world, playerPos);
+                        }
+
+                        if (itemsAtPos.Count == 0)
+                        {
+                            Log.Write("Nothing to pick up here.");
+                            continue;
+                        }
+                        else if (itemsAtPos.Count == 1)
+                        {
+                            // Instantly pick up the single item (index 0, amount -1)
+                            action = 'P';
+                            actionInfo = "Pickup-1_0";
+                        }
+                        else
+                        {
+                            // Multiple items, show prompt menu
+                            GameState.CurrentMenu = MenuType.Pickup;
+                            GameState.MenuAmountBuffer = "";
+                            GameState.MenuList.Clear();
+                            Log.Write("[yellow]Multiple items here:[/]");
+                            for (int i = 0; i < itemsAtPos.Count; i++)
+                            {
+                                char itemKey = (char)('a' + i);
+                                var itemEntity = itemsAtPos[i];
+                                string name = world.Get<Item>(itemEntity).Name;
+                                if (world.Has<Stackable>(itemEntity))
+                                {
+                                    int count = world.Get<Stackable>(itemEntity).Count;
+                                    Log.Write($"  [[{itemKey}]] {name} (x{count})");
+                                }
+                                else
+                                {
+                                    Log.Write($"  [[{itemKey}]] {name}");
+                                }
+                            }
+                            Log.Write("Type amount then letter, or just letter");
+                            continue;
+                        }
+                    }
+                    else
+                    {
+                        actionInfo = InputHelper.GetActionInfoWithKey(keyInfo);
+                        if (actionInfo == "")
+                        {
+                            continue;
+                        }
                     }
                 }
 
@@ -594,7 +741,7 @@ public static class Input
                 )
                 {
                     await InputEvents.Writer.WriteAsync(
-                        (playerId, storedKeyInfo, tickNumber),
+                        (playerId, action, actionInfo, tickNumber),
                         token
                     );
                     continue; // Skip the multiplayer rollback logic below since singleplayer pump handles its own execution
@@ -607,9 +754,9 @@ public static class Input
                 {
                     GameState.InputStorage.TryAdd(
                         tickNumber,
-                        new Dictionary<int, ConsoleKeyInfo>()
+                        new Dictionary<int, (char action, string actionInfo)>()
                     );
-                    GameState.InputStorage[tickNumber][playerId] = storedKeyInfo;
+                    GameState.InputStorage[tickNumber][playerId] = (action, actionInfo);
                     // Record when local input was first stored for this tick.
                     if (!LocalInputTime.ContainsKey(tickNumber))
                         LocalInputTime[tickNumber] = DateTime.UtcNow;
@@ -646,12 +793,13 @@ public static class Input
                             GameState.WorldStorage.Remove(localRollbackFrom);
                             for (int i = localRollbackFrom; i <= rollbackTo; i++)
                             {
-                                Dictionary<int, ConsoleKeyInfo> rollbackInputs;
+                                Dictionary<int, (char action, string actionInfo)> rollbackInputs;
                                 lock (InputLock)
                                 {
-                                    rollbackInputs = new Dictionary<int, ConsoleKeyInfo>(
-                                        GameState.InputStorage[i]
-                                    );
+                                    rollbackInputs = new Dictionary<
+                                        int,
+                                        (char action, string actionInfo)
+                                    >(GameState.InputStorage[i]);
                                 }
                                 if (i == rollbackTo)
                                 {

@@ -1,3 +1,4 @@
+using System.Linq;
 using Arch.Core;
 using ATMR.Components;
 using ATMR.Game;
@@ -8,7 +9,7 @@ namespace ATMR.Systems;
 public static class InputSystem
 {
     // eli siis itse inputtien toiminnot.
-    public static void Run(World world, Dictionary<int, ConsoleKeyInfo> inputs)
+    public static void Run(World world, Dictionary<int, (char action, string actionInfo)> inputs)
     {
         // ota levelin deterministinen rngstate
         var rngQuery = new QueryDescription().WithAll<RngState>();
@@ -20,6 +21,9 @@ public static class InputSystem
         // Collect dig operations first, then execute after query iteration.
         // This avoids structural world changes (destroy) while iterating entities.
         var digRequests = new List<DigRequest>();
+        var pickupRequests = new List<PickupRequest>();
+        var dropRequests = new List<DropRequest>();
+
         var query = new QueryDescription().WithAll<Player, Velocity, Teleport, Position>();
         world.Query(
             in query,
@@ -36,18 +40,13 @@ public static class InputSystem
                     if (player.Id == kvp.Key)
                     {
                         players += player.Id + ", ";
+                        var action = kvp.Value.action;
+                        var actionInfo = kvp.Value.actionInfo;
 
-                        if (
-                            InputHelper.TryParseDirectionalAction(
-                                kvp.Value,
-                                out var action,
-                                out var directionActionInfo
-                            )
-                            && action == 'D'
-                        )
+                        if (action == 'D')
                         {
                             // Directional dig input reached ECS as a resolved action.
-                            if (TryCreateDigRequest(position, directionActionInfo, out var request))
+                            if (TryCreateDigRequest(position, actionInfo, out var request))
                             {
                                 digRequests.Add(request);
                             }
@@ -55,7 +54,7 @@ public static class InputSystem
                             continue;
                         }
 
-                        if (kvp.Value.Key == ConsoleKey.T)
+                        if (actionInfo == "T")
                         {
                             teleport.X = moveRng.Range(1, GameState.GridWindow.GridWidth);
                             teleport.Y = moveRng.Range(1, GameState.GridWindow.GridHeight);
@@ -63,7 +62,44 @@ public static class InputSystem
                             continue;
                         }
 
-                        (int dx, int dy) = InputHelper.GetActionInfoWithKey(kvp.Value) switch
+                        // ostoskärry pickup
+                        if (InputHelper.TryParsePickupListAction(actionInfo, out var pickupCart))
+                        {
+                            Log.Write(
+                                $"[cyan]Processing batch pickup: {pickupCart.Count} items[/]"
+                            );
+                            foreach (var cartItem in pickupCart.OrderByDescending(x => x.Key))
+                            {
+                                pickupRequests.Add(
+                                    new PickupRequest(entity, cartItem.Value, cartItem.Key)
+                                );
+                            }
+                            GameState.TimeCounter += 5;
+                            continue;
+                        }
+
+                        // single stack pickup
+                        if (
+                            InputHelper.TryParsePickupAction(
+                                actionInfo,
+                                out int pickupAmount,
+                                out int itemIndex
+                            )
+                        )
+                        {
+                            Log.Write($"Picked up! Amount={pickupAmount}, Index={itemIndex}");
+                            pickupRequests.Add(new PickupRequest(entity, pickupAmount, itemIndex));
+                            GameState.TimeCounter += 5;
+                            continue;
+                        }
+                        if (actionInfo == "Drop")
+                        {
+                            dropRequests.Add(new DropRequest(entity, 0));
+                            GameState.TimeCounter += 5;
+                            continue;
+                        }
+
+                        (int dx, int dy) = actionInfo switch
                         {
                             "4" => (-1, 0),
                             "2" => (0, 1),
@@ -81,7 +117,10 @@ public static class InputSystem
                         };
                         velocity.X += dx;
                         velocity.Y += dy;
-                        GameState.TimeCounter += 10;
+                        if (dx != 0 || dy != 0 || actionInfo == "5")
+                        {
+                            GameState.TimeCounter += 10;
+                        }
                     }
                 }
             }
@@ -91,6 +130,16 @@ public static class InputSystem
         {
             // Apply queued dig requests after all input parsing is done.
             ExecuteDig(world, request.TargetX, request.TargetY);
+        }
+
+        foreach (var req in pickupRequests)
+        {
+            ItemSystem.ExecutePickup(world, req.PlayerEntity, req.Amount, req.ItemIndex);
+        }
+
+        foreach (var req in dropRequests)
+        {
+            ItemSystem.ExecuteDrop(world, req.PlayerEntity, req.ItemIndex);
         }
 
         // päivitä levelin rng
@@ -137,4 +186,8 @@ public static class InputSystem
 
     // Lightweight queued dig command for deferred execution.
     private readonly record struct DigRequest(int TargetX, int TargetY);
+
+    public readonly record struct PickupRequest(Entity PlayerEntity, int Amount, int ItemIndex);
+
+    public readonly record struct DropRequest(Entity PlayerEntity, int ItemIndex);
 }
