@@ -164,6 +164,7 @@ public static class Program
         Log.Initialize(messageWindow);
         GameState.StatsWindow = new Stats();
         GameState.GridWindow = new ATMR.UI.Grid();
+        GameState.InventoryWindow = new InventoryPanel();
 
         // optional multiplayer
         if (GameState.Mode == "multiplayer")
@@ -188,6 +189,7 @@ public static class Program
                         // initial draw
                         Log.RefreshPanel();
                         GameState.StatsWindow.RefreshPanel();
+                        GameState.InventoryWindow.RefreshPanel();
                         ctx.Refresh();
 
                         while (!cts.Token.IsCancellationRequested)
@@ -195,6 +197,7 @@ public static class Program
                             //GameState.Ui.Fit();
                             Log.RefreshPanel();
                             GameState.StatsWindow.RefreshPanel();
+                            GameState.InventoryWindow.RefreshPanel();
                             ctx.Refresh();
                             await Task.Delay(60);
                         }
