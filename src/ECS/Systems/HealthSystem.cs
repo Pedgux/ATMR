@@ -14,7 +14,7 @@ public static class HealthSystem
             in query,
             (Entity entity, ref Health health) =>
             {
-                if (health.Amount < 0)
+                if (health.Amount <= 0)
                 {
                     entity.Add(new Destroy());
                 }
