@@ -35,7 +35,7 @@ public class Tick
     /// <param name="level">The current game level containing the world and all entities.</param>
     /// <param name="tickNumber">The sequential number for this tick.</param>
     public static async Task<Tick> CreateAsync(
-        Dictionary<int, ConsoleKeyInfo> input,
+        Dictionary<int, (char action, string actionInfo)> input,
         Level level,
         int tickNumber,
         bool rollBack
