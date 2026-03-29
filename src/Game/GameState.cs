@@ -9,6 +9,13 @@ using ATMR.Networking;
 /// <summary>
 /// Global application state to bridge data accross stuff
 /// </summary>
+public enum MenuType
+{
+    None,
+    Pickup,
+    Drop,
+}
+
 public static class GameState
 {
     public static Entity Camera;
@@ -17,17 +24,27 @@ public static class GameState
     public static string preset => Settings.Preset;
 
     // If set, local input is in a 2-step directional action flow (e.g. dig):
+
     // first key picks action, next key picks direction.
     public static string? PendingDirectionalAction { get; set; }
+
+    // onko menu meneillään, ei silloin lähetä mitään jos != None
+    public static MenuType CurrentMenu { get; set; } = MenuType.None;
+
+    // säilytys variaabeli
+    public static string MenuAmountBuffer { get; set; } = "";
+    public static Dictionary<int, int> MenuList { get; set; } = new();
 
     // UI stuff
     public static UI.UI Ui { get; set; } = null!;
     public static UI.Stats StatsWindow { get; set; } = null!;
     public static UI.Grid GridWindow { get; set; } = null!;
+    public static UI.InventoryPanel InventoryWindow { get; set; } = null!;
 
     // storage
     public static Dictionary<int, World> WorldStorage = new();
-    public static Dictionary<int, Dictionary<int, ConsoleKeyInfo>> InputStorage = new();
+    public static Dictionary<int, Dictionary<int, (char action, string actionInfo)>> InputStorage =
+        new();
 
     // Console stuff
     public static int ConsoleWidth = Console.WindowWidth;
@@ -99,7 +116,8 @@ public static class GameState
                             new Velocity(0, 0),
                             new Teleport(0, 0),
                             new Health(10, 10),
-                            new Solid()
+                            new Solid(),
+                            new Inventory(new List<Entity>(), 10)
                         );
                         Players.Add(LocalPlayer);
 
@@ -118,7 +136,8 @@ public static class GameState
                             new Velocity(0, 0),
                             new Teleport(0, 0),
                             new Health(10, 10),
-                            new Solid()
+                            new Solid(),
+                            new Inventory(new List<Entity>(), 10)
                         );
 
                         Players.Add(player);
@@ -130,6 +149,18 @@ public static class GameState
 
                 // Example blocker so solid collision can be verified in-game.
                 Level0.World.Create(new Position(8, 8), new Glyph('#', "[red]"), new Solid());
+
+                Level0.World.Create(
+                    new Position(4, 8),
+                    new Glyph('$', "[yellow]"),
+                    new Item("Raheja", "ilmaista"),
+                    new Stackable(50)
+                );
+                Level0.World.Create(
+                    new Position(5, 8),
+                    new Glyph(')', "[brown]"),
+                    new Item("Pickaxe", "Digs. (not yet tho)")
+                );
                 break;
             }
         }
