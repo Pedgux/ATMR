@@ -66,6 +66,46 @@ public sealed class Grid
             else
             {
                 _baseGrid[i] = ".";
+
+                // 5% chance to spawn an item on empty floor
+                if (GridRng.Range(1, 100) <= 5)
+                {
+                    int itemType = GridRng.Range(1, 4);
+                    var pos = new Position(i % GridWidth, i / GridWidth);
+
+                    if (itemType == 1)
+                    {
+                        GameState.Level0.World.Create(
+                            pos,
+                            new Glyph('$', "[yellow]"),
+                            new Item("Gold Coin", "moneh"),
+                            new Stackable(GridRng.Range(1, 15))
+                        );
+                        GameState.Level0.World.Create(
+                            pos,
+                            new Glyph('$', "[yellow]"),
+                            new Item("Silver coin", "wau"),
+                            new Stackable(GridRng.Range(1, 15))
+                        );
+                    }
+                    else if (itemType == 2)
+                    {
+                        GameState.Level0.World.Create(
+                            pos,
+                            new Glyph('/', "[silver]"),
+                            new Item("Iron Sword", "mieks")
+                        );
+                    }
+                    else
+                    {
+                        GameState.Level0.World.Create(
+                            pos,
+                            new Glyph('*', "[purple]"),
+                            new Item("Gem", "gem"),
+                            new Stackable(GridRng.Range(5, 10))
+                        );
+                    }
+                }
             }
 
             _grid[i] = _baseGrid[i];
@@ -83,6 +123,15 @@ public sealed class Grid
 
     public void RefreshPanel()
     {
+        try
+        {
+            RefreshPanelInternal();
+        }
+        catch { }
+    }
+
+    private void RefreshPanelInternal()
+    {
         _gridPanel = new Panel(GridToString()) { Expand = true };
         _gridWindow.Update(_gridPanel);
     }
@@ -91,7 +140,7 @@ public sealed class Grid
     {
         lock (_grid)
         {
-            string gridString = string.Empty;
+            var sb = new System.Text.StringBuilder();
             var query = new QueryDescription().WithAll<Camera, Position>();
 
             GameState.Level0.World.Query(
@@ -128,14 +177,14 @@ public sealed class Grid
                         {
                             //Log.Write($"{left} ja sit right {right}");
                             int idx = i * GridWidth + j;
-                            gridString += _grid[idx];
+                            sb.Append(_grid[idx]);
                         }
-                        gridString += "\n";
+                        sb.AppendLine();
                     }
                 }
             );
 
-            return gridString;
+            return sb.ToString();
         }
     }
 
