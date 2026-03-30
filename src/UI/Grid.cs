@@ -127,7 +127,10 @@ public sealed class Grid
         {
             RefreshPanelInternal();
         }
-        catch { }
+        catch (Exception ex)
+        {
+            Log.Write($"Grid error: {ex.Message}");
+        }
     }
 
     private void RefreshPanelInternal()

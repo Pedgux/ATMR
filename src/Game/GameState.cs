@@ -155,12 +155,12 @@ public static class GameState
                     new Glyph('$', "[yellow]"),
                     new Item("Raheja", "ilmaista"),
                     new Stackable(50)
-                );
+                ); /*
                 Level0.World.Create(
                     new Position(5, 8),
                     new Glyph(')', "[brown]"),
                     new Item("Pickaxe", "Digs. (not yet tho)")
-                );
+                );*/
                 break;
             }
         }
