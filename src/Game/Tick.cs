@@ -46,7 +46,7 @@ public class Tick
             World.Destroy(oldSnapshot);
         }
         GameState.WorldStorage[tickNumber] = GameState.Level0.GetSnapshot();
-        // ööö wth is this
+        // ööö wth is this. joo se
         var tick = new Tick(tickNumber);
 
         InputSystem.Run(level.World, input);

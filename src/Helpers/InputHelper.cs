@@ -131,7 +131,7 @@ public static class InputHelper
         return false;
     }
 
-    // tekee actionInfosta ostoslistan (dictionaryn). "PickupList_(slot):(amount (-1 = all))_(repeat)
+    // tekee actionInfosta ostoslistan (dictionaryn). "PickupList_(slot):(amount (-1 = all))_(repeat)"
     public static bool TryParsePickupListAction(
         string actionInfo,
         out Dictionary<int, int> pickupCart
