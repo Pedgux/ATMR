@@ -32,7 +32,12 @@ Or run directly from the `src` folder:
 cd src
 dotnet run
 ```
+## Images!
+### Game startup:  
+<img width="464" height="144" alt="image" src="https://github.com/user-attachments/assets/e9e021f5-0ce3-475d-be5b-2922a275044b" />
 
+### Game view:  
+<img width="1077" height="693" alt="image" src="https://github.com/user-attachments/assets/f259802c-0e3a-40c2-bdd3-bb3cda8806ba" />
 
 
 
