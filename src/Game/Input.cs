@@ -44,6 +44,9 @@ public static class Input
     // Prevents the tick pump and rollback from mutating the world concurrently.
     private static readonly SemaphoreSlim WorldMutex = new(1, 1);
 
+    // Prevents cascading rollbacks - only one rollback at a time.
+    private static bool _rollbackInProgress = false;
+
     // Tracks when local input was first stored for each tick number.
     // The tick pump waits TickDelayMs after this timestamp before executing,
     // giving the remote player's input time to arrive.
@@ -53,8 +56,9 @@ public static class Input
     // Rate-limit singleplayer ticks to smooth out OS keyboard repeat floods.
     private static DateTime LastTickTime = DateTime.MinValue;
 
-    // MIKS TÄÄÄ ON MIINUS KYMMENEN okei ymmärrän (en)
-    private static int NextLocalTickNumber = -10;
+    // Tracks the highest tick number we've assigned for local input.
+    // Initialized to -1 to indicate "not yet initialized".
+    private static int NextLocalTickNumber = -1;
     private static readonly object NextLocalTickLock = new();
     private static string input1 = ""; // now
     private static string input2 = ""; // yesterday
@@ -132,17 +136,19 @@ public static class Input
             {
                 [first.playerId] = (first.action, first.actionInfo),
             };
+            int tickNumber = first.tickNumber;
 
             // Drain all pending inputs in the queue, keeping only the latest per player.
             // This prevents OS keyboard repeat buffer from causing movement overshoot.
             while (reader.TryRead(out var next))
             {
                 inputs[next.playerId] = (next.action, next.actionInfo);
+                tickNumber = next.tickNumber; // Use the latest tick number
             }
 
             try
             {
-                GameState.TickNumber++;
+                GameState.TickNumber = tickNumber;
                 // Advance the game by one tick with the snapshot of inputs.
                 await Tick.CreateAsync(inputs, GameState.Level0, GameState.TickNumber, false);
 
@@ -240,7 +246,19 @@ public static class Input
                     lock (InputLock)
                     {
                         var current = GameState.InputStorage[executingTick];
-                        needsReplay = current.Count > inputs.Count;
+                        // Detect ANY change: new players OR changed actions for existing players
+                        needsReplay = current.Count != inputs.Count;
+                        if (!needsReplay)
+                        {
+                            foreach (var kvp in current)
+                            {
+                                if (!inputs.TryGetValue(kvp.Key, out var existing) || existing != kvp.Value)
+                                {
+                                    needsReplay = true;
+                                    break;
+                                }
+                            }
+                        }
                         updatedInputs = needsReplay
                             ? new Dictionary<int, (char action, string actionInfo)>(current)
                             : inputs;
@@ -251,7 +269,7 @@ public static class Input
                         var oldWorld = GameState.Level0.World;
                         GameState.Level0.World = GameState.WorldStorage[executingTick];
                         World.Destroy(oldWorld);
-                        GameState.WorldStorage.Remove(executingTick);
+                        // Don't remove snapshot yet
                         await Tick.CreateAsync(
                             updatedInputs,
                             GameState.Level0,
@@ -423,6 +441,20 @@ public static class Input
         // Phase 2: Single rollback from the earliest new past-tick input.
         if (anyNewInput && earliestRollback != int.MaxValue)
         {
+            // Prevent cascading rollbacks - if one is already in progress, queue this one
+            bool shouldRollback;
+            lock (InputLock)
+            {
+                shouldRollback = !_rollbackInProgress;
+                if (shouldRollback)
+                    _rollbackInProgress = true;
+            }
+            if (!shouldRollback)
+            {
+                Log.Write("[yellow]Rollback already in progress, deferring[/]");
+                return;
+            }
+
             await WorldMutex.WaitAsync();
             try
             {
@@ -438,11 +470,13 @@ public static class Input
                     return;
                 }
 
+                // Restore world to earliest rollback tick state
                 var oldWorld = GameState.Level0.World;
                 GameState.Level0.World = GameState.WorldStorage[earliestRollback];
                 World.Destroy(oldWorld);
-                GameState.WorldStorage.Remove(earliestRollback);
+                // NOTE: Do NOT remove WorldStorage[earliestRollback] yet - we need it if another rollback happens during replay
 
+                // Re-execute all ticks from earliestRollback to current
                 for (int i = earliestRollback; i <= rollbackTo; i++)
                 {
                     Dictionary<int, (char action, string actionInfo)> rollbackInputs;
@@ -452,20 +486,49 @@ public static class Input
                             GameState.InputStorage[i]
                         );
                     }
-                    if (i == rollbackTo)
-                    {
-                        await Tick.CreateAsync(rollbackInputs, GameState.Level0, i, false);
-                    }
-                    else
-                    {
-                        await Tick.CreateAsync(rollbackInputs, GameState.Level0, i, true);
-                    }
+                    bool isFinalTick = (i == rollbackTo);
+                    await Tick.CreateAsync(rollbackInputs, GameState.Level0, i, !isFinalTick);
                 }
+
+                // Cleanup: remove snapshots before earliestRollback (they're obsolete)
+                var keysToRemove = new List<int>();
+                foreach (var kvp in GameState.WorldStorage)
+                {
+                    if (kvp.Key < earliestRollback)
+                        keysToRemove.Add(kvp.Key);
+                }
+                foreach (var key in keysToRemove)
+                {
+                    if (GameState.WorldStorage.TryGetValue(key, out var snap))
+                        World.Destroy(snap);
+                    GameState.WorldStorage.Remove(key);
+                }
+
+                // Cleanup LocalInputTime for rolled-back ticks
+                var timeKeysToRemove = new List<int>();
+                foreach (var kvp in LocalInputTime)
+                {
+                    if (kvp.Key <= rollbackTo)
+                        timeKeysToRemove.Add(kvp.Key);
+                }
+                foreach (var key in timeKeysToRemove)
+                    LocalInputTime.Remove(key);
+
+                // Sync NextLocalTickNumber after rollback
+                lock (NextLocalTickLock)
+                {
+                    NextLocalTickNumber = GameState.TickNumber;
+                }
+
                 Log.Write("[red]rolled back[/]");
             }
             finally
             {
                 WorldMutex.Release();
+                lock (InputLock)
+                {
+                    _rollbackInProgress = false;
+                }
             }
         }
     }
@@ -701,19 +764,20 @@ public static class Input
 
                     lock (NextLocalTickLock)
                     {
-                        if (NextLocalTickNumber == -10)
+                        if (NextLocalTickNumber == -1)
                         {
                             // First input ever: initialize to current global tick
                             NextLocalTickNumber = GameState.TickNumber;
                         }
-                        else if (NextLocalTickNumber <= GameState.TickNumber)
+                        else if (NextLocalTickNumber < GameState.TickNumber)
                         {
-                            // We've fallen behind (multiplayer inputs advanced the global tick)
+                            // We've fallen behind (rollback or multiplayer inputs advanced the global tick)
                             // Resync to the next available tick
                             NextLocalTickNumber = GameState.TickNumber;
                         }
+                        // If NextLocalTickNumber == GameState.TickNumber, we're in sync - use next tick
                         tickNumber = NextLocalTickNumber + 1;
-                        NextLocalTickNumber++;
+                        NextLocalTickNumber = tickNumber;
                     }
                     input10 = input9;
                     input9 = input8;
@@ -772,6 +836,20 @@ public static class Input
                 }
                 if (needsLocalRollback)
                 {
+                    // Prevent cascading rollbacks
+                    bool shouldRollback;
+                    lock (InputLock)
+                    {
+                        shouldRollback = !_rollbackInProgress;
+                        if (shouldRollback)
+                            _rollbackInProgress = true;
+                    }
+                    if (!shouldRollback)
+                    {
+                        Log.Write("[yellow]Local rollback deferred - rollback in progress[/]");
+                        return;
+                    }
+
                     await WorldMutex.WaitAsync();
                     try
                     {
@@ -790,7 +868,8 @@ public static class Input
                             var oldWorld = GameState.Level0.World;
                             GameState.Level0.World = GameState.WorldStorage[localRollbackFrom];
                             World.Destroy(oldWorld);
-                            GameState.WorldStorage.Remove(localRollbackFrom);
+                            // Don't remove snapshot yet - needed for replay chain
+
                             for (int i = localRollbackFrom; i <= rollbackTo; i++)
                             {
                                 Dictionary<int, (char action, string actionInfo)> rollbackInputs;
@@ -801,31 +880,55 @@ public static class Input
                                         (char action, string actionInfo)
                                     >(GameState.InputStorage[i]);
                                 }
-                                if (i == rollbackTo)
-                                {
-                                    await Tick.CreateAsync(
-                                        rollbackInputs,
-                                        GameState.Level0,
-                                        i,
-                                        false
-                                    );
-                                }
-                                else
-                                {
-                                    await Tick.CreateAsync(
-                                        rollbackInputs,
-                                        GameState.Level0,
-                                        i,
-                                        true
-                                    );
-                                }
+                                bool isFinalTick = (i == rollbackTo);
+                                await Tick.CreateAsync(
+                                    rollbackInputs,
+                                    GameState.Level0,
+                                    i,
+                                    !isFinalTick
+                                );
                             }
+
+                            // Cleanup: remove snapshots before localRollbackFrom
+                            var keysToRemove = new List<int>();
+                            foreach (var kvp in GameState.WorldStorage)
+                            {
+                                if (kvp.Key < localRollbackFrom)
+                                    keysToRemove.Add(kvp.Key);
+                            }
+                            foreach (var key in keysToRemove)
+                            {
+                                if (GameState.WorldStorage.TryGetValue(key, out var snap))
+                                    World.Destroy(snap);
+                                GameState.WorldStorage.Remove(key);
+                            }
+
+                            // Cleanup LocalInputTime
+                            var timeKeysToRemove = new List<int>();
+                            foreach (var kvp in LocalInputTime)
+                            {
+                                if (kvp.Key <= rollbackTo)
+                                    timeKeysToRemove.Add(kvp.Key);
+                            }
+                            foreach (var key in timeKeysToRemove)
+                                LocalInputTime.Remove(key);
+
+                            // Sync NextLocalTickNumber after rollback
+                            lock (NextLocalTickLock)
+                            {
+                                NextLocalTickNumber = GameState.TickNumber;
+                            }
+
                             Log.Write("[red]local rollback done[/]");
                         }
                     }
                     finally
                     {
                         WorldMutex.Release();
+                        lock (InputLock)
+                        {
+                            _rollbackInProgress = false;
+                        }
                     }
                 }
             }
