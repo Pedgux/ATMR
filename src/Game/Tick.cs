@@ -3,6 +3,8 @@ namespace ATMR.Tick;
 using Arch.Core;
 using ATMR.Game;
 using ATMR.Systems;
+using System.Diagnostics;
+using ATMR.Helpers;
 
 /// <summary>
 /// Represents a single game tick that orchestrates the execution of all game systems in a defined order.
@@ -41,15 +43,23 @@ public class Tick
         bool rollBack
     )
     {
+        var tickWatch = Stopwatch.StartNew();
+
         if (GameState.WorldStorage.TryGetValue(tickNumber, out var oldSnapshot))
         {
+            var snapshotDestroyWatch = Stopwatch.StartNew();
             World.Destroy(oldSnapshot);
+            Log.Write($"[grey]tick {tickNumber} snapshot destroy: {snapshotDestroyWatch.ElapsedMilliseconds} ms[/]");
         }
+
+        var snapshotWatch = Stopwatch.StartNew();
         GameState.WorldStorage[tickNumber] = GameState.Level0.GetSnapshot();
+        Log.Write($"[grey]tick {tickNumber} snapshot copy: {snapshotWatch.ElapsedMilliseconds} ms[/]");
         // ööö wth is this. joo se
         var tick = new Tick(tickNumber);
 
-        InputSystem.Run(level.World, input);
+        var intents = InputSystem.Run(level.World, input);
+        DigSystem.Run(level.World, intents);
         // joskus se incrementtijuttu (et voi interruptaa)
         CollisionSystem.Run(level.World);
         MovementSystem.Run(level.World);
@@ -59,9 +69,12 @@ public class Tick
 
         if (!rollBack)
         {
+            var renderWatch = Stopwatch.StartNew();
             RenderSystem.Run(level.World);
+            Log.Write($"[grey]tick {tickNumber} render: {renderWatch.ElapsedMilliseconds} ms[/]");
         }
 
+        Log.Write($"[grey]tick {tickNumber} total: {tickWatch.ElapsedMilliseconds} ms[/]");
         return tick;
         // miau miau miu mau
     }

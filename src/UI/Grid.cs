@@ -31,8 +31,11 @@ public sealed class Grid
 
     public Grid()
     {
-        GridWidth = 100;
-        GridHeight = 100;
+
+        // GridWidth = Math.Max(100, GameState.CameraWidth);
+        // GridHeight = Math.Max(0, GameState.CameraHeight);
+        GridWidth = 50;
+        GridHeight = 10;
 
         /*
         GridWidth = 75;
@@ -44,9 +47,9 @@ public sealed class Grid
         CollisionSystem.Initialize(GridWidth, GridHeight);
         for (int i = 0; i < _grid.Length; i++)
         {
-            if (GridRng.Range(1, 100) < 60)
+            if (GridRng.Range(1, 100) < 0)
             {
-                if (GridRng.Range(1, 4) == 1)
+                if (GridRng.Range(1, 4) != 1)
                 {
                     _baseGrid[i] = "[green]#[/]";
                 }
@@ -67,13 +70,13 @@ public sealed class Grid
             {
                 _baseGrid[i] = ".";
 
-                // 5% chance to spawn an item on empty floor
-                if (GridRng.Range(1, 100) <= 5)
+                // 1% chance to spawn an item on empty floor
+                if (GridRng.Range(1, 1000) <= 1000)
                 {
                     int itemType = GridRng.Range(1, 4);
                     var pos = new Position(i % GridWidth, i / GridWidth);
 
-                    if (itemType == 1)
+                    if (itemType == 6)
                     {
                         GameState.Level0.World.Create(
                             pos,
@@ -88,7 +91,7 @@ public sealed class Grid
                             new Stackable(GridRng.Range(1, 15))
                         );
                     }
-                    else if (itemType == 2)
+                    else if (itemType == 6)
                     {
                         GameState.Level0.World.Create(
                             pos,
@@ -103,6 +106,11 @@ public sealed class Grid
                             new Glyph('*', "[purple]"),
                             new Item("Gem", "gem"),
                             new Stackable(GridRng.Range(5, 10))
+                        );
+                        GameState.Level0.World.Create(
+                            pos,
+                            new Glyph('/', "[silver]"),
+                            new Item("Iron Sword", "mieks")
                         );
                     }
                 }
@@ -150,35 +158,27 @@ public sealed class Grid
                 in query,
                 (Entity entity, ref Camera camera, ref Position position) =>
                 {
-                    int top = Math.Clamp(position.Y - camera.FirstHeightHalf, 0, GridHeight);
-                    int bottom = Math.Clamp(position.Y + camera.SecondHeightHalf, 0, GridHeight);
-                    int left = Math.Clamp(position.X - camera.FirstWidthHalf, 0, GridWidth);
-                    int right = Math.Clamp(position.X + camera.SecondWidthHalf, 0, GridWidth);
+                    int viewHeight = Math.Clamp(
+                        camera.FirstHeightHalf + camera.SecondHeightHalf,
+                        1,
+                        GridHeight
+                    );
+                    int viewWidth = Math.Clamp(
+                        camera.FirstWidthHalf + camera.SecondWidthHalf,
+                        1,
+                        GridWidth
+                    );
 
-                    //ööh fix
-                    if (top == 0)
-                    {
-                        bottom += (position.Y - camera.FirstHeightHalf) * -1;
-                    }
-                    if (bottom == GridHeight)
-                    {
-                        top -= position.Y + camera.SecondHeightHalf - GridHeight;
-                    }
-                    if (left == 0)
-                    {
-                        right += (position.X - camera.FirstWidthHalf) * -1;
-                    }
-                    if (right == GridWidth)
-                    {
-                        left -= position.X + camera.SecondWidthHalf - GridWidth;
-                    }
+                    int top = Math.Clamp(position.Y - camera.FirstHeightHalf, 0, GridHeight - viewHeight);
+                    int left = Math.Clamp(position.X - camera.FirstWidthHalf, 0, GridWidth - viewWidth);
+
+                    int bottom = top + viewHeight;
+                    int right = left + viewWidth;
 
                     for (int i = top; i < bottom; i++)
                     {
-                        //Log.Write($"{top} ja sit bottom {bottom}");
                         for (int j = left; j < right; j++)
                         {
-                            //Log.Write($"{left} ja sit right {right}");
                             int idx = i * GridWidth + j;
                             sb.Append(_grid[idx]);
                         }

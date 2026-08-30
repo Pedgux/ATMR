@@ -9,7 +9,10 @@ namespace ATMR.Systems;
 public static class InputSystem
 {
     // eli siis itse inputtien toiminnot.
-    public static void Run(World world, Dictionary<int, (char action, string actionInfo)> inputs)
+    public static List<ActionIntent> Run(
+        World world,
+        Dictionary<int, (char action, string actionInfo)> inputs
+    )
     {
         // ota levelin deterministinen rngstate
         var rngQuery = new QueryDescription().WithAll<RngState>();
@@ -18,9 +21,7 @@ public static class InputSystem
         var moveRng = new DeterministicRng(currentRngState);
 
         string players = "";
-        // Collect dig operations first, then execute after query iteration.
-        // This avoids structural world changes (destroy) while iterating entities.
-        var digRequests = new List<DigRequest>();
+        var digIntents = new List<ActionIntent>();
         var pickupRequests = new List<PickupRequest>();
         var dropRequests = new List<DropRequest>();
 
@@ -45,12 +46,18 @@ public static class InputSystem
 
                         if (action == 'D')
                         {
-                            // Directional dig input reached ECS as a resolved action.
-                            if (TryCreateDigRequest(position, actionInfo, out var request))
+                            if (
+                                InputHelper.TryGetDirectionOffset(
+                                    actionInfo,
+                                    out int digDx,
+                                    out int digDy
+                                )
+                            )
                             {
-                                digRequests.Add(request);
+                                digIntents.Add(
+                                    new ActionIntent(player.Id, ActionKind.Dig, digDx, digDy)
+                                );
                             }
-                            GameState.TimeCounter += 20;
                             continue;
                         }
 
@@ -126,12 +133,6 @@ public static class InputSystem
             }
         );
 
-        foreach (var request in digRequests)
-        {
-            // Apply queued dig requests after all input parsing is done.
-            ExecuteDig(world, request.TargetX, request.TargetY);
-        }
-
         foreach (var req in pickupRequests)
         {
             ItemSystem.ExecutePickup(world, req.PlayerEntity, req.Amount, req.ItemIndex);
@@ -146,46 +147,8 @@ public static class InputSystem
         world.Query(in rngQuery, (ref RngState state) => state.State = moveRng.State);
 
         //Log.Write($"Processed players: {players}");
+        return digIntents;
     }
-
-    private static bool TryCreateDigRequest(
-        Position diggerPosition,
-        string directionInfo,
-        out DigRequest request
-    )
-    {
-        request = default;
-
-        if (!InputHelper.TryGetDirectionOffset(directionInfo, out int dx, out int dy))
-        {
-            return false;
-        }
-
-        // Convert direction into one adjacent target tile.
-        int targetX = diggerPosition.X + dx;
-        int targetY = diggerPosition.Y + dy;
-
-        request = new DigRequest(targetX, targetY);
-        return true;
-    }
-
-    private static void ExecuteDig(World world, int targetX, int targetY)
-    {
-        var targets = new QueryDescription().WithAll<Position, Health>();
-        world.Query(
-            in targets,
-            (Entity entity, ref Position position, ref Health health) =>
-            {
-                if (position.X == targetX && position.Y == targetY)
-                {
-                    health.Amount -= 2;
-                }
-            }
-        );
-    }
-
-    // Lightweight queued dig command for deferred execution.
-    private readonly record struct DigRequest(int TargetX, int TargetY);
 
     public readonly record struct PickupRequest(Entity PlayerEntity, int Amount, int ItemIndex);
 
