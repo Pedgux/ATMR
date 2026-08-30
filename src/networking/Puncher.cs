@@ -14,10 +14,10 @@ public static class Puncher
         Log.Write($"[red]Punching: {peer}[/]");
 
         // tries for 30s
-        for (int i = 0; i < 600; i++)
+        for (int i = 0; i < 6000; i++)
         {
             await UdpTransport.SendMessage("poke");
-            await Task.Delay(50);
+            await Task.Delay(5);
         }
 
         if (!UdpTransport.connected)
