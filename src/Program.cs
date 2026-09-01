@@ -206,8 +206,6 @@ public static class Program
         );
         // testing grounds, level stuff. ISO ALKU toinen osa
         GameState.InitPlayers();
-        // Take initial snapshot (tick 0) for rollback support
-        GameState.WorldStorage[0] = GameState.Level0.GetSnapshot();
         // Update the camera to follow the local player and render the initial state
         ATMR.Systems.FollowSystem.Run(GameState.Level0.World);
         ATMR.Systems.RenderSystem.Run(GameState.Level0.World);
