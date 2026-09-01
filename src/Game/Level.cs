@@ -1,5 +1,6 @@
 namespace ATMR.Game;
 
+using ATMR.Helpers;
 using Arch.Core;
 
 /// <summary>
@@ -18,6 +19,8 @@ public class Level
 
     public World GetSnapshot()
     {
+        Log.Write("tää juttu tapahtuu");
         return World.Copy();
     }
+
 }
