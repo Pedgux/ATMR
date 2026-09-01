@@ -49,12 +49,13 @@ public class Tick
         {
             var snapshotDestroyWatch = Stopwatch.StartNew();
             World.Destroy(oldSnapshot);
-            Log.Write($"[grey]tick {tickNumber} snapshot destroy: {snapshotDestroyWatch.ElapsedMilliseconds} ms[/]");
+            //Log.Write($"[grey]tick {tickNumber} snapshot destroy: {snapshotDestroyWatch.ElapsedMilliseconds} ms[/]");
         }
 
         var snapshotWatch = Stopwatch.StartNew();
         GameState.WorldStorage[tickNumber] = GameState.Level0.GetSnapshot();
-        Log.Write($"[grey]tick {tickNumber} snapshot copy: {snapshotWatch.ElapsedMilliseconds} ms[/]");
+        Log.Write("meni läpi");
+        // Log.Write($"[grey]tick {tickNumber} snapshot copy: {snapshotWatch.ElapsedMilliseconds} ms[/]");
         // ööö wth is this. joo se
         var tick = new Tick(tickNumber);
 
@@ -62,19 +63,21 @@ public class Tick
         DigSystem.Run(level.World, intents);
         // joskus se incrementtijuttu (et voi interruptaa)
         CollisionSystem.Run(level.World);
+        
         MovementSystem.Run(level.World);
         FollowSystem.Run(level.World);
         HealthSystem.Run(level.World);
         DestroySystem.Run(level.World);
 
+        
         if (!rollBack)
         {
             var renderWatch = Stopwatch.StartNew();
             RenderSystem.Run(level.World);
-            Log.Write($"[grey]tick {tickNumber} render: {renderWatch.ElapsedMilliseconds} ms[/]");
+            // Log.Write($"[grey]tick {tickNumber} render: {renderWatch.ElapsedMilliseconds} ms[/]");
         }
 
-        Log.Write($"[grey]tick {tickNumber} total: {tickWatch.ElapsedMilliseconds} ms[/]");
+        // Log.Write($"[grey]tick {tickNumber} total: {tickWatch.ElapsedMilliseconds} ms[/]");
         return tick;
         // miau miau miu mau
     }
