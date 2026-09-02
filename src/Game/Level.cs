@@ -19,7 +19,7 @@ public class Level
 
     public World GetSnapshot()
     {
-        Log.Write("tää juttu tapahtuu");
+        //Log.Write("tää juttu tapahtuu"); ei.
         return World.Copy();
     }
 
