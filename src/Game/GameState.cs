@@ -148,7 +148,7 @@ public static class GameState
                 Level0.World.Create(new RngState((uint)Hasher.Hash(Program.runSeed + 234)));
 
                 // Example blocker so solid collision can be verified in-game.
-                Level0.World.Create(new Position(8, 8), new Glyph('#', "[red]"), new Solid());
+                Level0.World.Create(new Position(8, 8), new Health(5, 5), new Glyph('#', "[red]"), new Solid());
 
                 Level0.World.Create(
                     new Position(4, 8),
