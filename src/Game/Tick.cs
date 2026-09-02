@@ -54,7 +54,7 @@ public class Tick
 
         var snapshotWatch = Stopwatch.StartNew();
         GameState.WorldStorage[tickNumber] = GameState.Level0.GetSnapshot();
-        Log.Write("meni läpi");
+        
         // Log.Write($"[grey]tick {tickNumber} snapshot copy: {snapshotWatch.ElapsedMilliseconds} ms[/]");
         // ööö wth is this. joo se
         var tick = new Tick(tickNumber);
@@ -65,6 +65,7 @@ public class Tick
         CollisionSystem.Run(level.World);
         
         MovementSystem.Run(level.World);
+        TeleportSystem.Run(level.World);
         FollowSystem.Run(level.World);
         HealthSystem.Run(level.World);
         DestroySystem.Run(level.World);
