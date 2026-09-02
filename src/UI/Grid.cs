@@ -36,7 +36,6 @@ public sealed class Grid
         //GridHeight = Math.Max(0, GameState.CameraHeight);
         GridWidth = 500;
         GridHeight = 500;
-
         /*
         GridWidth = 75;
         GridHeight = 31;
@@ -99,7 +98,7 @@ public sealed class Grid
                             new Item("Iron Sword", "mieks")
                         );
                     }
-                    /*
+                    
                     else
                     {
                         GameState.Level0.World.Create(
@@ -114,7 +113,7 @@ public sealed class Grid
                             new Item("Iron Sword", "mieks")
                         );
                     }
-                    */
+                    
                 }
             }
 
