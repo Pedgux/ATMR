@@ -34,8 +34,8 @@ public sealed class Grid
 
         //GridWidth = Math.Max(100, GameState.CameraWidth);
         //GridHeight = Math.Max(0, GameState.CameraHeight);
-        GridWidth = 500;
-        GridHeight = 500;
+        GridWidth = 100;
+        GridHeight = 100;
         /*
         GridWidth = 75;
         GridHeight = 31;
