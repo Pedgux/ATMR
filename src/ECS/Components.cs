@@ -10,7 +10,7 @@ public record struct Position(int X, int Y);
 // For example [red]. Closing [/] come will automatically.
 public record struct Glyph(char Symbol, string MarkupEntry = "[white]");
 
-public record struct Velocity(int X, int Y);
+public record struct MovementIntent(int X, int Y);
 
 public record struct TeleportIntent(int X, int Y);
 
