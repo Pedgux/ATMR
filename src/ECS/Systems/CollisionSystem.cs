@@ -90,7 +90,7 @@ public static class CollisionSystem
 
     public static void RemoveOccupancy(int x, int y)
     {
-        Log.Write("thotaan tuhotaan tuhotaan tuhotaan");
+        //Log.Write("thotaan tuhotaan tuhotaan tuhotaan");
         if (!IsInitialized || !InBounds(x, y))
         {
             return;
