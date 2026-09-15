@@ -31,6 +31,7 @@ public static class InputSystem
                 Entity entity,
                 ref Player player,
                 ref Position position
+
             ) =>
             {
                 foreach (var kvp in inputs)
@@ -58,8 +59,8 @@ public static class InputSystem
 
                         if (actionInfo == "T")
                         {
-                            teleport.X = moveRng.Range(1, GameState.GridWindow.GridWidth);
-                            teleport.Y = moveRng.Range(1, GameState.GridWindow.GridHeight);
+                            //teleport.X = moveRng.Range(1, GameState.GridWindow.GridWidth);
+                            //teleport.Y = moveRng.Range(1, GameState.GridWindow.GridHeight);
                             GameState.TimeCounter += 3;
                             continue;
                         }
@@ -117,8 +118,8 @@ public static class InputSystem
 
                             _ => (0, 0),
                         };
-                        MovementIntent.X += dx;
-                        MovementIntent.Y += dy;
+                        //MovementIntent.X += dx;
+                        //MovementIntent.Y += dy;
                         if (dx != 0 || dy != 0 || actionInfo == "5")
                         {
                             GameState.TimeCounter += 10;
