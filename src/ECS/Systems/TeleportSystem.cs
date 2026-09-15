@@ -41,9 +41,6 @@ public static class TeleportSystem
                 // teleport em
                 pos.X = tp.X;
                 pos.Y = tp.Y;
-
-                tp.X = 0;
-                tp.Y = 0;
             }
         );
         world.Remove<TeleportIntent>(in teleportables);

@@ -7,8 +7,9 @@ namespace ATMR.Systems;
 
 public static class DigSystem
 {
-    public static void Run(World world, IReadOnlyCollection<ActionIntent> intents)
+    public static void Run(World world)
     {
+        /*
         if (intents.Count == 0)
         {
             return;
@@ -47,8 +48,10 @@ public static class DigSystem
                 GameState.TimeCounter += 20;
             }
         );
+        */
     }
 
+    // no
     private static void ExecuteDig(World world, int targetX, int targetY)
     {
         var targets = new QueryDescription().WithAll<Position, Health>();
