@@ -9,7 +9,7 @@ namespace ATMR.Systems;
 public static class InputSystem
 {
     // eli siis itse inputtien toiminnot.
-    public static List<ActionIntent> Run(
+    public static void Run(
         World world,
         Dictionary<int, (char action, string actionInfo)> inputs
     )
@@ -21,7 +21,6 @@ public static class InputSystem
         var moveRng = new DeterministicRng(currentRngState);
 
         string players = "";
-        var digIntents = new List<ActionIntent>();
         var pickupRequests = new List<PickupRequest>();
         var dropRequests = new List<DropRequest>();
 
@@ -54,9 +53,7 @@ public static class InputSystem
                                 )
                             )
                             {
-                                digIntents.Add(
-                                    new ActionIntent(player.Id, ActionKind.Dig, digDx, digDy)
-                                );
+                                // dig intent add
                             }
                             continue;
                         }
@@ -147,7 +144,6 @@ public static class InputSystem
         world.Query(in rngQuery, (ref RngState state) => state.State = moveRng.State);
 
         //Log.Write($"Processed players: {players}");
-        return digIntents;
     }
 
     public readonly record struct PickupRequest(Entity PlayerEntity, int Amount, int ItemIndex);
