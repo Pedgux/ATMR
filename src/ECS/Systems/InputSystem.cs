@@ -3,7 +3,8 @@ using Arch.Core;
 using ATMR.Components;
 using ATMR.Game;
 using ATMR.Helpers;
-
+using Arch.Core.Extensions;
+using ATMR.Components;
 namespace ATMR.Systems;
 
 public static class InputSystem
@@ -59,7 +60,8 @@ public static class InputSystem
 
                         if (actionInfo == "T")
                         {
-                            //teleport.X = moveRng.Range(1, GameState.GridWindow.GridWidth);
+                            entity.Add(new TeleportIntent(moveRng.Range(1, GameState.GridWindow.GridWidth), moveRng.Range(1, GameState.GridWindow.GridHeight)));
+                            // teleport.X = moveRng.Range(1, GameState.GridWindow.GridWidth);
                             //teleport.Y = moveRng.Range(1, GameState.GridWindow.GridHeight);
                             GameState.TimeCounter += 3;
                             continue;
