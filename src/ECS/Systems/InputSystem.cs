@@ -24,15 +24,13 @@ public static class InputSystem
         var pickupRequests = new List<PickupRequest>();
         var dropRequests = new List<DropRequest>();
 
-        var query = new QueryDescription().WithAll<Player, Velocity, Teleport, Position>();
+        var query = new QueryDescription().WithAll<Player, Position>();
         world.Query(
             in query,
             (
                 Entity entity,
                 ref Player player,
-                ref Position position,
-                ref Velocity velocity,
-                ref Teleport teleport
+                ref Position position
             ) =>
             {
                 foreach (var kvp in inputs)
@@ -119,8 +117,8 @@ public static class InputSystem
 
                             _ => (0, 0),
                         };
-                        velocity.X += dx;
-                        velocity.Y += dy;
+                        MovementIntent.X += dx;
+                        MovementIntent.Y += dy;
                         if (dx != 0 || dy != 0 || actionInfo == "5")
                         {
                             GameState.TimeCounter += 10;
