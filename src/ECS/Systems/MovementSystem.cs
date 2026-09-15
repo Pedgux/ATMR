@@ -11,11 +11,11 @@ public static class MovementSystem
 {
     public static void Run(World world)
     {
-        var movables = new QueryDescription().WithAll<Position, Velocity>();
+        var movables = new QueryDescription().WithAll<Position, MovementIntent>();
 
         world.Query(
             in movables,
-            (Entity entity, ref Position pos, ref Velocity vel) =>
+            (Entity entity, ref Position pos, ref MovementIntent vel) =>
             {
                 if (vel.X == 0 && vel.Y == 0)
                     return;
@@ -30,6 +30,7 @@ public static class MovementSystem
                 else
                     canMove = !CollisionSystem.IsBlocked(nextX, nextY);
 
+                // ei kai tapahdu
                 if (!canMove)
                 {
                     vel.X = 0;
@@ -43,10 +44,9 @@ public static class MovementSystem
                 // move the entity with velocity
                 pos.X = nextX;
                 pos.Y = nextY;
-                // reset velocity
-                vel.X = 0;
-                vel.Y = 0;
+               
             }
         );
+        world.Remove<MovementIntent>(in movables);
     }
 }

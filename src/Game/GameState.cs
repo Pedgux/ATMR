@@ -113,8 +113,6 @@ public static class GameState
                             new Position(4, 8),
                             new Glyph('@', "[white]"),
                             new Player(playerNum),
-                            new Velocity(0, 0),
-                            new TeleportIntent(0, 0),
                             new Health(10, 10),
                             new Solid(),
                             new Inventory(new List<Entity>(), 10)
@@ -133,8 +131,6 @@ public static class GameState
                             new Position(4, 8),
                             new Glyph('@', "[blue]"),
                             new Player(i + 1),
-                            new Velocity(0, 0),
-                            new TeleportIntent(0, 0),
                             new Health(10, 10),
                             new Solid(),
                             new Inventory(new List<Entity>(), 10)

@@ -3,7 +3,8 @@ using Arch.Core;
 using ATMR.Components;
 using ATMR.Game;
 using ATMR.Helpers;
-
+using Arch.Core.Extensions;
+using ATMR.Components;
 namespace ATMR.Systems;
 
 public static class InputSystem
@@ -24,15 +25,14 @@ public static class InputSystem
         var pickupRequests = new List<PickupRequest>();
         var dropRequests = new List<DropRequest>();
 
-        var query = new QueryDescription().WithAll<Player, Velocity, TeleportIntent, Position>();
+        var query = new QueryDescription().WithAll<Player, Position>();
         world.Query(
             in query,
             (
                 Entity entity,
                 ref Player player,
-                ref Position position,
-                ref Velocity velocity,
-                ref TeleportIntent teleport
+                ref Position position
+
             ) =>
             {
                 foreach (var kvp in inputs)
@@ -60,8 +60,9 @@ public static class InputSystem
 
                         if (actionInfo == "T")
                         {
-                            teleport.X = moveRng.Range(1, GameState.GridWindow.GridWidth);
-                            teleport.Y = moveRng.Range(1, GameState.GridWindow.GridHeight);
+                            entity.Add(new TeleportIntent(moveRng.Range(1, GameState.GridWindow.GridWidth), moveRng.Range(1, GameState.GridWindow.GridHeight)));
+                            // teleport.X = moveRng.Range(1, GameState.GridWindow.GridWidth);
+                            //teleport.Y = moveRng.Range(1, GameState.GridWindow.GridHeight);
                             GameState.TimeCounter += 3;
                             continue;
                         }
@@ -119,8 +120,8 @@ public static class InputSystem
 
                             _ => (0, 0),
                         };
-                        velocity.X += dx;
-                        velocity.Y += dy;
+                        //MovementIntent.X += dx;
+                        //MovementIntent.Y += dy;
                         if (dx != 0 || dy != 0 || actionInfo == "5")
                         {
                             GameState.TimeCounter += 10;
