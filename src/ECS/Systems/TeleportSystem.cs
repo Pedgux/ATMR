@@ -17,10 +17,6 @@ public static class TeleportSystem
             in teleportables,
             (Entity entity, ref Position pos, ref TeleportIntent tp) =>
             {
-                // basically useless check but maybe?
-                if (tp.X == 0 && tp.Y == 0)
-                    return;
-
                 //bool isSolid = world.Has<Position, Solid>(entity);
                 /*
                 bool canTeleport = isSolid

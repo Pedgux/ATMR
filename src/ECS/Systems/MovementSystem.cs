@@ -17,9 +17,6 @@ public static class MovementSystem
             in movables,
             (Entity entity, ref Position pos, ref MovementIntent vel) =>
             {
-                if (vel.X == 0 && vel.Y == 0)
-                    return;
-
                 int nextX = pos.X + vel.X;
                 int nextY = pos.Y + vel.Y;
 
@@ -29,14 +26,6 @@ public static class MovementSystem
                     canMove = CollisionSystem.TryMoveSolid(entity, pos.X, pos.Y, nextX, nextY);
                 else
                     canMove = !CollisionSystem.IsBlocked(nextX, nextY);
-
-                // ei kai tapahdu
-                if (!canMove)
-                {
-                    vel.X = 0;
-                    vel.Y = 0;
-                    return;
-                }
 
                 // replace the last cell the entity was in, so no duplicates appear
                 GameState.GridWindow.RestoreBaseTile(pos.X, pos.Y);
