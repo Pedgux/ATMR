@@ -24,7 +24,7 @@ public static class InputSystem
         var pickupRequests = new List<PickupRequest>();
         var dropRequests = new List<DropRequest>();
 
-        var query = new QueryDescription().WithAll<Player, Velocity, Teleport, Position>();
+        var query = new QueryDescription().WithAll<Player, Velocity, TeleportIntent, Position>();
         world.Query(
             in query,
             (
@@ -32,7 +32,7 @@ public static class InputSystem
                 ref Player player,
                 ref Position position,
                 ref Velocity velocity,
-                ref Teleport teleport
+                ref TeleportIntent teleport
             ) =>
             {
                 foreach (var kvp in inputs)
