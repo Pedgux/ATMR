@@ -4,7 +4,6 @@ using ATMR.Components;
 using ATMR.Game;
 using ATMR.Helpers;
 using Arch.Core.Extensions;
-using ATMR.Components;
 namespace ATMR.Systems;
 
 public static class InputSystem
@@ -120,10 +119,13 @@ public static class InputSystem
 
                             _ => (0, 0),
                         };
+
                         //MovementIntent.X += dx;
                         //MovementIntent.Y += dy;
+
                         if (dx != 0 || dy != 0 || actionInfo == "5")
                         {
+                            entity.Add(new MovementIntent(dx, dy));
                             GameState.TimeCounter += 10;
                         }
                     }
