@@ -1,7 +1,6 @@
 namespace ATMR.Components;
 
 using Arch.Core;
-using ATMR.Game;
 using ATMR.Helpers;
 
 public record struct Position(int X, int Y);

@@ -1,10 +1,8 @@
-using System.Linq;
 using Arch.Core;
 using ATMR.Components;
 using ATMR.Game;
 using ATMR.Helpers;
 using Arch.Core.Extensions;
-using ATMR.Components;
 namespace ATMR.Systems;
 
 public static class InputSystem
