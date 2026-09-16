@@ -45,6 +45,7 @@ public static class InputSystem
                             )
                             {
                                 // dig intent add
+                                entity.Add(new AttackIntent(digDx, digDy));
                             }
                             continue;
                         }
