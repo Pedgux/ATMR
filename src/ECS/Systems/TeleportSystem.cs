@@ -17,26 +17,24 @@ public static class TeleportSystem
             in teleportables,
             (Entity entity, ref Position pos, ref TeleportIntent tp) =>
             {
-                //bool isSolid = world.Has<Position, Solid>(entity);
-                /*
-                bool canTeleport = isSolid
-                    ? CollisionSystem.TryMoveSolid(entity, pos.X, pos.Y, tp.X, tp.Y)
-                    : !CollisionSystem.IsBlocked(tp.X, tp.Y);
-
-                if (!canTeleport)
+                bool canTeleport = !GameState.Level0.Spatial.IsBlocked(tp.X, tp.Y);
+                if (canTeleport)
                 {
-                    tp.X = 0;
-                    tp.Y = 0;
-                    return;
+                    bool moveSucceeded = GameState.Level0.Spatial.TryMoveOccupancy(
+                        entity,
+                        (pos.X, pos.Y),
+                        (tp.X, tp.Y)
+                    );
+                    if (moveSucceeded)
+                    {
+                        // replace the last cell the entity was in, so no duplicates appear
+                        GameState.GridWindow.RestoreBaseTile(pos.X, pos.Y);
+
+                        // teleport em
+                        pos.X = tp.X;
+                        pos.Y = tp.Y;
+                    }
                 }
-                */
-
-                // replace the last cell the entity was in, so no duplicates appear
-                GameState.GridWindow.RestoreBaseTile(pos.X, pos.Y);
-
-                // teleport em
-                pos.X = tp.X;
-                pos.Y = tp.Y;
             }
         );
         world.Remove<TeleportIntent>(in teleportables);

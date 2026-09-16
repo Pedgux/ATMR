@@ -20,20 +20,24 @@ public static class MovementSystem
                 int nextX = pos.X + vel.X;
                 int nextY = pos.Y + vel.Y;
 
-                bool isSolid = world.Has<Position, Solid>(entity);
-                bool canMove;
-                if (isSolid)
-                    canMove = CollisionSystem.TryMoveSolid(entity, pos.X, pos.Y, nextX, nextY);
-                else
-                    canMove = !CollisionSystem.IsBlocked(nextX, nextY);
+                bool isPathClear = !GameState.Level0.Spatial.IsBlocked(nextX, nextY);
+                if (isPathClear)
+                {
+                    var from = (pos.X, pos.Y);
+                    var to = (nextX, nextY);
+                    bool moveSucceeded = GameState.Level0.Spatial.TryMoveOccupancy(
+                        entity,
+                        from,
+                        to
+                    );
 
-                // replace the last cell the entity was in, so no duplicates appear
-                GameState.GridWindow.RestoreBaseTile(pos.X, pos.Y);
-
-                // move the entity with velocity
-                pos.X = nextX;
-                pos.Y = nextY;
-               
+                    if (moveSucceeded)
+                    {
+                        GameState.GridWindow.RestoreBaseTile(pos.X, pos.Y);
+                        pos.X = nextX;
+                        pos.Y = nextY;
+                    }
+                }
             }
         );
         world.Remove<MovementIntent>(in movables);

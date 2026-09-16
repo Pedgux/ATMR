@@ -60,7 +60,7 @@ public class Tick
         var tick = new Tick(tickNumber);
 
         InputSystem.Run(level.World, input);
-        DigSystem.Run(level.World);
+        AttackSystem.Run(level.World);
         // joskus se incrementtijuttu (et voi interruptaa)
         CollisionSystem.Run(level.World);
 

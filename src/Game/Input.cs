@@ -272,6 +272,7 @@ public static class Input
         }
     }
 
+    // This is weird to be here
     private static bool ShouldAcceptLocalInput(char action, string actionInfo)
     {
         // Only movement intents are filtered before send/store.
@@ -295,7 +296,7 @@ public static class Input
         int targetX = localPos.X + dx;
         int targetY = localPos.Y + dy;
 
-        bool isBlocked = CollisionSystem.IsBlocked(targetX, targetY);
+        bool isBlocked = GameState.Level0.Spatial.IsBlocked(targetX, targetY);
 
         return !isBlocked;
     }
@@ -691,7 +692,7 @@ public static class Input
 
                 if (!ShouldAcceptLocalInput(action, actionInfo))
                 {
-                    Log.Write("[grey]Blocked locally; input dropped[/]");
+                    //Log.Write("[grey]Blocked locally; input dropped[/]");
                     continue;
                 }
 

@@ -31,7 +31,6 @@ public sealed class Grid
 
     public Grid()
     {
-
         //GridWidth = Math.Max(100, GameState.CameraWidth);
         //GridHeight = Math.Max(0, GameState.CameraHeight);
         GridWidth = 100;
@@ -43,7 +42,6 @@ public sealed class Grid
 
         _baseGrid = new string[GridWidth * GridHeight];
         _grid = new string[GridWidth * GridHeight];
-        CollisionSystem.Initialize(GridWidth, GridHeight);
         for (int i = 0; i < _grid.Length; i++)
         {
             if (GridRng.Range(1, 100) < 0)
@@ -98,7 +96,6 @@ public sealed class Grid
                             new Item("Iron Sword", "mieks")
                         );
                     }
-                    
                     else
                     {
                         GameState.Level0.World.Create(
@@ -113,7 +110,6 @@ public sealed class Grid
                             new Item("Iron Sword", "mieks")
                         );
                     }
-                    
                 }
             }
 
@@ -170,8 +166,16 @@ public sealed class Grid
                         GridWidth
                     );
 
-                    int top = Math.Clamp(position.Y - camera.FirstHeightHalf, 0, GridHeight - viewHeight);
-                    int left = Math.Clamp(position.X - camera.FirstWidthHalf, 0, GridWidth - viewWidth);
+                    int top = Math.Clamp(
+                        position.Y - camera.FirstHeightHalf,
+                        0,
+                        GridHeight - viewHeight
+                    );
+                    int left = Math.Clamp(
+                        position.X - camera.FirstWidthHalf,
+                        0,
+                        GridWidth - viewWidth
+                    );
 
                     int bottom = top + viewHeight;
                     int right = left + viewWidth;

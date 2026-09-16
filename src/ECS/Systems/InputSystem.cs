@@ -1,17 +1,15 @@
 using Arch.Core;
+using Arch.Core.Extensions;
 using ATMR.Components;
 using ATMR.Game;
 using ATMR.Helpers;
-using Arch.Core.Extensions;
+
 namespace ATMR.Systems;
 
 public static class InputSystem
 {
     // eli siis itse inputtien toiminnot.
-    public static void Run(
-        World world,
-        Dictionary<int, (char action, string actionInfo)> inputs
-    )
+    public static void Run(World world, Dictionary<int, (char action, string actionInfo)> inputs)
     {
         // ota levelin deterministinen rngstate
         var rngQuery = new QueryDescription().WithAll<RngState>();
@@ -26,12 +24,7 @@ public static class InputSystem
         var query = new QueryDescription().WithAll<Player, Position>();
         world.Query(
             in query,
-            (
-                Entity entity,
-                ref Player player,
-                ref Position position
-
-            ) =>
+            (Entity entity, ref Player player, ref Position position) =>
             {
                 foreach (var kvp in inputs)
                 {
@@ -58,9 +51,12 @@ public static class InputSystem
 
                         if (actionInfo == "T")
                         {
-                            entity.Add(new TeleportIntent(moveRng.Range(1, GameState.GridWindow.GridWidth), moveRng.Range(1, GameState.GridWindow.GridHeight)));
-                            // teleport.X = moveRng.Range(1, GameState.GridWindow.GridWidth);
-                            //teleport.Y = moveRng.Range(1, GameState.GridWindow.GridHeight);
+                            entity.Add(
+                                new TeleportIntent(
+                                    moveRng.Range(1, GameState.GridWindow.GridWidth),
+                                    moveRng.Range(1, GameState.GridWindow.GridHeight)
+                                )
+                            );
                             GameState.TimeCounter += 3;
                             continue;
                         }
