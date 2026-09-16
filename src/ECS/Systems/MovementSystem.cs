@@ -20,8 +20,8 @@ public static class MovementSystem
                 int nextX = pos.X + vel.X;
                 int nextY = pos.Y + vel.Y;
 
-                bool isPathClear = !GameState.Level0.Spatial.IsBlocked(nextX, nextY);
-                if (isPathClear)
+                bool pathClear = !GameState.Level0.Spatial.IsBlocked(nextX, nextY);
+                if (pathClear)
                 {
                     var from = (pos.X, pos.Y);
                     var to = (nextX, nextY);
