@@ -63,7 +63,6 @@ public class Tick
         InputSystem.Run(level.World, input);
         DigSystem.Run(level.World);
         // joskus se incrementtijuttu (et voi interruptaa)
-        CollisionSystem.Run(level.World);
         MovementSystem.Run(level.World);
         TeleportSystem.Run(level.World);
         FollowSystem.Run(level.World);
