@@ -1,15 +1,12 @@
 namespace ATMR.UI;
 
 using System.Collections.Generic;
+using Arch.Core;
 using Arch.Core.Extensions;
 using ATMR.Components;
 using ATMR.Game;
 using ATMR.Networking;
 using Spectre.Console;
-using Spectre.Console.Cli.Help;
-using Arch.Core;
-using Arch.Core.Extensions;
-using ATMR.Components;
 
 /// <summary>
 /// I wonder what.
