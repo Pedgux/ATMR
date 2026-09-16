@@ -14,7 +14,7 @@ public static class DestroySystem
             (Entity entity, ref Position pos) =>
             {
                 GameState.GridWindow.RestoreBaseTile(pos.X, pos.Y);
-                CollisionSystem.RemoveOccupancy(pos.X, pos.Y);
+                GameState.Level0.Spatial.RemoveOccupancy(pos.X, pos.Y);
             }
         );
         world.Destroy(deletables);
