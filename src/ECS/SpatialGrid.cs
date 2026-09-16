@@ -93,4 +93,13 @@ public class SpatialGrid
     {
         return x >= 0 && x < _width && y >= 0 && y < _height;
     }
+
+    public void RemoveOccupancy(int x, int y)
+    {
+        if (!InBounds(x, y))
+        {
+            return;
+        }
+        _occupancy[GetIndex(x, y)] = default;
+    }
 }
