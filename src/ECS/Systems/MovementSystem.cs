@@ -23,8 +23,6 @@ public static class MovementSystem
                 bool isPathClear = !GameState.Level0.Spatial.IsBlocked(nextX, nextY);
                 if (isPathClear)
                 {
-                    GameState.GridWindow.RestoreBaseTile(pos.X, pos.Y);
-
                     var from = (pos.X, pos.Y);
                     var to = (nextX, nextY);
                     bool moveSucceeded = GameState.Level0.Spatial.TryMoveOccupancy(
@@ -35,6 +33,7 @@ public static class MovementSystem
 
                     if (moveSucceeded)
                     {
+                        GameState.GridWindow.RestoreBaseTile(pos.X, pos.Y);
                         pos.X = nextX;
                         pos.Y = nextY;
                     }
