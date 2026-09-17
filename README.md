@@ -1,4 +1,4 @@
-# Attempt At a Multiplayer Roguelike (ATMR) 
+# AtTempt at a Multiplayer Roguelike (ATMR) 
 ![dotnet](https://img.shields.io/badge/dotnet-10.0-blue)
 [![CI](https://img.shields.io/github/actions/workflow/status/Pedgux/ATMR/dotnet.yml?branch=main)](https://github.com/Pedgux/ATMR/actions)
 [![license](https://img.shields.io/github/license/Pedgux/ATMR)](https://github.com/Pedgux/ATMR/blob/main/LICENSE) 
