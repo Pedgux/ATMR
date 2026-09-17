@@ -9,22 +9,6 @@ public static class AttackSystem
 {
     public static void Run(World world)
     {
-        /*
-        if (intents.Count == 0)
-        {
-            return;
-        }
-
-        var digIntents = intents
-            .Where(intent => intent.Kind == ActionKind.Dig)
-            .GroupBy(intent => intent.PlayerId)
-            .ToDictionary(group => group.Key, group => group.Last());
-
-        if (digIntents.Count == 0)
-        {
-            return;
-        }
-        */
         var query = new QueryDescription().WithAll<AttackIntent, Position>();
 
         world.Query(
@@ -40,11 +24,6 @@ public static class AttackSystem
                     var health = world.Get<Health>(targetEntity);
                     health.Amount -= 1;
                 }
-                {
-                    // möy
-                } 
-                // ExecuteDig(world, targetX, targetY);
-                //GameState.TimeCounter += 20;
             }
         );
     }
