@@ -1,4 +1,5 @@
 using Arch.Core;
+using Arch.Core.Extensions;
 using ATMR.Components;
 using ATMR.ECS;
 using ATMR.Game;
@@ -18,13 +19,16 @@ public static class AttackSystem
                 int targetX = position.X + intent.X;
                 int targetY = position.Y + intent.Y;
 
-                GameState.Level0.Spatial.TryGetEntity(targetX, targetY, out Entity targetEntity);
-                if (world.Has<Health>(targetEntity))
+                if (
+                    GameState.Level0.Spatial.TryGetEntity(targetX, targetY, out Entity targetEntity)
+                )
                 {
-                    var health = world.Get<Health>(targetEntity);
-                    health.Amount -= 1;
+                    ref var health = ref targetEntity.TryGetRef<Health>(out bool hasHealth);
+                    if (hasHealth)
+                        health.Amount -= 1;
                 }
             }
         );
+        world.Remove<AttackIntent>(in query);
     }
 }
