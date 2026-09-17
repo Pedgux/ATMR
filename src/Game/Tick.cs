@@ -53,6 +53,7 @@ public class Tick
         // ööö wth is this. joo se
         var tick = new Tick(tickNumber);
 
+        level.Spatial.Rebuild(level.World);
         InputSystem.Run(level.World, input);
         AttackSystem.Run(level.World);
         MovementSystem.Run(level.World);
