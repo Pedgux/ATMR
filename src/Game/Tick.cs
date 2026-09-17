@@ -1,10 +1,10 @@
 namespace ATMR.Tick;
 
-using System.Diagnostics;
 using Arch.Core;
 using ATMR.Game;
-using ATMR.Helpers;
 using ATMR.Systems;
+using System.Diagnostics;
+using ATMR.Helpers;
 
 /// <summary>
 /// Represents a single game tick that orchestrates the execution of all game systems in a defined order.
@@ -59,15 +59,17 @@ public class Tick
         // ööö wth is this. joo se
         var tick = new Tick(tickNumber);
 
-        level.Spatial.Rebuild(level.World);
         InputSystem.Run(level.World, input);
-        DigSystem.Run(level.World);
+        AttackSystem.Run(level.World);
         // joskus se incrementtijuttu (et voi interruptaa)
+        CollisionSystem.Run(level.World);
+
         MovementSystem.Run(level.World);
         TeleportSystem.Run(level.World);
         FollowSystem.Run(level.World);
         HealthSystem.Run(level.World);
         DestroySystem.Run(level.World);
+
 
         if (!rollBack)
         {

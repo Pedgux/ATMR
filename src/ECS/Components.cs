@@ -12,6 +12,7 @@ public record struct Glyph(char Symbol, string MarkupEntry = "[white]");
 public record struct MovementIntent(int X, int Y);
 
 public record struct TeleportIntent(int X, int Y);
+public record struct AttackIntent(int X, int Y);
 
 // stores the RNG state for deterministic multiplayer rollbacks
 public record struct RngState(uint State);
