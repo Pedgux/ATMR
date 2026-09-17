@@ -44,7 +44,7 @@ public sealed class Grid
         _grid = new string[GridWidth * GridHeight];
         for (int i = 0; i < _grid.Length; i++)
         {
-            if (GridRng.Range(1, 100) < 0)
+            if (GridRng.Range(1, 100) < 120)
             {
                 if (GridRng.Range(1, 4) != 1)
                 {
@@ -68,7 +68,7 @@ public sealed class Grid
                 _baseGrid[i] = ".";
 
                 // 1% chance to spawn an item on empty floor
-                if (GridRng.Range(1, 1000) <= 1000)
+                if (GridRng.Range(1, 1000) <= 0)
                 {
                     int itemType = GridRng.Range(1, 4);
                     var pos = new Position(i % GridWidth, i / GridWidth);
