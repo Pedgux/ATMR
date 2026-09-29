@@ -2,6 +2,7 @@ namespace ATMR.ECS;
 
 using Arch.Core;
 using ATMR.Components;
+using ATMR.Helpers;
 
 public class SpatialGrid
 {
@@ -25,6 +26,14 @@ public class SpatialGrid
             in entities,
             (Entity entity, ref Position pos) =>
             {
+                // out of bounds loggin'
+                if (!InBounds(pos.X, pos.Y))
+                {
+                    Log.Write(
+                        $"[red]Solid entity {entity} out of bounds at ({pos.X},{pos.Y}), skipping[/]"
+                    );
+                    return;
+                }
                 _occupancy[GetIndex(pos.X, pos.Y)] = entity;
             }
         );

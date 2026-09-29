@@ -622,8 +622,6 @@ public static class Input
                 {
                     if (keyInfo.Key == ConsoleKey.F && keyInfo.Modifiers == 0)
                     {
-                        // Plain F starts dig targeting mode locally.
-                        // Important: we do NOT send/store this press yet.
                         GameState.PendingDirectionalAction = "D";
                         Log.Write(DigPromptMessage);
                         continue;

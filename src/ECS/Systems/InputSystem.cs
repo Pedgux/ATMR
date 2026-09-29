@@ -45,19 +45,36 @@ public static class InputSystem
                             )
                             {
                                 // dig intent add
-                                entity.Add(new AttackIntent(digDx, digDy));
+                                if (entity.Has<AttackIntent>())
+                                {
+                                    Log.Write(
+                                        $"[red]AttackIntent already present on {entity}, skipping add[/]"
+                                    );
+                                    entity.Set(new AttackIntent(digDx, digDy));
+                                }
+                                else
+                                {
+                                    entity.Add(new AttackIntent(digDx, digDy));
+                                }
                             }
                             continue;
                         }
 
                         if (actionInfo == "T")
                         {
-                            entity.Add(
-                                new TeleportIntent(
-                                    moveRng.Range(1, GameState.GridWindow.GridWidth),
-                                    moveRng.Range(1, GameState.GridWindow.GridHeight)
-                                )
-                            );
+                            var teleportX = moveRng.Range(1, GameState.GridWindow.GridWidth);
+                            var teleportY = moveRng.Range(1, GameState.GridWindow.GridHeight);
+                            if (entity.Has<TeleportIntent>())
+                            {
+                                Log.Write(
+                                    $"[red]TeleportIntent already present on {entity}, skipping add[/]"
+                                );
+                                entity.Set(new TeleportIntent(teleportX, teleportY));
+                            }
+                            else
+                            {
+                                entity.Add(new TeleportIntent(teleportX, teleportY));
+                            }
                             GameState.TimeCounter += 3;
                             continue;
                         }
@@ -121,7 +138,17 @@ public static class InputSystem
 
                         if (dx != 0 || dy != 0 || actionInfo == "5")
                         {
-                            entity.Add(new MovementIntent(dx, dy));
+                            if (entity.Has<MovementIntent>())
+                            {
+                                Log.Write(
+                                    $"[red]MovementIntent already present on {entity}, skipping add[/]"
+                                );
+                                entity.Set(new MovementIntent(dx, dy)); // update it instead of crashing
+                            }
+                            else
+                            {
+                                entity.Add(new MovementIntent(dx, dy));
+                            }
                             GameState.TimeCounter += 10;
                         }
                     }
