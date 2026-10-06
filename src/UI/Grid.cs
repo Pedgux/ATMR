@@ -33,7 +33,7 @@ public sealed class Grid
     {
         //GridWidth = Math.Max(100, GameState.CameraWidth);
         //GridHeight = Math.Max(0, GameState.CameraHeight);
-        GridWidth = 100;
+        GridWidth = 200;
         GridHeight = 100;
         /*
         GridWidth = 75;
@@ -52,15 +52,23 @@ public sealed class Grid
                 }
                 else
                 {
-                    // Even when a wall entity is spawned here, the terrain under it is floor.
-                    // This ensures destroy/move restore can always fall back to '.' cleanly.
-                    _baseGrid[i] = ".";
-                    GameState.Level0.World.Create(
+                    if (i % GridWidth > 20)
+                    {
+                        // Even when a wall entity is spawned here, the terrain under it is floor.
+                        // This ensures destroy/move restore can always fall back to '.' cleanly.
+                        _baseGrid[i] = ".";
+                        GameState.Level0.World.Create(
                         new Position(i % GridWidth, i / GridWidth),
                         new Glyph('#', "[red]"),
                         new Solid(),
                         new Health(3, 3)
                     );
+                    }
+                    else
+                    {
+                        _baseGrid[i] = "[green]#[/]";
+                    }
+                    
                 }
             }
             else

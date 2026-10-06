@@ -1,6 +1,7 @@
 using Arch.Core;
 using ATMR.Components;
 using ATMR.Game;
+using ATMR.Helpers;
 
 namespace ATMR.Systems;
 
@@ -19,10 +20,12 @@ public static class MovementSystem
             {
                 int nextX = pos.X + vel.X;
                 int nextY = pos.Y + vel.Y;
+                Log.Write($"nextX: {nextX}, nextY: {nextY}");
 
                 bool pathClear = !GameState.Level0.Spatial.IsBlocked(nextX, nextY);
                 if (pathClear)
                 {
+                    Log.Write("path clear");
                     var from = (pos.X, pos.Y);
                     var to = (nextX, nextY);
                     bool moveSucceeded = GameState.Level0.Spatial.TryMoveOccupancy(
@@ -33,6 +36,8 @@ public static class MovementSystem
 
                     if (moveSucceeded)
                     {
+                        Log.Write($"move succeeded: {moveSucceeded}");
+                        // Log.Write("succeedsas");
                         GameState.GridWindow.RestoreBaseTile(pos.X, pos.Y);
                         pos.X = nextX;
                         pos.Y = nextY;

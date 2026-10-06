@@ -690,7 +690,7 @@ public static class Input
 
                 if (!ShouldAcceptLocalInput(action, actionInfo))
                 {
-                    //Log.Write("[grey]Blocked locally; input dropped[/]");
+                    Log.Write("[grey]Blocked locally; input dropped[/]");
                     continue;
                 }
 

@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using Arch.Core;
 using ATMR.Components;
+using ATMR.Helpers;
 using ATMR.Networking;
 
 /// <summary>
@@ -106,11 +107,17 @@ public static class GameState
 
                 for (int i = 0; i < playerCount; i++)
                 {
+                    int playerY = 7 + i;
                     if (i + 1 == playerNum)
                     {
+                        Log.Write($"playernum {playerNum}");
+
+                        
+
+                        // int playerY = 8;
                         // Create the local player here so Lobby.PlayerNumber is correct
                         LocalPlayer = Level0.World.Create(
-                            new Position(4, 8),
+                            new Position(playerY, 8),
                             new Glyph('@', "[white]"),
                             new Player(playerNum),
                             new Health(10, 10),
@@ -120,15 +127,16 @@ public static class GameState
                         Players.Add(LocalPlayer);
 
                         Camera = Level0.World.Create(
-                            new Position(4, 8),
+                            new Position(playerY, 8),
                             new Camera(CameraWidth, CameraHeight),
                             new FollowsEntity(LocalPlayer)
                         );
+                        
                     }
                     else
                     {
                         Entity player = Level0.World.Create(
-                            new Position(4, 8),
+                            new Position(playerY, 8),
                             new Glyph('@', "[blue]"),
                             new Player(i + 1),
                             new Health(10, 10),
@@ -145,9 +153,9 @@ public static class GameState
 
                 // Example blocker so solid collision can be verified in-game.
                 Level0.World.Create(
-                    new Position(8, 8),
+                    new Position(18, 8),
                     new Health(5, 5),
-                    new Glyph('#', "[red]"),
+                    new Glyph('#', "[blue]"),
                     new Solid()
                 );
 

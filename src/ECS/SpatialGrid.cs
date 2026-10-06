@@ -4,11 +4,14 @@ using Arch.Core;
 using ATMR.Components;
 using ATMR.Helpers;
 
+public struct Wall{char Symbol; int hp;}
+
 public class SpatialGrid
 {
     private readonly int _width,
         _height;
     private Entity[] _occupancy;
+    private Wall[] _wall_occupancy;
 
     // maybe item holding here too? Dictionary? GetItemsAt(x, y)?
 
@@ -89,6 +92,10 @@ public class SpatialGrid
         if (!InBounds(x, y))
         {
             return true;
+        }
+        if(_occupancy[GetIndex(x, y)] != default)
+        {
+            Log.Write("blokattu");
         }
         return _occupancy[GetIndex(x, y)] != default;
     }

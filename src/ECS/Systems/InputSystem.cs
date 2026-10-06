@@ -30,6 +30,7 @@ public static class InputSystem
                 {
                     if (player.Id == kvp.Key)
                     {
+                        Log.Write("inputtia");
                         players += player.Id + ", ";
                         var action = kvp.Value.action;
                         var actionInfo = kvp.Value.actionInfo;
@@ -54,7 +55,7 @@ public static class InputSystem
                                 }
                                 else
                                 {
-                                    entity.Add(new AttackIntent(digDx, digDy));
+                                entity.Add(new AttackIntent(digDx, digDy));
                                 }
                             }
                             continue;
@@ -147,7 +148,7 @@ public static class InputSystem
                             }
                             else
                             {
-                                entity.Add(new MovementIntent(dx, dy));
+                            entity.Add(new MovementIntent(dx, dy));
                             }
                             GameState.TimeCounter += 10;
                         }
