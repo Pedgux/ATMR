@@ -1,4 +1,6 @@
 using System.Globalization;
+using Arch;
+using Arch.Buffer;
 using Arch.Core;
 using Arch.Core.Extensions;
 using ATMR.Components;
@@ -21,6 +23,7 @@ public static class InputSystem
         string players = "";
         var pickupRequests = new List<PickupRequest>();
         var dropRequests = new List<DropRequest>();
+        var commandBuffer = new CommandBuffer();
 
         var query = new QueryDescription().WithAll<Player, Position>();
         world.Query(
@@ -56,7 +59,7 @@ public static class InputSystem
                                 }
                                 else
                                 {
-                                entity.Add(new DigIntent(digDx, digDy));
+                                    entity.Add(new DigIntent(digDx, digDy));
                                 }
                             }
                             continue;
@@ -140,6 +143,7 @@ public static class InputSystem
 
                         if (dx != 0 || dy != 0 || actionInfo == "5")
                         {
+                            /*
                             if (entity.Has<MovementIntent>())
                             {
                                 Log.Write(
@@ -149,14 +153,18 @@ public static class InputSystem
                             }
                             else
                             {
-                            entity.Add(new MovementIntent(dx, dy));
+                                entity.Add(new MovementIntent(dx, dy));
                             }
+                            */
+                            commandBuffer.Add(entity, new MovementIntent(dx, dy));
                             GameState.TimeCounter += 10;
                         }
                     }
                 }
             }
         );
+
+        commandBuffer.Playback(world, true);
 
         foreach (var req in pickupRequests)
         {
