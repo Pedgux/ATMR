@@ -30,6 +30,7 @@ public class SpatialGrid
 
     public void Rebuild(World world)
     {
+        Array.Clear(_occupancy);
         var entities = new QueryDescription().WithAll<Position, Solid>().WithNone<Destroy>();
         world.Query(
             in entities,
@@ -117,14 +118,13 @@ public class SpatialGrid
         // pre-emptive checks for if the move is allowed or valid.
         if (_occupancy[fromIndex] != entity)
             return false; // caller's fromPos doesn't match what occupancy actually has
-        
+
         if (_wall_occupancy[toIndex].Symbol != default)
             return false;
 
         if (_occupancy[toIndex] != default)
             return false; // toPos has something, can't move
 
-        
         // perform the swap
         _occupancy[toIndex] = entity;
         _occupancy[fromIndex] = default;
@@ -137,7 +137,7 @@ public class SpatialGrid
         {
             return true;
         }
-        if(_occupancy[GetIndex(x, y)] != default)
+        if (_occupancy[GetIndex(x, y)] != default)
         {
             Log.Write("blokattu");
         }
