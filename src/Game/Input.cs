@@ -622,10 +622,17 @@ public static class Input
                 {
                     if (keyInfo.Key == ConsoleKey.F && keyInfo.Modifiers == 0)
                     {
+                        GameState.PendingDirectionalAction = "F";
+                        Log.Write(DigPromptMessage);
+                        continue;
+                    }
+                    if (keyInfo.Key == ConsoleKey.D && keyInfo.Modifiers == 0)
+                    {
                         GameState.PendingDirectionalAction = "D";
                         Log.Write(DigPromptMessage);
                         continue;
                     }
+
 
                     if (keyInfo.KeyChar == ',' || keyInfo.KeyChar == 'g')
                     {

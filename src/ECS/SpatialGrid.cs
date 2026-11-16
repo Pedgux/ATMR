@@ -2,9 +2,14 @@ namespace ATMR.ECS;
 
 using Arch.Core;
 using ATMR.Components;
+using ATMR.Game;
 using ATMR.Helpers;
 
-public struct Wall{char Symbol; int hp;}
+public struct Wall
+{
+    public char Symbol;
+    public int hp;
+}
 
 public class SpatialGrid
 {
@@ -20,6 +25,7 @@ public class SpatialGrid
         _width = width;
         _height = height;
         _occupancy = new Entity[width * height];
+        _wall_occupancy = new Wall[width * height];
     }
 
     public void Rebuild(World world)
@@ -53,6 +59,40 @@ public class SpatialGrid
         return entity != default;
     }
 
+    public void PlaceWall(int x, int y, Wall wall)
+    {
+        if (!InBounds(x, y))
+        {
+            return;
+        }
+
+        _wall_occupancy[GetIndex(x, y)] = wall;
+    }
+
+    public bool DamageWall(int x, int y, int damage = 1)
+    {
+        if (!InBounds(x, y) || damage <= 0)
+        {
+            return false;
+        }
+
+        int index = GetIndex(x, y);
+        ref Wall wall = ref _wall_occupancy[index];
+        if (wall.Symbol == default)
+        {
+            return false;
+        }
+
+        wall.hp -= damage;
+        if (wall.hp <= 0)
+        {
+            GameState.GridWindow.RestoreBaseTile(x, y);
+            wall = default;
+        }
+
+        return true;
+    }
+
     /// <summary>
     /// Moves entities in the occupancy grid.
     /// </summary>
@@ -71,16 +111,20 @@ public class SpatialGrid
         int fromIndex = GetIndex(fromPos.x, fromPos.y);
         int toIndex = GetIndex(toPos.x, toPos.y);
 
+        if (fromIndex == toIndex && _occupancy[fromIndex] == _occupancy[toIndex])
+            return true; // can move into the same spot (wait)
+
         // pre-emptive checks for if the move is allowed or valid.
         if (_occupancy[fromIndex] != entity)
             return false; // caller's fromPos doesn't match what occupancy actually has
+        
+        if (_wall_occupancy[toIndex].Symbol != default)
+            return false;
 
         if (_occupancy[toIndex] != default)
             return false; // toPos has something, can't move
 
-        if (fromIndex == toIndex && _occupancy[fromIndex] == _occupancy[toIndex])
-            return true; // can move into the same spot (wait)
-
+        
         // perform the swap
         _occupancy[toIndex] = entity;
         _occupancy[fromIndex] = default;

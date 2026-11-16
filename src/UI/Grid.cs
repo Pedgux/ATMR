@@ -2,6 +2,7 @@ namespace ATMR.UI;
 
 using Arch.Core;
 using ATMR.Components;
+using ATMR.ECS;
 using ATMR.Game;
 using ATMR.Helpers;
 using ATMR.Systems;
@@ -35,6 +36,8 @@ public sealed class Grid
         //GridHeight = Math.Max(0, GameState.CameraHeight);
         GridWidth = 200;
         GridHeight = 100;
+
+        GameState.GridWindow = this;
         /*
         GridWidth = 75;
         GridHeight = 31;
@@ -54,21 +57,17 @@ public sealed class Grid
                 {
                     if (i % GridWidth > 20)
                     {
-                        // Even when a wall entity is spawned here, the terrain under it is floor.
-                        // This ensures destroy/move restore can always fall back to '.' cleanly.
                         _baseGrid[i] = ".";
-                        GameState.Level0.World.Create(
-                        new Position(i % GridWidth, i / GridWidth),
-                        new Glyph('#', "[red]"),
-                        new Solid(),
-                        new Health(3, 3)
-                    );
+                        GameState.Level0.Spatial.PlaceWall(
+                            i % GridWidth,
+                            i / GridWidth,
+                            new Wall { Symbol = '#', hp = 3 }
+                        );
                     }
                     else
                     {
                         _baseGrid[i] = "[green]#[/]";
                     }
-                    
                 }
             }
             else

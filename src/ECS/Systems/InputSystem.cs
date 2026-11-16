@@ -1,3 +1,4 @@
+using System.Globalization;
 using Arch.Core;
 using Arch.Core.Extensions;
 using ATMR.Components;
@@ -46,16 +47,16 @@ public static class InputSystem
                             )
                             {
                                 // dig intent add
-                                if (entity.Has<AttackIntent>())
+                                if (entity.Has<DigIntent>())
                                 {
                                     Log.Write(
-                                        $"[red]AttackIntent already present on {entity}, skipping add[/]"
+                                        $"[red]DigIntent already present on {entity}, skipping add[/]"
                                     );
-                                    entity.Set(new AttackIntent(digDx, digDy));
+                                    entity.Set(new DigIntent(digDx, digDy));
                                 }
                                 else
                                 {
-                                entity.Add(new AttackIntent(digDx, digDy));
+                                entity.Add(new DigIntent(digDx, digDy));
                                 }
                             }
                             continue;

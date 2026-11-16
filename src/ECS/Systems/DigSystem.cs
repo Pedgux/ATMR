@@ -1,5 +1,7 @@
 using Arch.Core;
 using ATMR.Components;
+using ATMR.Game;
+using ATMR.Helpers;
 
 namespace ATMR.Systems;
 
@@ -7,61 +9,19 @@ public static class DigSystem
 {
     public static void Run(World world)
     {
-        /*
-        if (intents.Count == 0)
-        {
-            return;
-        }
-
-        var digIntents = intents
-            .Where(intent => intent.Kind == ActionKind.Dig)
-            .GroupBy(intent => intent.PlayerId)
-            .ToDictionary(group => group.Key, group => group.Last());
-
-        if (digIntents.Count == 0)
-        {
-            return;
-        }
-
-        var query = new QueryDescription().WithAll<Player, Position>();
+        var query = new QueryDescription().WithAll<DigIntent, Position>();
 
         world.Query(
             in query,
-            (Entity entity, ref Player player, ref Position position) =>
+            (Entity entity, ref Position position, ref DigIntent intent) =>
             {
-                if (!digIntents.TryGetValue(player.Id, out var intent))
-                {
-                    return;
-                }
+                int targetX = position.X + intent.X;
+                int targetY = position.Y + intent.Y;
 
-                if (intent.Dx == 0 && intent.Dy == 0)
-                {
-                    return;
-                }
-
-                int targetX = position.X + intent.Dx;
-                int targetY = position.Y + intent.Dy;
-
-                ExecuteDig(world, targetX, targetY);
-                GameState.TimeCounter += 20;
+                Log.Write(" kaivetaan");
+                GameState.Level0.Spatial.DamageWall(targetX, targetY);
             }
         );
-        */
-    }
-
-    // no
-    private static void ExecuteDig(World world, int targetX, int targetY)
-    {
-        var targets = new QueryDescription().WithAll<Position, Health>();
-        world.Query(
-            in targets,
-            (Entity entity, ref Position position, ref Health health) =>
-            {
-                if (position.X == targetX && position.Y == targetY)
-                {
-                    health.Amount -= 2;
-                }
-            }
-        );
+        world.Remove<DigIntent>(in query);
     }
 }

@@ -56,6 +56,7 @@ public class Tick
         level.Spatial.Rebuild(level.World);
         InputSystem.Run(level.World, input);
         // AttackSystem.Run(level.World);
+        DigSystem.Run(level.World);
         MovementSystem.Run(level.World);
         TeleportSystem.Run(level.World);
         FollowSystem.Run(level.World);
