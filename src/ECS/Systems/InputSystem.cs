@@ -34,7 +34,6 @@ public static class InputSystem
                 {
                     if (player.Id == kvp.Key)
                     {
-                        Log.Write("inputtia");
                         players += player.Id + ", ";
                         var action = kvp.Value.action;
                         var actionInfo = kvp.Value.actionInfo;
@@ -50,6 +49,7 @@ public static class InputSystem
                             )
                             {
                                 // dig intent add
+                                /*
                                 if (entity.Has<DigIntent>())
                                 {
                                     Log.Write(
@@ -61,6 +61,8 @@ public static class InputSystem
                                 {
                                     entity.Add(new DigIntent(digDx, digDy));
                                 }
+                                */
+                                commandBuffer.Add(entity, new DigIntent(digDx, digDy));
                             }
                             continue;
                         }
@@ -69,6 +71,7 @@ public static class InputSystem
                         {
                             var teleportX = moveRng.Range(1, GameState.GridWindow.GridWidth);
                             var teleportY = moveRng.Range(1, GameState.GridWindow.GridHeight);
+                            /*
                             if (entity.Has<TeleportIntent>())
                             {
                                 Log.Write(
@@ -80,6 +83,8 @@ public static class InputSystem
                             {
                                 entity.Add(new TeleportIntent(teleportX, teleportY));
                             }
+                            */
+                            commandBuffer.Add(entity, new TeleportIntent(teleportX, teleportY));
                             GameState.TimeCounter += 3;
                             continue;
                         }
