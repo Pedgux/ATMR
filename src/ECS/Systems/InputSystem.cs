@@ -26,148 +26,143 @@ public static class InputSystem
         var commandBuffer = new CommandBuffer();
 
         var query = new QueryDescription().WithAll<Player, Position>();
-        world.Query(
-            in query,
-            (Entity entity, ref Player player, ref Position position) =>
+        world.Query(in query, (Entity entity, ref Player player, ref Position position) =>
+        {
+            foreach (var kvp in inputs)
             {
-                foreach (var kvp in inputs)
+                if (player.Id == kvp.Key)
                 {
-                    if (player.Id == kvp.Key)
+                    players += player.Id + ", ";
+                    var action = kvp.Value.action;
+                    var actionInfo = kvp.Value.actionInfo;
+
+                    if (action == 'D')
                     {
-                        players += player.Id + ", ";
-                        var action = kvp.Value.action;
-                        var actionInfo = kvp.Value.actionInfo;
-
-                        if (action == 'D')
-                        {
-                            if (
-                                InputHelper.TryGetDirectionOffset(
-                                    actionInfo,
-                                    out int digDx,
-                                    out int digDy
-                                )
-                            )
-                            {
-                                // dig intent add
-                                /*
-                                if (entity.Has<DigIntent>())
-                                {
-                                    Log.Write(
-                                        $"[red]DigIntent already present on {entity}, skipping add[/]"
-                                    );
-                                    entity.Set(new DigIntent(digDx, digDy));
-                                }
-                                else
-                                {
-                                    entity.Add(new DigIntent(digDx, digDy));
-                                }
-                                */
-                                commandBuffer.Add(entity, new DigIntent(digDx, digDy));
-                            }
-                            continue;
-                        }
-
-                        if (actionInfo == "T")
-                        {
-                            var teleportX = moveRng.Range(1, GameState.GridWindow.GridWidth);
-                            var teleportY = moveRng.Range(1, GameState.GridWindow.GridHeight);
-                            /*
-                            if (entity.Has<TeleportIntent>())
-                            {
-                                Log.Write(
-                                    $"[red]TeleportIntent already present on {entity}, skipping add[/]"
-                                );
-                                entity.Set(new TeleportIntent(teleportX, teleportY));
-                            }
-                            else
-                            {
-                                entity.Add(new TeleportIntent(teleportX, teleportY));
-                            }
-                            */
-                            commandBuffer.Add(entity, new TeleportIntent(teleportX, teleportY));
-                            GameState.TimeCounter += 3;
-                            continue;
-                        }
-
-                        // ostoskärry pickup
-                        if (InputHelper.TryParsePickupListAction(actionInfo, out var pickupCart))
-                        {
-                            Log.Write(
-                                $"[cyan]Processing batch pickup: {pickupCart.Count} items[/]"
-                            );
-                            foreach (var cartItem in pickupCart.OrderByDescending(x => x.Key))
-                            {
-                                pickupRequests.Add(
-                                    new PickupRequest(entity, cartItem.Value, cartItem.Key)
-                                );
-                            }
-                            GameState.TimeCounter += 5;
-                            continue;
-                        }
-
-                        // single stack pickup
                         if (
-                            InputHelper.TryParsePickupAction(
+                            InputHelper.TryGetDirectionOffset(
                                 actionInfo,
-                                out int pickupAmount,
-                                out int itemIndex
+                                out int digDx,
+                                out int digDy
                             )
                         )
                         {
-                            Log.Write($"Picked up! Amount={pickupAmount}, Index={itemIndex}");
-                            pickupRequests.Add(new PickupRequest(entity, pickupAmount, itemIndex));
-                            GameState.TimeCounter += 5;
-                            continue;
-                        }
-                        if (actionInfo == "Drop")
-                        {
-                            dropRequests.Add(new DropRequest(entity, 0));
-                            GameState.TimeCounter += 5;
-                            continue;
-                        }
-
-                        (int dx, int dy) = actionInfo switch
-                        {
-                            "4" => (-1, 0),
-                            "2" => (0, 1),
-                            "8" => (0, -1),
-                            "6" => (1, 0),
-
-                            "5" => (0, 0),
-
-                            "7" => (-1, -1),
-                            "9" => (1, -1),
-                            "1" => (-1, 1),
-                            "3" => (1, 1),
-
-                            _ => (0, 0),
-                        };
-
-                        //MovementIntent.X += dx;
-                        //MovementIntent.Y += dy;
-
-                        if (dx != 0 || dy != 0 || actionInfo == "5")
-                        {
+                            // dig intent add
                             /*
-                            if (entity.Has<MovementIntent>())
+                            if (entity.Has<DigIntent>())
                             {
                                 Log.Write(
-                                    $"[red]MovementIntent already present on {entity}, skipping add[/]"
+                                    $"[red]DigIntent already present on {entity}, skipping add[/]"
                                 );
-                                entity.Set(new MovementIntent(dx, dy)); // update it instead of crashing
+                                entity.Set(new DigIntent(digDx, digDy));
                             }
                             else
                             {
-                                entity.Add(new MovementIntent(dx, dy));
+                                entity.Add(new DigIntent(digDx, digDy));
                             }
                             */
-                            commandBuffer.Add(entity, new MovementIntent(dx, dy));
-                            GameState.TimeCounter += 10;
+                            commandBuffer.Add(entity, new DigIntent(digDx, digDy));
                         }
+                        continue;
+                    }
+
+                    if (actionInfo == "T")
+                    {
+                        var teleportX = moveRng.Range(1, GameState.GridWindow.GridWidth);
+                        var teleportY = moveRng.Range(1, GameState.GridWindow.GridHeight);
+                        /*
+                        if (entity.Has<TeleportIntent>())
+                        {
+                            Log.Write(
+                                $"[red]TeleportIntent already present on {entity}, skipping add[/]"
+                            );
+                            entity.Set(new TeleportIntent(teleportX, teleportY));
+                        }
+                        else
+                        {
+                            entity.Add(new TeleportIntent(teleportX, teleportY));
+                        }
+                        */
+                        commandBuffer.Add(entity, new TeleportIntent(teleportX, teleportY));
+                        GameState.TimeCounter += 3;
+                        continue;
+                    }
+
+                    // ostoskärry pickup
+                    if (InputHelper.TryParsePickupListAction(actionInfo, out var pickupCart))
+                    {
+                        Log.Write($"[cyan]Processing batch pickup: {pickupCart.Count} items[/]");
+                        foreach (var cartItem in pickupCart.OrderByDescending(x => x.Key))
+                        {
+                            pickupRequests.Add(
+                                new PickupRequest(entity, cartItem.Value, cartItem.Key)
+                            );
+                        }
+                        GameState.TimeCounter += 5;
+                        continue;
+                    }
+
+                    // single stack pickup
+                    if (
+                        InputHelper.TryParsePickupAction(
+                            actionInfo,
+                            out int pickupAmount,
+                            out int itemIndex
+                        )
+                    )
+                    {
+                        Log.Write($"Picked up! Amount={pickupAmount}, Index={itemIndex}");
+                        pickupRequests.Add(new PickupRequest(entity, pickupAmount, itemIndex));
+                        GameState.TimeCounter += 5;
+                        continue;
+                    }
+                    if (actionInfo == "Drop")
+                    {
+                        dropRequests.Add(new DropRequest(entity, 0));
+                        GameState.TimeCounter += 5;
+                        continue;
+                    }
+
+                    (int dx, int dy) = actionInfo switch
+                    {
+                        "4" => (-1, 0),
+                        "2" => (0, 1),
+                        "8" => (0, -1),
+                        "6" => (1, 0),
+
+                        "5" => (0, 0),
+
+                        "7" => (-1, -1),
+                        "9" => (1, -1),
+                        "1" => (-1, 1),
+                        "3" => (1, 1),
+
+                        _ => (0, 0),
+                    };
+
+                    //MovementIntent.X += dx;
+                    //MovementIntent.Y += dy;
+
+                    if (dx != 0 || dy != 0 || actionInfo == "5")
+                    {
+                        /*
+                        if (entity.Has<MovementIntent>())
+                        {
+                            Log.Write(
+                                $"[red]MovementIntent already present on {entity}, skipping add[/]"
+                            );
+                            entity.Set(new MovementIntent(dx, dy)); // update it instead of crashing
+                        }
+                        else
+                        {
+                            entity.Add(new MovementIntent(dx, dy));
+                        }
+                        */
+                        commandBuffer.Add(entity, new MovementIntent(dx, dy));
+                        GameState.TimeCounter += 10;
                     }
                 }
             }
-        );
+        });
 
         commandBuffer.Playback(world, true);
 
