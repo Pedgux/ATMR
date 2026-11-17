@@ -185,6 +185,7 @@ public static class InputSystem
         world.Query(in rngQuery, (ref RngState state) => state.State = moveRng.State);
 
         //Log.Write($"Processed players: {players}");
+        // hello
     }
 
     public readonly record struct PickupRequest(Entity PlayerEntity, int Amount, int ItemIndex);
