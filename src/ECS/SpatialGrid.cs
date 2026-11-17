@@ -16,7 +16,7 @@ public class SpatialGrid
     private readonly int _width,
         _height;
     private Entity[] _occupancy;
-    private Wall[] _wall_occupancy;
+    public Wall[] WallOccupancy;
 
     // maybe item holding here too? Dictionary? GetItemsAt(x, y)?
 
@@ -25,7 +25,7 @@ public class SpatialGrid
         _width = width;
         _height = height;
         _occupancy = new Entity[width * height];
-        _wall_occupancy = new Wall[width * height];
+        WallOccupancy = new Wall[width * height];
     }
 
     public void Rebuild(World world)
@@ -67,7 +67,7 @@ public class SpatialGrid
             return;
         }
 
-        _wall_occupancy[GetIndex(x, y)] = wall;
+        WallOccupancy[GetIndex(x, y)] = wall;
     }
 
     public bool DamageWall(int x, int y, int damage = 1)
@@ -78,7 +78,7 @@ public class SpatialGrid
         }
 
         int index = GetIndex(x, y);
-        ref Wall wall = ref _wall_occupancy[index];
+        ref Wall wall = ref WallOccupancy[index];
         if (wall.Symbol == default)
         {
             return false;
@@ -119,7 +119,7 @@ public class SpatialGrid
         if (_occupancy[fromIndex] != entity)
             return false; // caller's fromPos doesn't match what occupancy actually has
 
-        if (_wall_occupancy[toIndex].Symbol != default)
+        if (WallOccupancy[toIndex].Symbol != default)
             return false;
 
         if (_occupancy[toIndex] != default)
@@ -147,6 +147,11 @@ public class SpatialGrid
     private int GetIndex(int x, int y)
     {
         return y * _width + x;
+    }
+
+    public (int, int) GetPos(int index)
+    {
+        return (index % _width, index / _width);
     }
 
     private bool InBounds(int x, int y)

@@ -51,13 +51,13 @@ public sealed class Grid
             {
                 if (GridRng.Range(1, 4) != 1)
                 {
-                    _baseGrid[i] = "[green]#[/]";
+                    _baseGrid[i] = ".";
                 }
                 else
                 {
                     if (i % GridWidth > 20)
                     {
-                        _baseGrid[i] = "#";
+                        _baseGrid[i] = ".";
                         GameState.Level0.Spatial.PlaceWall(
                             i % GridWidth,
                             i / GridWidth,
@@ -66,7 +66,7 @@ public sealed class Grid
                     }
                     else
                     {
-                        _baseGrid[i] = "[green]#[/]";
+                        _baseGrid[i] = ".";
                     }
                 }
             }

@@ -11,6 +11,16 @@ public static class RenderSystem
         var nonPlayerQuery = new QueryDescription().WithAll<Position, Glyph>().WithNone<Player>();
         var playerQuery = new QueryDescription().WithAll<Position, Glyph, Player>();
 
+        foreach (
+            var (index, wall) in GameState
+                .Level0.Spatial.WallOccupancy.Index()
+                .Where(entry => entry.Item.Symbol != default)
+        )
+        {
+            (int wx, int wy) = GameState.Level0.Spatial.GetPos(index);
+            GameState.GridWindow.SetGridCell(wx, wy, $"[dim white]{wall.Symbol}[/]");
+        }
+
         world.Query(
             in nonPlayerQuery,
             (Entity entity, ref Position position, ref Glyph glyph) =>
