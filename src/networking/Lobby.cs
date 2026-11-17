@@ -10,6 +10,8 @@ using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using ATMR.Game;
 using ATMR.Helpers;
+using System.Net;
+using System.Net.Sockets;
 
 public static class Lobby
 {
@@ -129,7 +131,7 @@ public static class Lobby
     /// Registers this player in the Firebase lobby under the given lobby code.
     /// Stores an encoded IP:port blob and a server-side timestamp for join ordering.
     /// </summary>
-    public static async Task Join(string lobbyCode, string playerId, string ip, int port)
+    public static async Task Join(string lobbyCode, string playerId, string ip, int port, IPEndPoint lan)
     {
         if (Auth is null)
             throw new InvalidOperationException(
@@ -145,8 +147,8 @@ public static class Lobby
         //need to PUT this into existence (pun intended)
         string url = $"{BaseUrl}lobbies/{lobbyCode}/{playerId}.json?auth={idToken}";
         Log.Write($"[purple]Using: {ip}:{port} in blob[/]");
-        string blob = IpPortEncoder.Encode(ip, (ushort)port);
-        Log.Write($"[purple]Encoded blob: {blob}[/]");
+        string blob = IpPortEncoder.Encode(new IPEndPoint(IPAddress.Parse(ip), port), lan);
+        Log.Write($"[purple]Using: {ip}:{port} (LAN {lan}) in blob[/]");
         Log.Write($"[purple]Decoded blob: {IpPortEncoder.Decode(blob)}[/]");
         // Store an object with the encoded blob and a server-side join timestamp.
         // This allows deterministic ordering of players later.

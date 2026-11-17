@@ -21,7 +21,15 @@ public static class UdpTransport
         get => _udp ?? throw new InvalidOperationException("UdpTransport not initialized");
         private set => _udp = value;
     }
+
+    // Endpoints we currently send to. Starts with every candidate of every peer,
+    // and shrinks to the one that actually answered once a poke arrives.
+    // Always lock(peerEndpoints) when modifying, and iterate over PeerSnapshot().
     private static List<IPEndPoint> peerEndpoints = new();
+
+    // The (public, LAN) candidate pair advertised by each peer.
+    private static readonly List<(IPEndPoint pub, IPEndPoint lan)> peerCandidates = new();
+
     public static bool connected;
     public static Stopwatch sw = Stopwatch.StartNew();
 
@@ -61,7 +69,15 @@ public static class UdpTransport
             Lobby.Auth?.LocalId
             ?? throw new InvalidOperationException("Lobby.Auth or LocalId is null");
         Log.Write($"[yellow]playerId is: {playerId}[/]");
-        await Lobby.Join(lobbyId, playerId, ip, port);
+
+        // Our LAN endpoint. The socket is bound to 0.0.0.0, so its local port
+        // is also the port on our LAN address.
+        int localPort = ((IPEndPoint)Udp.Client.LocalEndPoint!).Port;
+        var myLan = new IPEndPoint(
+            GameState.LocalMode ? IPAddress.Loopback : IpPortEncoder.GetLanIp(),
+            localPort
+        );
+        await Lobby.Join(lobbyId, playerId, ip, port, myLan);
 
         List<string> blobs = await Lobby.GetOtherPlayerBlobs(lobbyId, playerId);
         if (blobs.Count == 0)
@@ -72,14 +88,30 @@ public static class UdpTransport
         // Stop NAT keepalive — punching takes over
         natKeepAliveCts.Cancel();
 
-        // Connect to all peers
-        peerEndpoints.Clear();
-        foreach (string blob in blobs)
+        // Connect to all peers. Every peer advertises a public and a LAN endpoint,
+        // we poke both and keep whichever one answers.
+        lock (peerEndpoints)
         {
-            (string peerIp, ushort peerPort) = IpPortEncoder.Decode(blob);
-            var ep = new IPEndPoint(IPAddress.Parse(peerIp), peerPort);
-            peerEndpoints.Add(ep);
-            _ = Puncher.Punch(ep);
+            peerEndpoints.Clear();
+            peerCandidates.Clear();
+            foreach (string blob in blobs)
+            {
+                var (pub, peerLan) = IpPortEncoder.Decode(blob);
+                peerCandidates.Add((pub, peerLan));
+
+                peerEndpoints.Add(pub);
+                if (!peerLan.Equals(pub))
+                    peerEndpoints.Add(peerLan);
+
+                Log.Write($"[purple]Peer candidates: public {pub}, LAN {peerLan}[/]");
+            }
+        }
+
+        // Punch once per peer. Puncher.Punch sends "poke" through the broadcast
+        // SendMessage, so it reaches every candidate.
+        foreach (var (pub, _) in peerCandidates)
+        {
+            _ = Puncher.Punch(pub);
         }
 
         // Single receive loop handles packets from all peers
@@ -137,6 +169,10 @@ public static class UdpTransport
 
                 if (message == "poke")
                 {
+                    // Whichever candidate answered is the one that works, drop the other.
+                    // Done on every poke (not only the first) so each peer gets locked.
+                    LockPeerEndpoint(sender);
+
                     if (!connected)
                     {
                         Log.Write("[green]Got a connection![/]");
@@ -151,6 +187,40 @@ public static class UdpTransport
             {
                 Log.Write($"[red]Receive error: {ex}[/]");
             }
+        }
+    }
+
+    /// <summary>
+    /// When a poke arrives from one of a peer's candidates, stop sending to that
+    /// peer's other candidate so pings and inputs aren't sent twice.
+    /// </summary>
+    private static void LockPeerEndpoint(IPEndPoint sender)
+    {
+        lock (peerEndpoints)
+        {
+            foreach (var (pub, lan) in peerCandidates)
+            {
+                bool isPub = sender.Equals(pub);
+                if (!isPub && !sender.Equals(lan))
+                    continue;
+
+                var other = isPub ? lan : pub;
+                if (!other.Equals(sender) && peerEndpoints.Remove(other))
+                    Log.Write($"[green]Peer reachable via {sender}, dropping {other}[/]");
+                return;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Copy of the current endpoints, safe to iterate while the receive loop
+    /// is locking onto a candidate.
+    /// </summary>
+    private static IPEndPoint[] PeerSnapshot()
+    {
+        lock (peerEndpoints)
+        {
+            return peerEndpoints.ToArray();
         }
     }
 
@@ -175,7 +245,7 @@ public static class UdpTransport
     /// </summary>
     public static async Task SendMessage(string message)
     {
-        foreach (var peer in peerEndpoints)
+        foreach (var peer in PeerSnapshot())
         {
             await SendMessage(message, peer);
         }
@@ -190,7 +260,7 @@ public static class UdpTransport
             while (true)
             {
                 await Task.Delay(30000);
-                foreach (var peer in peerEndpoints)
+                foreach (var peer in PeerSnapshot())
                 {
                     try
                     {

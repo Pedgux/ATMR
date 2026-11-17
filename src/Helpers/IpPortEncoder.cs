@@ -1,37 +1,70 @@
 namespace ATMR.Helpers;
 
+using System.Net;
+using System.Net.Sockets;
+
 public static class IpPortEncoder
 {
-    // Encode IP + port to tiny Base64 string
-    public static string Encode(string ip, ushort port)
+    // Blob layout (12 bytes, ports big-endian):
+    // [0..3] public IP  [4..5] public port  [6..9] LAN IP  [10..11] LAN port
+    public static string Encode(IPEndPoint pub, IPEndPoint lan)
     {
-        // Split IP into 4 bytes
-        string[] parts = ip.Split('.');
-        if (parts.Length != 4)
-            throw new ArgumentException("Invalid IPv4 address");
-
-        byte[] bytes = new byte[6];
-        for (int i = 0; i < 4; i++)
-            bytes[i] = byte.Parse(parts[i]);
-
-        // Port → 2 bytes (big-endian)
-        bytes[4] = (byte)(port >> 8);
-        bytes[5] = (byte)(port & 0xFF);
-
-        // Convert to Base64
+        byte[] bytes = new byte[12];
+        WriteEndpoint(bytes, 0, pub);
+        WriteEndpoint(bytes, 6, lan);
         return Convert.ToBase64String(bytes);
     }
 
-    // Decode Base64 blob back to IP + port
-    public static (string ip, ushort port) Decode(string blob)
+    public static (IPEndPoint pub, IPEndPoint lan) Decode(string blob)
     {
         byte[] bytes = Convert.FromBase64String(blob);
-        if (bytes.Length != 6)
+
+        // Old 6-byte blobs (public endpoint only) still decode; LAN falls back to public.
+        if (bytes.Length == 6)
+        {
+            var only = ReadEndpoint(bytes, 0);
+            return (only, only);
+        }
+
+        if (bytes.Length != 12)
             throw new ArgumentException("Invalid blob");
 
-        string ip = $"{bytes[0]}.{bytes[1]}.{bytes[2]}.{bytes[3]}";
-        ushort port = (ushort)((bytes[4] << 8) + bytes[5]);
+        return (ReadEndpoint(bytes, 0), ReadEndpoint(bytes, 6));
+    }
 
-        return (ip, port);
+    /// <summary>
+    /// Picks the local IPv4 address the OS would use to reach the internet.
+    /// Connecting a UDP socket sends no packet, it only selects the route.
+    /// </summary>
+    public static IPAddress GetLanIp()
+    {
+        try
+        {
+            using var s = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
+            s.Connect("8.8.8.8", 65530);
+            return ((IPEndPoint)s.LocalEndPoint!).Address;
+        }
+        catch (SocketException)
+        {
+            return IPAddress.Loopback; // no network at all
+        }
+    }
+
+    private static void WriteEndpoint(byte[] buf, int offset, IPEndPoint ep)
+    {
+        byte[] ip = ep.Address.GetAddressBytes();
+        if (ip.Length != 4)
+            throw new ArgumentException("Only IPv4 is supported");
+
+        Array.Copy(ip, 0, buf, offset, 4);
+        buf[offset + 4] = (byte)(ep.Port >> 8);
+        buf[offset + 5] = (byte)(ep.Port & 0xFF);
+    }
+
+    private static IPEndPoint ReadEndpoint(byte[] buf, int offset)
+    {
+        var ip = new IPAddress(new ReadOnlySpan<byte>(buf, offset, 4));
+        int port = (buf[offset + 4] << 8) | buf[offset + 5];
+        return new IPEndPoint(ip, port);
     }
 }
