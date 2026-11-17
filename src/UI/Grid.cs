@@ -57,7 +57,7 @@ public sealed class Grid
                 {
                     if (i % GridWidth > 20)
                     {
-                        _baseGrid[i] = ".";
+                        _baseGrid[i] = "#";
                         GameState.Level0.Spatial.PlaceWall(
                             i % GridWidth,
                             i / GridWidth,
