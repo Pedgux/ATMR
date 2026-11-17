@@ -183,6 +183,7 @@ public static class Input
 
     private static async Task TickPumpMultiplayer(CancellationToken token)
     {
+        int me = Lobby.PlayerNumber;
         while (await WaitForNextTickInputAsync(GameState.InputStorage, token))
         {
             int nextTick = GameState.TickNumber + 1;
@@ -200,13 +201,18 @@ public static class Input
 
             while (DateTime.UtcNow < deadline)
             {
-                bool hasRemote;
+                bool hasAllRemote;
                 lock (InputLock)
                 {
                     var tickInputs = GameState.InputStorage.GetValueOrDefault(nextTick);
-                    hasRemote = tickInputs != null && tickInputs.ContainsKey(remotePlayer);
+                    hasAllRemote =
+                        tickInputs != null
+                        && Enumerable
+                            .Range(1, Lobby.PlayerAmount)
+                            .Where(p => p != me)
+                            .All(tickInputs.ContainsKey);
                 }
-                if (hasRemote)
+                if (hasAllRemote)
                     break;
                 await Task.Delay(1, token);
             }
@@ -632,7 +638,6 @@ public static class Input
                         Log.Write(DigPromptMessage);
                         continue;
                     }
-
 
                     if (keyInfo.KeyChar == ',' || keyInfo.KeyChar == 'g')
                     {
