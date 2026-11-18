@@ -20,6 +20,15 @@ public class SpatialGrid
 
     // maybe item holding here too? Dictionary? GetItemsAt(x, y)?
 
+    public Wall[] CaptureWalls() => (Wall[])WallOccupancy.Clone();
+
+    public void ApplyWalls(Wall[] walls)
+    {
+        if (walls.Length != WallOccupancy.Length)
+            return;
+        Array.Copy(walls, WallOccupancy, walls.Length);
+    }
+
     public SpatialGrid(int width, int height)
     {
         _width = width;

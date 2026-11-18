@@ -255,7 +255,7 @@ public static class Input
                     {
                         Log.Write($"[yellow]Re-exec tick {executingTick} (late input)[/]");
                         var oldWorld = GameState.Level0.World;
-                        GameState.Level0.World = GameState.WorldStorage[executingTick];
+                        GameState.Level0.Restore(GameState.WorldStorage[executingTick]);
                         World.Destroy(oldWorld);
                         GameState.WorldStorage.Remove(executingTick);
                         await Tick.CreateAsync(
@@ -446,7 +446,7 @@ public static class Input
                 }
 
                 var oldWorld = GameState.Level0.World;
-                GameState.Level0.World = GameState.WorldStorage[earliestRollback];
+                GameState.Level0.Restore(GameState.WorldStorage[earliestRollback]);
                 World.Destroy(oldWorld);
                 GameState.WorldStorage.Remove(earliestRollback);
 
@@ -799,7 +799,7 @@ public static class Input
                         else
                         {
                             var oldWorld = GameState.Level0.World;
-                            GameState.Level0.World = GameState.WorldStorage[localRollbackFrom];
+                            GameState.Level0.Restore(GameState.WorldStorage[localRollbackFrom]);
                             World.Destroy(oldWorld);
                             GameState.WorldStorage.Remove(localRollbackFrom);
                             for (int i = localRollbackFrom; i <= rollbackTo; i++)

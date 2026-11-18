@@ -5,6 +5,8 @@ using ATMR.ECS;
 using ATMR.Helpers;
 using ATMR.UI;
 
+public readonly record struct LevelSnapshot(World World, Wall[] Walls);
+
 /// <summary>
 /// Holds a world with it's entities and a level identifier
 /// </summary>
@@ -44,9 +46,14 @@ public class Level
         LevelNumber = levelNumber;
     }
 
-    public World GetSnapshot()
+    public LevelSnapshot GetSnapshot()
     {
-        //Log.Write("tää juttu tapahtuu"); ei.
-        return World.Copy();
+        return new LevelSnapshot(World.Copy(), Spatial.CaptureWalls());
+    }
+
+    public void Restore(LevelSnapshot snapshot)
+    {
+        World = snapshot.World;
+        Spatial.ApplyWalls(snapshot.Walls);
     }
 }

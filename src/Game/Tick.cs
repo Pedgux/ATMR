@@ -45,7 +45,7 @@ public class Tick
     {
         if (GameState.WorldStorage.TryGetValue(tickNumber, out var oldSnapshot))
         {
-            World.Destroy(oldSnapshot);
+            World.Destroy(oldSnapshot.World);
         }
 
         GameState.WorldStorage[tickNumber] = GameState.Level0.GetSnapshot();

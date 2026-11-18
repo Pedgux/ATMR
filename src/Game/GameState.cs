@@ -43,7 +43,7 @@ public static class GameState
     public static UI.InventoryPanel InventoryWindow { get; set; } = null!;
 
     // storage
-    public static Dictionary<int, World> WorldStorage = new();
+    public static Dictionary<int, LevelSnapshot> WorldStorage = new();
     public static Dictionary<int, Dictionary<int, (char action, string actionInfo)>> InputStorage =
         new();
 

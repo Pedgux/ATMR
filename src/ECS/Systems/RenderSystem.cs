@@ -11,6 +11,7 @@ public static class RenderSystem
         var nonPlayerQuery = new QueryDescription().WithAll<Position, Glyph>().WithNone<Player>();
         var playerQuery = new QueryDescription().WithAll<Position, Glyph, Player>();
 
+        // render all walls
         foreach (
             var (index, wall) in GameState
                 .Level0.Spatial.WallOccupancy.Index()
@@ -20,7 +21,7 @@ public static class RenderSystem
             (int wx, int wy) = GameState.Level0.Spatial.GetPos(index);
             GameState.GridWindow.SetGridCell(wx, wy, $"[dim white]{wall.Symbol}[/]");
         }
-
+        // render all entities, not including players
         world.Query(
             in nonPlayerQuery,
             (Entity entity, ref Position position, ref Glyph glyph) =>
@@ -31,6 +32,7 @@ public static class RenderSystem
                 GameState.GridWindow.SetGridCell(position.X, position.Y, renderable);
             }
         );
+        // render all players last, so they are on top.
         world.Query(
             in playerQuery,
             (Entity entity, ref Position position, ref Glyph glyph, ref Player player) =>
