@@ -2,9 +2,11 @@ namespace ATMR.UI;
 
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.RegularExpressions;
 using ATMR.Game;
 using ATMR.Helpers;
 using Spectre.Console;
+using Spectre.Console.Rendering;
 
 /// <summary>
 /// Handling of the Messages window.
@@ -20,7 +22,12 @@ public sealed class Messages
     private int _messageWindowSize;
     private int _offset = 0;
 
-    // Constructor: capture the layout child. Live will be started at program-level.
+    // matches lines of the form "[colour]plain text[/]" with no other brackets
+    private static readonly Regex Wrapped = new(
+        @"^\[(?<tag>[^\[\]]+)\](?<body>[^\[\]]*)\[/\]$",
+        RegexOptions.Compiled
+    );
+
     public Messages()
     {
         _messagePanel = new Panel("") { Expand = true };
@@ -30,28 +37,76 @@ public sealed class Messages
     }
 
     /// <summary>
+    /// Splits a line into chunks of at most `width` plain characters. Every chunk is
+    /// valid markup on its own, so a split can never cut a tag in half.
+    /// </summary>
+    private static IEnumerable<string> SplitMarkupSafe(string message, int width)
+    {
+        width = Math.Max(10, width); // also prevents an endless loop on tiny consoles
+
+        string? tag = null;
+        string text;
+        var m = Wrapped.Match(message);
+        if (m.Success)
+        {
+            tag = m.Groups["tag"].Value;
+            text = m.Groups["body"].Value;
+        }
+        else
+        {
+            try
+            {
+                text = Markup.Remove(message);
+            }
+            catch (InvalidOperationException)
+            {
+                text = message;
+            }
+        }
+
+        if (text.Length == 0)
+        {
+            yield return "";
+            yield break;
+        }
+
+        int i = 0;
+        while (i < text.Length)
+        {
+            int len = Math.Min(width, text.Length - i);
+
+            // if the rest doesn't fit, break after the last space inside the window
+            if (i + len < text.Length)
+            {
+                int space = text.LastIndexOf(' ', i + len - 1, len);
+                if (space > i)
+                    len = space - i + 1;
+            }
+
+            string chunk = Markup.Escape(text.Substring(i, len).TrimEnd());
+            yield return tag is null ? chunk : $"[{tag}]{chunk}[/]";
+
+            i += len;
+            while (i < text.Length && text[i] == ' ')
+                i++;
+        }
+    }
+
+    /// <summary>
     /// queue a message for writing
     /// </summary>
-    /// <param name="message">hmm</param>
     public void Write(string message)
     {
         lock (_messages)
         {
-            int _writableArea = GameState.RightWidth - 7;
-            int trueSize = StringHelper.MarkupToString(message).Length;
-            // doesnt work because buh width is fucking hard apparently
-            // replace size in here with width, as size is relative to the orientation of the layout
-            // if message is too large, split into multiple so shi does not break :c
-            while (trueSize > _writableArea)
+            bool first = true;
+            // -5 leaves room for the "#NN " prefix
+            foreach (var chunk in SplitMarkupSafe(message, GameState.RightWidth - 4 - 5))
             {
-                var subMessage = message.Substring(_writableArea);
-                message = message.Substring(0, _writableArea);
-                _messages.Add(message);
-                message = subMessage;
-                trueSize = StringHelper.MarkupToString(message).Length;
+                _messages.Add(first ? $"#{_messages.Count, -2} {chunk}" : $"     {chunk}");
+                first = false;
             }
 
-            _messages.Add($"#{_messages.Count, -2} {message}");
             if (_messages.Count > _messageHistory)
                 _messages.RemoveRange(0, _messages.Count - _messageHistory);
         }
@@ -60,14 +115,13 @@ public sealed class Messages
     /// <summary>
     /// Gets the window of messages to show
     /// </summary>
-    /// <returns>The window as a string</returns>
     private string GetMessageString()
     {
-        var start = Math.Max(0, _messages.Count - _messageWindowSize - _offset);
         lock (_messages)
         {
             if (_messages.Count == 0)
                 return string.Empty;
+            var start = Math.Max(0, _messages.Count - _messageWindowSize - _offset);
             return string.Join('\n', _messages.Skip(start).Take(_messageWindowSize));
         }
     }
@@ -75,8 +129,18 @@ public sealed class Messages
     // update the panel, plz work
     public void RefreshPanel()
     {
-        var panel = new Panel(new Markup(GetMessageString())) { Expand = true };
-        _messageWindow.Update(panel);
+        string text = GetMessageString();
+        IRenderable body;
+        try
+        {
+            body = new Markup(text);
+        } // the parser throws here on bad markup
+        catch (InvalidOperationException)
+        {
+            body = new Text(text);
+        }
+
+        _messageWindow.Update(new Panel(body) { Expand = true });
         _messageWindowSize = _messageWindow.Size.GetValueOrDefault() - 2;
     }
 
@@ -92,7 +156,6 @@ public sealed class Messages
     {
         _offset--;
         var maxOffset = Math.Max(0, _messages.Count - _messageWindowSize);
-        // Clamp offset to [0, maxOffset]
         if (_offset < 0)
             _offset = 0;
         _offset = Math.Min(_offset, maxOffset);
