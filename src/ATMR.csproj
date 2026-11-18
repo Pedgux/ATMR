@@ -5,9 +5,12 @@
     <LangVersion>preview</LangVersion>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Include="**/*.cs" Exclude="ATMR.Tests/**/*.cs;obj/**/*.cs;bin/**/*.cs" />
     <ProjectReference Include="..\lib\Arch\src\Arch\Arch.csproj" />
     <PackageReference Include="Spectre.Console" Version="0.54.0" />
     <PackageReference Include="Spectre.Console.Cli" Version="0.53.1" />

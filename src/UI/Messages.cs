@@ -37,7 +37,7 @@ public sealed class Messages
     {
         lock (_messages)
         {
-            int _writableArea = GameState.RightWidth - 2;
+            int _writableArea = GameState.RightWidth - 7;
             int trueSize = StringHelper.MarkupToString(message).Length;
             // doesnt work because buh width is fucking hard apparently
             // replace size in here with width, as size is relative to the orientation of the layout
